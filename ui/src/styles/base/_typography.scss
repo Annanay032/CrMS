@@ -1,0 +1,40 @@
+// ============================================
+// Typography — CrMS Design System
+// ============================================
+@use '../abstracts' as *;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+body {
+  font-family: $font-family-sans;
+  font-size: $font-size-base;
+  color: $color-text;
+}
+
+h1 { font-size: $font-size-3xl; line-height: $line-height-tight; color: $color-text-heading; }
+h2 { font-size: $font-size-2xl; line-height: $line-height-tight; color: $color-text-heading; }
+h3 { font-size: $font-size-lg;  line-height: $line-height-snug;  color: $color-text-heading; }
+h4 { font-size: $font-size-md;  line-height: $line-height-snug;  color: $color-text-heading; }
+h5 { font-size: $font-size-base; line-height: $line-height-normal; color: $color-text-heading; }
+
+.text-xs   { font-size: $font-size-xs; }
+.text-sm   { font-size: $font-size-sm; }
+.text-base { font-size: $font-size-base; }
+.text-md   { font-size: $font-size-md; }
+.text-lg   { font-size: $font-size-lg; }
+.text-xl   { font-size: $font-size-xl; }
+.text-2xl  { font-size: $font-size-2xl; }
+.text-3xl  { font-size: $font-size-3xl; }
+.text-4xl  { font-size: $font-size-4xl; }
+
+.font-normal   { font-weight: $font-weight-normal; }
+.font-medium   { font-weight: $font-weight-medium; }
+.font-semibold { font-weight: $font-weight-semibold; }
+.font-bold     { font-weight: $font-weight-bold; }
+
+.text-muted { color: $color-text-secondary; }
+.text-heading { color: $color-text-heading; }
+.text-primary { color: $color-primary-600; }
+.text-success { color: $color-success-600; }
+.text-warning { color: $color-warning-600; }
+.text-danger  { color: $color-danger-600; }

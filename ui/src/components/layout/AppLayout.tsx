@@ -1,27 +1,29 @@
+import { useEffect } from 'react';
 import { Outlet, Navigate } from 'react-router-dom';
-import { useAuthStore } from '../../stores/auth.store';
 import { Sidebar } from './Sidebar';
 import { TopBar } from './TopBar';
-import { useEffect } from 'react';
-import api from '../../lib/api';
+import { useAppSelector, useAppDispatch } from '@/hooks/store';
+import { setUser } from '@/store/auth.slice';
+import { useGetMeQuery } from '@/store/endpoints/auth';
+import styles from './AppLayout.module.scss';
 
 export function AppLayout() {
-  const { isAuthenticated, setUser, user } = useAuthStore();
+  const { isAuthenticated, user } = useAppSelector((s) => s.auth);
+  const dispatch = useAppDispatch();
+  const { data } = useGetMeQuery(undefined, { skip: !isAuthenticated || !!user });
 
   useEffect(() => {
-    if (isAuthenticated && !user) {
-      api.get('/auth/me').then((res) => setUser(res.data.data)).catch(() => {});
-    }
-  }, [isAuthenticated, user, setUser]);
+    if (data?.data) dispatch(setUser(data.data));
+  }, [data, dispatch]);
 
   if (!isAuthenticated) return <Navigate to="/login" replace />;
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
+    <div className={styles.layout}>
       <Sidebar />
-      <div className="flex-1 ml-64 flex flex-col">
+      <div className={styles.layout__main}>
         <TopBar />
-        <main className="flex-1 p-6">
+        <main className={styles.layout__content}>
           <Outlet />
         </main>
       </div>

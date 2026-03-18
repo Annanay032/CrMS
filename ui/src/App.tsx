@@ -1,18 +1,15 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { AppLayout } from './components/layout/AppLayout';
-import { LoginPage } from './pages/auth/LoginPage';
-import { RegisterPage } from './pages/auth/RegisterPage';
-import { OAuthCallbackPage } from './pages/auth/OAuthCallbackPage';
-import { DashboardPage } from './pages/dashboard/DashboardPage';
-import { CalendarPage } from './pages/content/CalendarPage';
-import { CreatePostPage } from './pages/content/CreatePostPage';
-import { AnalyticsPage } from './pages/analytics/AnalyticsPage';
-import { CampaignsPage } from './pages/campaigns/CampaignsPage';
-import { DiscoverPage } from './pages/discover/DiscoverPage';
-import { CommunityPage } from './pages/community/CommunityPage';
-import { TrendsPage } from './pages/trends/TrendsPage';
-import { AiAssistantPage } from './pages/ai/AiAssistantPage';
-import { SettingsPage } from './pages/settings/SettingsPage';
+import { AppLayout } from '@/components/layout/AppLayout';
+import { LoginPage, RegisterPage, OAuthCallbackPage } from '@/pages/auth';
+import { DashboardPage } from '@/pages/dashboard';
+import { CalendarPage, CreatePostPage } from '@/pages/content';
+import { AnalyticsPage } from '@/pages/analytics';
+import { CampaignsPage } from '@/pages/campaigns';
+import { DiscoverPage } from '@/pages/discover';
+import { CommunityPage } from '@/pages/community';
+import { TrendsPage } from '@/pages/trends';
+import { AiAssistantPage } from '@/pages/ai';
+import { SettingsPage } from '@/pages/settings';
 
 export default function App() {
   return (

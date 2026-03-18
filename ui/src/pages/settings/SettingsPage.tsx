@@ -1,56 +1,45 @@
-import { useState } from 'react';
-import { Card, CardContent, CardHeader } from '../../components/ui/Card';
-import { Button } from '../../components/ui/Button';
-import { Input } from '../../components/ui/Input';
-import { useAuthStore } from '../../stores/auth.store';
-import api from '../../lib/api';
+import { useEffect } from 'react';
+import { Card, Typography, message } from 'antd';
+import { useSearchParams } from 'react-router-dom';
+import { faGear } from '@fortawesome/free-solid-svg-icons';
+import { useAppSelector } from '@/hooks/store';
+import { PageHeader } from '@/components/common';
+import { ProfileForm } from './components/ProfileForm';
+import { ConnectedAccounts } from './components/ConnectedAccounts';
+import { CreatorProfileForm } from './components/CreatorProfileForm';
+import { BrandProfileForm } from './components/BrandProfileForm';
+
+const { Text } = Typography;
 
 export function SettingsPage() {
-  const { user, setUser } = useAuthStore();
-  const [name, setName] = useState(user?.name ?? '');
-  const [loading, setLoading] = useState(false);
-  const [saved, setSaved] = useState(false);
+  const user = useAppSelector((s) => s.auth.user);
+  const [params, setParams] = useSearchParams();
 
-  const saveProfile = async () => {
-    setLoading(true);
-    try {
-      const { data } = await api.put('/users/me', { name });
-      setUser({ ...user!, ...data.data });
-      setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
-    } catch { /* */ }
-    setLoading(false);
-  };
+  useEffect(() => {
+    const connected = params.get('connected');
+    const error = params.get('error');
+    if (connected) {
+      message.success(`${connected.charAt(0).toUpperCase() + connected.slice(1)} connected successfully!`);
+      setParams({}, { replace: true });
+    } else if (error) {
+      const platform = params.get('platform') ?? '';
+      message.error(`Connection failed${platform ? ` for ${platform}` : ''}. Please try again.`);
+      setParams({}, { replace: true });
+    }
+  }, [params, setParams]);
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Settings</h1>
+    <div style={{ maxWidth: 640, margin: '0 auto' }}>
+      <PageHeader icon={faGear} title="Settings" />
+      <ProfileForm />
+      {user?.role === 'CREATOR' && <CreatorProfileForm />}
+      {user?.role === 'BRAND' && <BrandProfileForm />}
+      <ConnectedAccounts />
 
-      <Card className="mb-6">
-        <CardHeader><h3 className="font-semibold">Profile</h3></CardHeader>
-        <CardContent className="space-y-4">
-          <Input label="Name" value={name} onChange={(e) => setName(e.target.value)} />
-          <Input label="Email" value={user?.email ?? ''} disabled />
-          <Input label="Role" value={user?.role ?? ''} disabled />
-          <div className="flex items-center gap-3">
-            <Button onClick={saveProfile} loading={loading}>Save Changes</Button>
-            {saved && <span className="text-sm text-green-600">Saved!</span>}
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader><h3 className="font-semibold">Connected Accounts</h3></CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {['Instagram', 'YouTube', 'TikTok'].map((platform) => (
-              <div key={platform} className="flex items-center justify-between p-3 rounded-lg bg-slate-50">
-                <span className="text-sm font-medium">{platform}</span>
-                <Button variant="outline" size="sm">Connect</Button>
-              </div>
-            ))}
-          </div>
-        </CardContent>
+      <Card style={{ marginTop: 24 }}>
+        <Text type="secondary">
+          CrMS v1.0 · Account created {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : '—'}
+        </Text>
       </Card>
     </div>
   );

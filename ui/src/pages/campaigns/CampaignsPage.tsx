@@ -1,94 +1,87 @@
-import { useState, useEffect } from 'react';
-import { Card, CardContent } from '../../components/ui/Card';
-import { Badge } from '../../components/ui/Badge';
-import { Button } from '../../components/ui/Button';
-import api from '../../lib/api';
-import { useAuthStore } from '../../stores/auth.store';
-import { Plus } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-
-interface Campaign {
-  id: string;
-  title: string;
-  description?: string;
-  budget?: number;
-  targetNiche: string[];
-  targetPlatforms: string[];
-  status: string;
-  _count?: { matches: number };
-  brandProfile?: { user: { name: string } };
-  createdAt: string;
-}
+import { useState } from 'react';
+import { Row, Col, Button, Spin, Empty, Form } from 'antd';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faBullhorn, faPlus } from '@fortawesome/free-solid-svg-icons';
+import dayjs from 'dayjs';
+import { useGetCampaignsQuery, useGetMyCampaignsQuery, useCreateCampaignMutation } from '@/store/endpoints/campaigns';
+import { useAppSelector } from '@/hooks/store';
+import { PageHeader } from '@/components/common';
+import type { Campaign } from '@/types';
+import { CampaignCard } from './components/CampaignCard';
+import { CreateCampaignModal } from './components/CreateCampaignModal';
+import { CampaignDetailDrawer } from './components/CampaignDetailDrawer';
 
 export function CampaignsPage() {
-  const { user } = useAuthStore();
-  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-  const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
+  const { user } = useAppSelector((s) => s.auth);
+  const isBrandOrAgency = user?.role === 'BRAND' || user?.role === 'AGENCY';
 
-  useEffect(() => {
-    const url = user?.role === 'CREATOR' ? '/campaigns/my' : '/campaigns';
-    api.get(url).then((res) => {
-      const data = res.data.data;
-      setCampaigns(Array.isArray(data) ? data : data?.map?.((m: any) => m.campaign) ?? []);
-    }).catch(() => {}).finally(() => setLoading(false));
-  }, [user]);
+  const allQuery = useGetCampaignsQuery(undefined, { skip: isBrandOrAgency });
+  const myQuery = useGetMyCampaignsQuery(undefined, { skip: !isBrandOrAgency });
+  const [createCampaign, { isLoading: creating }] = useCreateCampaignMutation();
 
-  const statusVariant = (s: string) => {
-    if (s === 'ACTIVE') return 'success';
-    if (s === 'COMPLETED') return 'info';
-    if (s === 'PAUSED') return 'warning';
-    if (s === 'CANCELLED') return 'danger';
-    return 'default';
+  const [createOpen, setCreateOpen] = useState(false);
+  const [selected, setSelected] = useState<Campaign | null>(null);
+  const [form] = Form.useForm();
+
+  const campaigns: Campaign[] = isBrandOrAgency
+    ? (myQuery.data?.data ?? [])
+    : (allQuery.data?.data ?? []);
+  const loading = isBrandOrAgency ? myQuery.isLoading : allQuery.isLoading;
+
+  const handleCreate = async (values: Record<string, unknown>) => {
+    const [start, end] = (values.dateRange as [dayjs.Dayjs, dayjs.Dayjs]) ?? [];
+    await createCampaign({
+      title: values.title as string,
+      description: values.description as string,
+      targetPlatforms: values.targetPlatforms as string[],
+      budget: values.budget as number,
+      startDate: start?.toISOString(),
+      endDate: end?.toISOString(),
+    });
+    form.resetFields();
+    setCreateOpen(false);
   };
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">
-          {user?.role === 'CREATOR' ? 'My Campaigns' : 'Campaigns'}
-        </h1>
-        {user?.role === 'BRAND' && (
-          <Button onClick={() => navigate('/campaigns/new')}>
-            <Plus className="h-4 w-4 mr-2" /> New Campaign
-          </Button>
-        )}
-      </div>
+      <PageHeader
+        icon={faBullhorn}
+        title={isBrandOrAgency ? 'My Campaigns' : 'All Campaigns'}
+        extra={
+          isBrandOrAgency && (
+            <Button type="primary" icon={<FontAwesomeIcon icon={faPlus} />} onClick={() => setCreateOpen(true)}>
+              New Campaign
+            </Button>
+          )
+        }
+      />
 
       {loading ? (
-        <div className="text-center py-12 text-slate-400">Loading...</div>
+        <div style={{ textAlign: 'center', padding: 80 }}><Spin size="large" /></div>
       ) : campaigns.length === 0 ? (
-        <Card>
-          <CardContent className="text-center py-12">
-            <p className="text-slate-500">No campaigns yet.</p>
-          </CardContent>
-        </Card>
+        <Empty
+          description={isBrandOrAgency ? 'No campaigns yet. Create your first!' : 'No campaigns available.'}
+          style={{ padding: 80 }}
+        />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <Row gutter={[16, 16]}>
           {campaigns.map((c) => (
-            <Card key={c.id} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate(`/campaigns/${c.id}`)}>
-              <CardContent>
-                <div className="flex items-start justify-between mb-3">
-                  <h3 className="font-semibold text-sm">{c.title}</h3>
-                  <Badge variant={statusVariant(c.status)}>{c.status}</Badge>
-                </div>
-                {c.description && (
-                  <p className="text-xs text-slate-500 mb-3 line-clamp-2">{c.description}</p>
-                )}
-                <div className="flex flex-wrap gap-1 mb-3">
-                  {c.targetNiche.map((n) => (
-                    <Badge key={n} variant="info">{n}</Badge>
-                  ))}
-                </div>
-                <div className="flex items-center justify-between text-xs text-slate-500">
-                  <span>{c.targetPlatforms.join(', ')}</span>
-                  {c.budget && <span>${c.budget.toLocaleString()}</span>}
-                </div>
-              </CardContent>
-            </Card>
+            <Col key={c.id} xs={24} sm={12} lg={8} xl={6}>
+              <CampaignCard campaign={c} onClick={() => setSelected(c)} />
+            </Col>
           ))}
-        </div>
+        </Row>
       )}
+
+      <CreateCampaignModal
+        open={createOpen}
+        form={form}
+        loading={creating}
+        onCancel={() => { setCreateOpen(false); form.resetFields(); }}
+        onFinish={handleCreate}
+      />
+
+      <CampaignDetailDrawer campaign={selected} onClose={() => setSelected(null)} />
     </div>
   );
 }

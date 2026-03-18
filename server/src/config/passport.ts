@@ -3,6 +3,7 @@ import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { env } from './env.js';
 import { prisma } from './database.js';
 import { logger } from './logger.js';
+import type { Role } from '../types/enums.js';
 
 export function configurePassport() {
   if (!env.GOOGLE_CLIENT_ID || !env.GOOGLE_CLIENT_SECRET || !env.GOOGLE_CALLBACK_URL) {
@@ -30,7 +31,7 @@ export function configurePassport() {
           });
 
           if (oauthAccount) {
-            return done(null, oauthAccount.user);
+            return done(null, { userId: oauthAccount.user.id, email: oauthAccount.user.email, role: oauthAccount.user.role as unknown as Role });
           }
 
           // Check if user with this email exists (link accounts)
@@ -57,7 +58,7 @@ export function configurePassport() {
             },
           });
 
-          return done(null, user);
+          return done(null, { userId: user.id, email: user.email, role: user.role as unknown as Role });
         } catch (err) {
           return done(err as Error);
         }
@@ -65,11 +66,12 @@ export function configurePassport() {
     ),
   );
 
-  passport.serializeUser((user: any, done) => done(null, user.id));
+  passport.serializeUser((user: Express.User, done) => done(null, (user as Express.User).userId));
   passport.deserializeUser(async (id: string, done) => {
     try {
       const user = await prisma.user.findUnique({ where: { id } });
-      done(null, user);
+      if (!user) return done(null, false);
+      done(null, { userId: user.id, email: user.email, role: user.role as unknown as Role } as Express.User);
     } catch (err) {
       done(err);
     }

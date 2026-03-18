@@ -1,0 +1,14 @@
+// ============================================
+// CrMS — Main Stylesheet
+// ============================================
+
+// 1. Abstracts (variables, mixins) — loaded globally via vite additionalData
+@use 'abstracts' as *;
+
+// 2. Base
+@use 'base/reset';
+@use 'base/typography';
+@use 'base/global';
+
+// 3. Antd overrides
+@use 'base/antd-overrides';

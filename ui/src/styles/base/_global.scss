@@ -1,0 +1,39 @@
+// ============================================
+// Global Styles — CrMS Design System
+// ============================================
+@use '../abstracts' as *;
+
+body {
+  background: $color-bg;
+}
+
+// ── Global scrollbar ──
+body {
+  @include custom-scrollbar;
+}
+
+// ── Selection ──
+::selection {
+  background: rgba($color-primary-500, 0.2);
+  color: $color-primary-900;
+}
+
+// ── Focus visible ──
+:focus-visible {
+  outline: 2px solid $color-primary-500;
+  outline-offset: 2px;
+}
+
+// ── Spinner animation ──
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid $color-slate-200;
+  border-top-color: $color-primary-500;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}

@@ -1,19 +1,28 @@
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import './index.css';
+import { Provider } from 'react-redux';
+import { ConfigProvider } from 'antd';
+import { store } from '@/store';
+import './styles/main.scss';
 import App from './App';
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: { retry: 1, staleTime: 30_000 },
-  },
-});
-
 createRoot(document.getElementById('root')!).render(
-  <QueryClientProvider client={queryClient}>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
-  </QueryClientProvider>
+  <Provider store={store}>
+    <ConfigProvider theme={{
+      token: {
+        colorPrimary: '#4f46e5',
+        colorSuccess: '#16a34a',
+        colorWarning: '#d97706',
+        colorError: '#dc2626',
+        colorInfo: '#6366f1',
+        borderRadius: 8,
+        fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
+        fontSize: 14,
+      },
+    }}>
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
+    </ConfigProvider>
+  </Provider>,
 );

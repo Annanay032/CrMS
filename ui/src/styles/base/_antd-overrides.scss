@@ -1,0 +1,29 @@
+// ============================================
+// Antd Overrides — Match CrMS design tokens
+// ============================================
+@use '../abstracts' as *;
+
+// Smooth out antd cards
+.ant-card {
+  border-radius: $radius-lg;
+  border-color: $color-border;
+}
+
+// Menu in sidebar
+.ant-menu-dark {
+  background: transparent;
+
+  .ant-menu-item {
+    border-radius: $radius-md;
+    margin-inline: $space-2;
+
+    &.ant-menu-item-selected {
+      background: rgba($color-primary-500, 0.15);
+    }
+  }
+}
+
+// Page header spacing
+.ant-page-header {
+  padding: 0;
+}

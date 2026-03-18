@@ -1,0 +1,76 @@
+.topbar {
+  height: $topbar-height;
+  background: $color-surface;
+  border-bottom: 1px solid $color-border;
+  @include flex-between;
+  padding: 0 $space-6;
+  position: sticky;
+  top: 0;
+  z-index: $z-sticky;
+
+  &__search {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    background: $color-slate-100;
+    border-radius: $radius-xl;
+    padding: $space-2 $space-3;
+    width: 320px;
+    max-width: 100%;
+
+    input {
+      background: transparent;
+      border: none;
+      outline: none;
+      font-size: $font-size-sm;
+      color: $color-text;
+      width: 100%;
+
+      &::placeholder {
+        color: $color-slate-400;
+      }
+    }
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+  }
+
+  &__divider {
+    height: 24px;
+    width: 1px;
+    background: $color-border;
+  }
+
+  &__user {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+  }
+
+  &__avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: $radius-full;
+    background: $gradient-primary;
+    @include flex-center;
+    font-size: $font-size-xs;
+    font-weight: $font-weight-bold;
+    color: $color-white;
+  }
+
+  &__name {
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    color: $color-text;
+    line-height: 1;
+  }
+
+  &__role {
+    font-size: $font-size-xs;
+    color: $color-slate-400;
+    margin-top: 2px;
+  }
+}

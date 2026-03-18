@@ -1,0 +1,112 @@
+.sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: $sidebar-width;
+  background: $sidebar-bg;
+  display: flex;
+  flex-direction: column;
+  z-index: $z-sidebar;
+
+  &__logo {
+    height: $topbar-height;
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    padding: 0 $space-6;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  &__icon {
+    width: 32px;
+    height: 32px;
+    border-radius: $radius-md;
+    background: $gradient-primary;
+    @include flex-center;
+    color: $color-white;
+    font-weight: $font-weight-bold;
+    font-size: $font-size-sm;
+  }
+
+  &__brand {
+    color: $color-white;
+    font-weight: $font-weight-bold;
+    font-size: $font-size-lg;
+    letter-spacing: -0.025em;
+  }
+
+  &__tag {
+    color: $color-slate-500;
+    font-size: 10px;
+    font-weight: $font-weight-medium;
+    margin-left: $space-2;
+  }
+
+  &__nav {
+    flex: 1;
+    padding: $space-4 $space-3;
+    overflow-y: auto;
+    @include custom-scrollbar;
+  }
+
+  &__divider {
+    margin-top: $space-4;
+    padding-top: $space-4;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  &__footer {
+    padding: $space-3;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  &__user {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+    padding: $space-2 $space-3;
+    border-radius: $radius-lg;
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  &__avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: $radius-full;
+    background: $gradient-primary;
+    @include flex-center;
+    font-size: $font-size-xs;
+    font-weight: $font-weight-bold;
+    color: $color-white;
+    flex-shrink: 0;
+  }
+
+  &__info {
+    min-width: 0;
+    flex: 1;
+  }
+
+  &__name {
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    color: $color-slate-200;
+    @include truncate;
+  }
+
+  &__role {
+    font-size: $font-size-xs;
+    color: $color-slate-500;
+    @include truncate;
+  }
+
+  &__logout {
+    padding: $space-1;
+    color: $color-slate-500;
+    border-radius: $radius-md;
+    transition: all $transition-fast;
+
+    &:hover {
+      color: $color-danger-500;
+      background: rgba(255, 255, 255, 0.06);
+    }
+  }
+}

@@ -40,8 +40,8 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
     passport.authenticate('google', { session: false, failureRedirect: `${env.CLIENT_URL}/login?error=oauth_failed` }),
     async (req, res) => {
       try {
-        const user = req.user as { id: string; email: string; role: string };
-        const tokens = await authService.oauthLogin(user);
+        const user = req.user as unknown as { userId: string; email: string; role: string };
+        const tokens = await authService.oauthLogin({ id: user.userId, email: user.email, role: user.role });
         const params = new URLSearchParams({
           accessToken: tokens.accessToken,
           refreshToken: tokens.refreshToken,

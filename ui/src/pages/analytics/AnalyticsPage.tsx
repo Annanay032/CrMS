@@ -1,134 +1,121 @@
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader } from '../../components/ui/Card';
-import { Button } from '../../components/ui/Button';
-import api from '../../lib/api';
-import {
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
+import { useState } from 'react';
+import { Button, Row, Col, Spin, Card, Typography } from 'antd';
+import { faChartLine } from '@fortawesome/free-solid-svg-icons';
+import { useGetAnalyticsDashboardQuery } from '@/store/endpoints/dashboard';
+import { useGetAnalyticsInsightsMutation } from '@/store/endpoints/agents';
+import { PageHeader } from '@/components/common';
+import type { Period } from './types';
+import { PERIODS } from './constants';
+import { MetricsSummary } from './components/MetricsSummary';
+import { EngagementOverview } from './components/EngagementOverview';
+import { PlatformBreakdownCard } from './components/PlatformBreakdownCard';
+import { AiInsightsPanel } from './components/AiInsightsPanel';
 
-} from 'recharts';
-import { Bot } from 'lucide-react';
+const { Text } = Typography;
 
 export function AnalyticsPage() {
-  const [insights, setInsights] = useState<any>(null);
-  const [, setLoading] = useState(false);
-  const [period, setPeriod] = useState<'week' | 'month' | 'quarter'>('week');
+  const [period, setPeriod] = useState<Period>('week');
+  const { data, isLoading } = useGetAnalyticsDashboardQuery({ period });
+  const [getInsights, { isLoading: aiLoading }] = useGetAnalyticsInsightsMutation();
+  const [aiInsights, setAiInsights] = useState<Record<string, unknown> | null>(null);
 
-  const fetchInsights = async () => {
-    setLoading(true);
+  const metrics = data?.data;
+
+  const fetchAiInsights = async () => {
     try {
-      const { data } = await api.post('/agents/analytics/insights', { period });
-      setInsights(data.data);
+      const result = await getInsights({ period }).unwrap();
+      setAiInsights(result.data);
     } catch { /* */ }
-    setLoading(false);
   };
 
-  useEffect(() => { fetchInsights(); }, [period]);
-
-  const metrics = insights?.rawMetrics;
-  const chartData = [
-    { name: 'Impressions', value: metrics?.totalImpressions ?? 0 },
-    { name: 'Reach', value: metrics?.totalReach ?? 0 },
-    { name: 'Likes', value: metrics?.totalLikes ?? 0 },
-    { name: 'Comments', value: metrics?.totalComments ?? 0 },
-    { name: 'Shares', value: metrics?.totalShares ?? 0 },
-  ];
+  const snapshots = (metrics?.snapshots as Array<Record<string, unknown>>) ?? [];
+  const topPosts = (metrics?.topPosts as Array<Record<string, unknown>>) ?? [];
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Analytics</h1>
-        <div className="flex gap-2">
-          {(['week', 'month', 'quarter'] as const).map((p) => (
-            <Button
-              key={p}
-              variant={period === p ? 'primary' : 'outline'}
-              size="sm"
-              onClick={() => setPeriod(p)}
-            >
-              {p.charAt(0).toUpperCase() + p.slice(1)}
-            </Button>
-          ))}
-        </div>
-      </div>
+      <PageHeader
+        icon={faChartLine}
+        title="Analytics"
+        extra={
+          <div style={{ display: 'flex', gap: 8 }}>
+            <Button.Group>
+              {PERIODS.map((p) => (
+                <Button key={p} type={period === p ? 'primary' : 'default'} onClick={() => setPeriod(p)}>
+                  {p.charAt(0).toUpperCase() + p.slice(1)}
+                </Button>
+              ))}
+            </Button.Group>
+            <Button onClick={fetchAiInsights} loading={aiLoading}>AI Insights</Button>
+          </div>
+        }
+      />
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        {[
-          { label: 'Posts', value: metrics?.postsCount ?? '-' },
-          { label: 'Avg Engagement', value: metrics?.avgEngagementRate ? `${metrics.avgEngagementRate.toFixed(1)}%` : '-' },
-          { label: 'Follower Growth', value: metrics?.followerGrowth !== undefined ? `+${metrics.followerGrowth}` : '-' },
-          { label: 'Trend', value: insights?.trend ?? '-' },
-        ].map((m) => (
-          <Card key={m.label}>
-            <CardContent>
-              <p className="text-sm text-slate-500">{m.label}</p>
-              <p className="text-2xl font-semibold mt-1">{m.value}</p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      {isLoading ? (
+        <div style={{ textAlign: 'center', padding: 48 }}><Spin size="large" /></div>
+      ) : (
+        <>
+          <MetricsSummary metrics={metrics as Record<string, unknown>} trend={aiInsights?.trend as string ?? (metrics?.avgEngagementRate ? 'stable' : '-')} />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <Card>
-          <CardHeader><h3 className="font-semibold">Engagement Overview</h3></CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={chartData}>
-                <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                <YAxis tick={{ fontSize: 12 }} />
-                <Tooltip />
-                <Bar dataKey="value" fill="#6366f1" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
+          <Row gutter={[24, 24]} style={{ marginBottom: 24 }}>
+            <Col xs={24} lg={12}>
+              <EngagementOverview metrics={metrics as Record<string, unknown>} />
+            </Col>
+            <Col xs={24} lg={12}>
+              <PlatformBreakdownCard breakdown={(metrics?.platformBreakdown as Array<Record<string, unknown>>) ?? []} />
+            </Col>
+          </Row>
 
-        <Card>
-          <CardHeader><h3 className="font-semibold">Platform Breakdown</h3></CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {(metrics?.platformBreakdown ?? []).map((p: any) => (
-                <div key={p.platform} className="flex items-center justify-between p-3 rounded-lg bg-slate-50">
-                  <div>
-                    <p className="text-sm font-medium">{p.platform}</p>
-                    <p className="text-xs text-slate-500">{p.followers?.toLocaleString()} followers</p>
+          {snapshots.length > 0 && (
+            <Card title="Growth Timeline" style={{ marginBottom: 24 }}>
+              <div style={{ display: 'flex', gap: 8, overflowX: 'auto', padding: '8px 0' }}>
+                {snapshots.map((s) => (
+                  <div
+                    key={s.date as string}
+                    style={{
+                      minWidth: 100,
+                      padding: 12,
+                      background: '#f8fafc',
+                      borderRadius: 8,
+                      textAlign: 'center',
+                    }}
+                  >
+                    <Text type="secondary" style={{ fontSize: 11 }}>{s.date as string}</Text>
+                    <br />
+                    <Text strong>{((s.totalFollowers as number) ?? 0).toLocaleString()}</Text>
+                    <br />
+                    <Text type="secondary" style={{ fontSize: 11, color: (s.growthRate as number) > 0 ? '#16a34a' : '#64748b' }}>
+                      {(s.growthRate as number) > 0 ? '+' : ''}{((s.growthRate as number) ?? 0).toFixed(2)}%
+                    </Text>
                   </div>
-                  <p className="text-sm font-semibold">{p.engagementRate?.toFixed(2)}%</p>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {insights && (
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Bot className="h-5 w-5 text-indigo-600" />
-              <h3 className="font-semibold">AI Insights</h3>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {insights.summary && <p className="text-sm text-slate-700 mb-4">{insights.summary}</p>}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {(insights.insights ?? []).map((insight: string, i: number) => (
-                <div key={i} className="p-3 rounded-lg bg-indigo-50 text-sm">{insight}</div>
-              ))}
-            </div>
-            {insights.recommendations?.length > 0 && (
-              <div className="mt-4">
-                <h4 className="text-sm font-medium mb-2">Recommendations</h4>
-                <ul className="space-y-1">
-                  {insights.recommendations.map((r: string, i: number) => (
-                    <li key={i} className="text-sm text-slate-600 flex gap-2">
-                      <span className="text-indigo-500">→</span> {r}
-                    </li>
-                  ))}
-                </ul>
+                ))}
               </div>
-            )}
-          </CardContent>
-        </Card>
+            </Card>
+          )}
+
+          {topPosts.length > 0 && (
+            <Card title="Top Performing Posts" style={{ marginBottom: 24 }}>
+              {topPosts.map((p) => {
+                const analytics = p.analytics as Record<string, number> | undefined;
+                return (
+                  <div key={p.id as string} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #f1f5f9' }}>
+                    <div>
+                      <Text strong>{(p.caption as string) || 'Untitled'}</Text>
+                      <br />
+                      <Text type="secondary" style={{ fontSize: 12 }}>{p.platform as string}</Text>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <Text>{(analytics?.likes ?? 0).toLocaleString()} likes</Text>
+                      <br />
+                      <Text type="secondary" style={{ fontSize: 12 }}>{(analytics?.comments ?? 0).toLocaleString()} comments</Text>
+                    </div>
+                  </div>
+                );
+              })}
+            </Card>
+          )}
+
+          {aiInsights && <AiInsightsPanel insights={aiInsights} />}
+        </>
       )}
     </div>
   );

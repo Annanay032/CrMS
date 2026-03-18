@@ -1,0 +1,43 @@
+.layout {
+  display: flex;
+  min-height: 100vh;
+  background: $color-bg;
+
+  &__main {
+    flex: 1;
+    margin-left: $sidebar-width;
+    @include flex-col;
+  }
+
+  &__content {
+    flex: 1;
+    padding: $space-6;
+  }
+}
+
+// Sidebar link — global so NavLink className works
+:global {
+  .sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+    padding: $space-2 $space-3;
+    border-radius: $radius-md;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    color: $color-slate-400;
+    transition: all $transition-fast;
+    text-decoration: none;
+    margin-bottom: 2px;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.06);
+      color: $color-slate-200;
+    }
+
+    &--active {
+      background: rgba($color-primary-500, 0.15);
+      color: $color-primary-400;
+    }
+  }
+}

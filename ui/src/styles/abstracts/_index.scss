@@ -1,0 +1,4 @@
+// Abstracts barrel — Variables + Mixins
+// Loaded globally via vite.config.ts additionalData
+@forward 'variables';
+@forward 'mixins';

@@ -8,6 +8,8 @@ import { CampaignsPage } from '@/pages/campaigns';
 import { DiscoverPage } from '@/pages/discover';
 import { CommunityPage } from '@/pages/community';
 import { TrendsPage } from '@/pages/trends';
+import { ListeningPage } from '@/pages/listening';
+import { CompetitivePage } from '@/pages/competitive';
 import { AiAssistantPage } from '@/pages/ai';
 import { SettingsPage } from '@/pages/settings';
 import { CreatePage } from '@/pages/create';
@@ -28,6 +30,8 @@ export default function App() {
         <Route path="/discover" element={<DiscoverPage />} />
         <Route path="/community" element={<CommunityPage />} />
         <Route path="/trends" element={<TrendsPage />} />
+        <Route path="/listening" element={<ListeningPage />} />
+        <Route path="/competitive" element={<CompetitivePage />} />
         <Route path="/ai" element={<AiAssistantPage />} />
         <Route path="/settings" element={<SettingsPage />} />
       </Route>

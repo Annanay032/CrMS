@@ -1,0 +1,1 @@
+export { CompetitivePage } from './CompetitivePage';

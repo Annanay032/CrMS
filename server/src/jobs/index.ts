@@ -4,7 +4,8 @@ import { logger } from '../config/logger.js';
 import { publishScheduledPosts } from './publish.job.js';
 import { fetchAnalytics } from './analytics.job.js';
 import { scanTrends } from './trends.job.js';
-
+import { pollMentions, analyzeMentionBatch } from './listening.job.js';
+import { collectCompetitorData } from './competitive.job.js';
 const connection = { connection: redis as any };
 
 // ── Queues ──────────────────────────────────────────────────
@@ -12,6 +13,8 @@ const connection = { connection: redis as any };
 export const publishQueue = new Queue('publish', connection);
 export const analyticsQueue = new Queue('analytics', connection);
 export const trendsQueue = new Queue('trends', connection);
+export const listeningQueue = new Queue('listening', connection);
+export const competitiveQueue = new Queue('competitive', connection);
 
 // ── Workers ─────────────────────────────────────────────────
 
@@ -31,12 +34,28 @@ export function startWorkers() {
     await scanTrends(job.data as { niche: string[]; platforms: string[] });
   }, connection);
 
+  const listeningWorker = new Worker('listening', async (job) => {
+    logger.info(`Listening job ${job.id}`);
+    if (job.name === 'analyze-batch') {
+      await analyzeMentionBatch(job.data as { queryId: string; userId: string });
+    } else {
+      await pollMentions();
+    }
+  }, connection);
+
+  const competitiveWorker = new Worker('competitive', async (job) => {
+    logger.info(`Competitive data collection job ${job.id}`);
+    await collectCompetitorData();
+  }, connection);
+
   publishWorker.on('failed', (job, err) => logger.error(`Publish job ${job?.id} failed`, err));
   analyticsWorker.on('failed', (job, err) => logger.error(`Analytics job ${job?.id} failed`, err));
   trendsWorker.on('failed', (job, err) => logger.error(`Trends job ${job?.id} failed`, err));
+  listeningWorker.on('failed', (job, err) => logger.error(`Listening job ${job?.id} failed`, err));
+  competitiveWorker.on('failed', (job, err) => logger.error(`Competitive job ${job?.id} failed`, err));
 
   logger.info('BullMQ workers started');
-  return { publishWorker, analyticsWorker, trendsWorker };
+  return { publishWorker, analyticsWorker, trendsWorker, listeningWorker, competitiveWorker };
 }
 
 // ── Scheduled (repeating) jobs ──────────────────────────────
@@ -54,6 +73,20 @@ export async function scheduleRecurringJobs() {
     every: 6 * 60 * 60_000,
   }, {
     name: 'analytics-periodic',
+  });
+
+  // Poll listening queries every 15 minutes
+  await listeningQueue.upsertJobScheduler('listening-poll', {
+    every: 15 * 60_000,
+  }, {
+    name: 'listening-periodic',
+  });
+
+  // Collect competitor data daily
+  await competitiveQueue.upsertJobScheduler('competitive-collect', {
+    every: 24 * 60 * 60_000,
+  }, {
+    name: 'competitive-daily',
   });
 
   logger.info('Recurring jobs scheduled');

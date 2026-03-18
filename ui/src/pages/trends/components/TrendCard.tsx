@@ -1,6 +1,6 @@
-import { Card, Tag, Typography, Progress } from 'antd';
+import { Card, Tag, Typography, Progress, Button } from 'antd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBolt, faClock } from '@fortawesome/free-solid-svg-icons';
+import { faBolt, faClock, faWandMagicSparkles, faPenToSquare } from '@fortawesome/free-solid-svg-icons';
 import type { Trend } from '@/types';
 import { URGENCY_COLORS, REACH_COLORS } from '../constants';
 
@@ -8,9 +8,11 @@ const { Text, Paragraph } = Typography;
 
 interface TrendCardProps {
   trend: Trend;
+  onScore?: () => void;
+  onDraft?: () => void;
 }
 
-export function TrendCard({ trend }: TrendCardProps) {
+export function TrendCard({ trend, onScore, onDraft }: TrendCardProps) {
   const urgencyIcon = trend.urgency === 'act-now' ? faBolt : trend.urgency === 'this-week' ? faClock : undefined;
 
   return (
@@ -38,6 +40,15 @@ export function TrendCard({ trend }: TrendCardProps) {
       <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
         <Text type="secondary" style={{ fontSize: 12 }}>Relevance:</Text>
         <Progress percent={trend.relevanceScore} size="small" style={{ flex: 1, margin: 0 }} />
+      </div>
+
+      <div style={{ marginTop: 12, display: 'flex', gap: 8 }}>
+        <Button size="small" icon={<FontAwesomeIcon icon={faWandMagicSparkles} />} onClick={onScore}>
+          Score Opportunity
+        </Button>
+        <Button size="small" type="primary" icon={<FontAwesomeIcon icon={faPenToSquare} />} onClick={onDraft}>
+          Create Post
+        </Button>
       </div>
     </Card>
   );

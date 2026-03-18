@@ -7,6 +7,8 @@ import { MatchingAgent } from './matching.agent.js';
 import { AnalyticsAgent } from './analytics.agent.js';
 import { EngagementAgent } from './engagement.agent.js';
 import { TrendDetectionAgent } from './trends.agent.js';
+import { SocialListeningAgent } from './listening.agent.js';
+import { CompetitiveIntelligenceAgent } from './competitive.agent.js';
 import { logger } from '../config/logger.js';
 
 const agents: Record<string, BaseAgent> = {
@@ -17,6 +19,8 @@ const agents: Record<string, BaseAgent> = {
   ANALYTICS: new AnalyticsAgent(),
   ENGAGEMENT: new EngagementAgent(),
   TREND_DETECTION: new TrendDetectionAgent(),
+  LISTENING: new SocialListeningAgent(),
+  COMPETITIVE: new CompetitiveIntelligenceAgent(),
 };
 
 export class AgentOrchestrator {

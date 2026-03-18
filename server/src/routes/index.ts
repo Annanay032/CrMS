@@ -9,7 +9,8 @@ import communityRoutes from './community.routes.js';
 import dashboardRoutes from './dashboard.routes.js';
 import accountRoutes from './account.routes.js';
 import ideaRoutes from './idea.routes.js';
-
+import listeningRoutes from './listening.routes.js';
+import competitiveRoutes from './competitive.routes.js';
 const router = Router();
 
 router.use('/auth', authRoutes);
@@ -22,5 +23,7 @@ router.use('/community', communityRoutes);
 router.use('/dashboard', dashboardRoutes);
 router.use('/accounts', accountRoutes);
 router.use('/ideas', ideaRoutes);
+router.use('/listening', listeningRoutes);
+router.use('/competitive', competitiveRoutes);
 
 export default router;

@@ -187,3 +187,77 @@ export interface AuthResponse {
   refreshToken: string;
   user: User;
 }
+
+// ─── Social Listening ───────────────────────────────────────
+
+export interface ListeningQuery {
+  id: string;
+  userId: string;
+  name: string;
+  keywords: string[];
+  platforms: string[];
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  _count?: { mentions: number };
+}
+
+export interface Mention {
+  id: string;
+  queryId: string;
+  platform: string;
+  source?: string;
+  content: string;
+  url?: string;
+  sentiment: 'POSITIVE' | 'NEGATIVE' | 'NEUTRAL' | 'MIXED';
+  reach: number;
+  createdAt: string;
+  detectedAt: string;
+}
+
+export interface SentimentSnapshot {
+  id: string;
+  queryId: string;
+  date: string;
+  positiveCount: number;
+  negativeCount: number;
+  neutralCount: number;
+  mixedCount: number;
+  totalVolume: number;
+}
+
+export interface SentimentSummary {
+  sentimentCounts: Record<string, number>;
+  totalMentions: number;
+  last24h: number;
+}
+
+// ─── Competitive Intelligence ───────────────────────────────
+
+export interface Competitor {
+  id: string;
+  userId: string;
+  name: string;
+  handles: Record<string, string>;
+  platforms: string[];
+  notes?: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  snapshots?: CompetitorSnapshot[];
+  _count?: { snapshots: number };
+}
+
+export interface CompetitorSnapshot {
+  id: string;
+  competitorId: string;
+  date: string;
+  platform: string;
+  followers: number;
+  engagementRate: number;
+  postFrequency: number;
+  topContentTypes: string[];
+  topHashtags: string[];
+  avgLikes: number;
+  avgComments: number;
+}

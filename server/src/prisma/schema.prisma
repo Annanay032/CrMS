@@ -34,11 +34,13 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  oauthAccounts  OAuthAccount[]
-  creatorProfile CreatorProfile?
-  brandProfile   BrandProfile?
-  agencyProfile  AgencyProfile?
-  agentTasks     AgentTask[]
+  oauthAccounts    OAuthAccount[]
+  creatorProfile   CreatorProfile?
+  brandProfile     BrandProfile?
+  agencyProfile    AgencyProfile?
+  agentTasks       AgentTask[]
+  listeningQueries ListeningQuery[]
+  competitors      Competitor[]
 
   @@map("users")
 }
@@ -431,6 +433,109 @@ model CommunityInteraction {
 
   @@index([creatorProfileId, interactionType])
   @@map("community_interactions")
+}
+
+// ─── Social Listening ────────────────────────────────────────
+
+enum MentionSentiment {
+  POSITIVE
+  NEGATIVE
+  NEUTRAL
+  MIXED
+}
+
+model ListeningQuery {
+  id         String   @id @default(cuid())
+  userId     String
+  name       String
+  keywords   String[]
+  platforms  Platform[]
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mentions  Mention[]
+  snapshots SentimentSnapshot[]
+
+  @@index([userId, isActive])
+  @@map("listening_queries")
+}
+
+model Mention {
+  id         String           @id @default(cuid())
+  queryId    String
+  platform   Platform
+  source     String?          // username or account handle
+  content    String
+  url        String?
+  sentiment  MentionSentiment @default(NEUTRAL)
+  reach      Int              @default(0)
+  createdAt  DateTime         @default(now())
+  detectedAt DateTime         @default(now())
+
+  query ListeningQuery @relation(fields: [queryId], references: [id], onDelete: Cascade)
+
+  @@index([queryId, sentiment])
+  @@index([queryId, platform])
+  @@index([detectedAt])
+  @@map("mentions")
+}
+
+model SentimentSnapshot {
+  id            String   @id @default(cuid())
+  queryId       String
+  date          DateTime @db.Date
+  positiveCount Int      @default(0)
+  negativeCount Int      @default(0)
+  neutralCount  Int      @default(0)
+  mixedCount    Int      @default(0)
+  totalVolume   Int      @default(0)
+
+  query ListeningQuery @relation(fields: [queryId], references: [id], onDelete: Cascade)
+
+  @@unique([queryId, date])
+  @@map("sentiment_snapshots")
+}
+
+// ─── Competitive Intelligence ────────────────────────────────
+
+model Competitor {
+  id        String     @id @default(cuid())
+  userId    String
+  name      String
+  handles   Json       // { "INSTAGRAM": "@handle", "TIKTOK": "@handle" }
+  platforms Platform[]
+  notes     String?
+  isActive  Boolean    @default(true)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  user      User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  snapshots CompetitorSnapshot[]
+
+  @@index([userId, isActive])
+  @@map("competitors")
+}
+
+model CompetitorSnapshot {
+  id              String   @id @default(cuid())
+  competitorId    String
+  date            DateTime @db.Date
+  platform        Platform
+  followers       Int      @default(0)
+  engagementRate  Float    @default(0)
+  postFrequency   Float    @default(0) // posts per week
+  topContentTypes String[] // e.g. ["REEL", "CAROUSEL"]
+  topHashtags     String[]
+  avgLikes        Int      @default(0)
+  avgComments     Int      @default(0)
+
+  competitor Competitor @relation(fields: [competitorId], references: [id], onDelete: Cascade)
+
+  @@unique([competitorId, date, platform])
+  @@index([competitorId, platform])
+  @@map("competitor_snapshots")
 }
 
 // ─── AI Agent Logs ───────────────────────────────────────────

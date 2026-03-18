@@ -12,6 +12,8 @@ import {
   faUsers,
   faShieldHalved,
   faLightbulb,
+  faEarListen,
+  faBinoculars,
 } from '@fortawesome/free-solid-svg-icons';
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import type { UserRole } from '@/types';
@@ -31,6 +33,8 @@ const creatorLinks: NavItem[] = [
   { to: '/campaigns/my', icon: faBullhorn, label: 'My Campaigns' },
   { to: '/community', icon: faComments, label: 'Community' },
   { to: '/trends', icon: faArrowTrendUp, label: 'Trends' },
+  { to: '/listening', icon: faEarListen, label: 'Listening' },
+  { to: '/competitive', icon: faBinoculars, label: 'Competitive' },
   { to: '/ai', icon: faRobot, label: 'AI Assistant' },
 ];
 

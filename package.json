@@ -4,16 +4,16 @@
   "private": true,
   "description": "Creator Management Platform — AI-powered creator, brand, and community management",
   "workspaces": [
-    "client/ui",
+    "ui",
     "server"
   ],
   "scripts": {
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
     "dev:server": "npm run dev --workspace=server",
-    "dev:client": "npm run dev --workspace=client/ui",
+    "dev:client": "npm run dev --workspace=ui",
     "build": "npm run build --workspaces",
     "build:server": "npm run build --workspace=server",
-    "build:client": "npm run build --workspace=client/ui",
+    "build:client": "npm run build --workspace=ui",
     "lint": "npm run lint --workspaces",
     "db:migrate": "npm run db:migrate --workspace=server",
     "db:seed": "npm run db:seed --workspace=server",

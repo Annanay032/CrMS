@@ -6,7 +6,7 @@ services:
       POSTGRES_PASSWORD: crms_secret
       POSTGRES_DB: crms_db
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -44,6 +44,9 @@ services:
       JWT_REFRESH_EXPIRES_IN: 7d
       ENCRYPTION_KEY: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
       CLIENT_URL: http://localhost:5173
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GOOGLE_CALLBACK_URL: http://localhost:3001/api/auth/google/callback
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OPENAI_MODEL: gpt-4
     depends_on:
@@ -54,19 +57,19 @@ services:
     volumes:
       - ./server/src:/app/src
       - ./server/uploads:/app/uploads
-    command: sh -c "npx prisma migrate deploy && npx prisma generate && npm run dev"
+    command: sh -c "npx prisma db push --schema=src/prisma/schema.prisma && npx prisma generate --schema=src/prisma/schema.prisma && npx tsx src/prisma/seed.ts || true && npm run dev"
 
   client:
     build:
-      context: ./client/ui
+      context: ./ui
       dockerfile: Dockerfile
     ports:
       - "5173:5173"
     environment:
       VITE_API_URL: http://localhost:3001/api
     volumes:
-      - ./client/ui/src:/app/src
-      - ./client/ui/public:/app/public
+      - ./ui/src:/app/src
+      - ./ui/public:/app/public
     depends_on:
       - api
 

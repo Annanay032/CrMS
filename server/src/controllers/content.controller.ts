@@ -17,13 +17,13 @@ export async function createPost(req: AuthRequest, res: Response) {
 
 export async function updatePost(req: AuthRequest, res: Response) {
   const creatorProfileId = await getCreatorProfileId(req.user!.userId);
-  const post = await contentService.updatePost(req.params.id, creatorProfileId, req.body);
+  const post = await contentService.updatePost(req.params.id as string, creatorProfileId, req.body);
   res.json({ success: true, data: post });
 }
 
 export async function deletePost(req: AuthRequest, res: Response) {
   const creatorProfileId = await getCreatorProfileId(req.user!.userId);
-  await contentService.deletePost(req.params.id, creatorProfileId);
+  await contentService.deletePost(req.params.id as string, creatorProfileId);
   res.json({ success: true, message: 'Post deleted' });
 }
 

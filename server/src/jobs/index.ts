@@ -5,7 +5,7 @@ import { publishScheduledPosts } from './publish.job.js';
 import { fetchAnalytics } from './analytics.job.js';
 import { scanTrends } from './trends.job.js';
 
-const connection = { connection: redis };
+const connection = { connection: redis as any };
 
 // ── Queues ──────────────────────────────────────────────────
 

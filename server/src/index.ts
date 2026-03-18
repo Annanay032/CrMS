@@ -4,10 +4,12 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import compression from 'compression';
 import rateLimit from 'express-rate-limit';
+import passport from 'passport';
 import { env } from './config/env.js';
 import { logger } from './config/logger.js';
 import { prisma } from './config/database.js';
 import { redis } from './config/redis.js';
+import { configurePassport } from './config/passport.js';
 import routes from './routes/index.js';
 import { errorHandler, notFound } from './middleware/error.js';
 import { startWorkers, scheduleRecurringJobs } from './jobs/index.js';
@@ -37,6 +39,10 @@ app.use(compression());
 if (env.NODE_ENV !== 'test') {
   app.use(morgan('short', { stream: { write: (msg) => logger.info(msg.trim()) } }));
 }
+
+// Passport
+configurePassport();
+app.use(passport.initialize());
 
 // Health check
 app.get('/health', (_req, res) => {

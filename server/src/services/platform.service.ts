@@ -1,5 +1,3 @@
-import type { Platform } from '../types/enums.js';
-
 export interface PlatformPublishResult {
   externalPostId: string;
   url: string;
@@ -23,7 +21,7 @@ export interface PlatformProfile {
 }
 
 export interface IPlatformService {
-  platform: Platform;
+  platform: string;
   publish(accessToken: string, data: {
     caption?: string;
     mediaUrls: string[];
@@ -39,75 +37,62 @@ export interface IPlatformService {
   }>>;
 }
 
-// Placeholder implementations — each will call the real platform API
 export class InstagramService implements IPlatformService {
-  platform = 'INSTAGRAM' as const;
+  platform = 'INSTAGRAM';
 
-  async publish(accessToken: string, data: { caption?: string; mediaUrls: string[]; postType: string }) {
-    // TODO: Implement Instagram Graph API publish
+  async publish(_accessToken: string, _data: { caption?: string; mediaUrls: string[]; postType: string }) {
     return { externalPostId: `ig_${Date.now()}`, url: `https://instagram.com/p/placeholder` };
   }
 
-  async getAnalytics(accessToken: string, externalPostId: string) {
-    // TODO: Implement Instagram Insights API
+  async getAnalytics(_accessToken: string, _externalPostId: string) {
     return { impressions: 0, reach: 0, likes: 0, comments: 0, shares: 0, saves: 0, clicks: 0 };
   }
 
-  async getProfile(accessToken: string) {
-    // TODO: Implement Instagram Graph API profile fetch
+  async getProfile(_accessToken: string) {
     return { handle: '', followers: 0, following: 0, postsCount: 0 };
   }
 
-  async getComments(accessToken: string, externalPostId: string) {
-    // TODO: Implement Instagram Comments API
+  async getComments(_accessToken: string, _externalPostId: string) {
     return [];
   }
 }
 
 export class YouTubeService implements IPlatformService {
-  platform = 'YOUTUBE' as const;
+  platform = 'YOUTUBE';
 
-  async publish(accessToken: string, data: { caption?: string; mediaUrls: string[]; postType: string }) {
-    // TODO: Implement YouTube Data API upload
+  async publish(_accessToken: string, _data: { caption?: string; mediaUrls: string[]; postType: string }) {
     return { externalPostId: `yt_${Date.now()}`, url: `https://youtube.com/watch?v=placeholder` };
   }
 
-  async getAnalytics(accessToken: string, externalPostId: string) {
-    // TODO: Implement YouTube Analytics API
+  async getAnalytics(_accessToken: string, _externalPostId: string) {
     return { impressions: 0, reach: 0, likes: 0, comments: 0, shares: 0, saves: 0, clicks: 0 };
   }
 
-  async getProfile(accessToken: string) {
-    // TODO: Implement YouTube Channel API
+  async getProfile(_accessToken: string) {
     return { handle: '', followers: 0, following: 0, postsCount: 0 };
   }
 
-  async getComments(accessToken: string, externalPostId: string) {
-    // TODO: Implement YouTube Comments API
+  async getComments(_accessToken: string, _externalPostId: string) {
     return [];
   }
 }
 
 export class TikTokService implements IPlatformService {
-  platform = 'TIKTOK' as const;
+  platform = 'TIKTOK';
 
-  async publish(accessToken: string, data: { caption?: string; mediaUrls: string[]; postType: string }) {
-    // TODO: Implement TikTok Content Posting API
+  async publish(_accessToken: string, _data: { caption?: string; mediaUrls: string[]; postType: string }) {
     return { externalPostId: `tt_${Date.now()}`, url: `https://tiktok.com/@placeholder/video/placeholder` };
   }
 
-  async getAnalytics(accessToken: string, externalPostId: string) {
-    // TODO: Implement TikTok Analytics API
+  async getAnalytics(_accessToken: string, _externalPostId: string) {
     return { impressions: 0, reach: 0, likes: 0, comments: 0, shares: 0, saves: 0, clicks: 0 };
   }
 
-  async getProfile(accessToken: string) {
-    // TODO: Implement TikTok User API
+  async getProfile(_accessToken: string) {
     return { handle: '', followers: 0, following: 0, postsCount: 0 };
   }
 
-  async getComments(accessToken: string, externalPostId: string) {
-    // TODO: Implement TikTok Comments API
+  async getComments(_accessToken: string, _externalPostId: string) {
     return [];
   }
 }
@@ -118,7 +103,7 @@ const services: Record<string, IPlatformService> = {
   TIKTOK: new TikTokService(),
 };
 
-export function getPlatformService(platform: Platform): IPlatformService {
+export function getPlatformService(platform: string): IPlatformService {
   const service = services[platform];
   if (!service) throw new Error(`Unsupported platform: ${platform}`);
   return service;

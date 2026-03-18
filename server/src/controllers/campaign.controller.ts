@@ -14,7 +14,7 @@ export async function createCampaign(req: AuthRequest, res: Response) {
 }
 
 export async function getCampaign(req: AuthRequest, res: Response) {
-  const campaign = await campaignService.getCampaign(req.params.id);
+  const campaign = await campaignService.getCampaign(req.params.id as string);
   if (!campaign) {
     res.status(404).json({ success: false, error: 'Campaign not found' });
     return;
@@ -36,7 +36,7 @@ export async function listCampaigns(req: AuthRequest, res: Response) {
 }
 
 export async function updateCampaignStatus(req: AuthRequest, res: Response) {
-  const campaign = await campaignService.updateCampaignStatus(req.params.id, req.body.status);
+  const campaign = await campaignService.updateCampaignStatus(req.params.id as string, req.body.status);
   res.json({ success: true, data: campaign });
 }
 
@@ -46,7 +46,7 @@ export async function respondToMatch(req: AuthRequest, res: Response) {
     res.status(404).json({ success: false, error: 'Creator profile not found' });
     return;
   }
-  const match = await campaignService.respondToMatch(req.params.matchId, creatorProfile.id, req.body.accept);
+  const match = await campaignService.respondToMatch(req.params.matchId as string, creatorProfile.id, req.body.accept);
   res.json({ success: true, data: match });
 }
 

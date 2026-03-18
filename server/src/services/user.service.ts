@@ -1,4 +1,5 @@
 import { prisma } from '../config/index.js';
+import type { Prisma } from '@prisma/client';
 import type { Role } from '../types/enums.js';
 import { paginate } from '../utils/helpers.js';
 
@@ -33,10 +34,14 @@ export async function setupBrandProfile(userId: string, data: {
   budgetRangeLow?: number;
   budgetRangeHigh?: number;
 }) {
+  const payload = {
+    ...data,
+    targetAudience: data.targetAudience as Prisma.InputJsonValue | undefined,
+  };
   return prisma.brandProfile.upsert({
     where: { userId },
-    update: data,
-    create: { userId, ...data },
+    update: payload,
+    create: { userId, ...payload },
   });
 }
 

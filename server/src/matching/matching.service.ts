@@ -1,7 +1,6 @@
 import { prisma } from '../config/index.js';
 import { orchestrator } from '../agents/orchestrator.js';
 import { AgentType } from '../types/enums.js';
-import { computeMatchScores } from './scoring.js';
 
 export async function findCreatorsForCampaign(campaignId: string, userId: string) {
   return orchestrator.run(AgentType.MATCHING, userId, { campaignId });

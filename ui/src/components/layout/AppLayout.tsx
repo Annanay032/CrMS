@@ -17,11 +17,11 @@ export function AppLayout() {
   if (!isAuthenticated) return <Navigate to="/login" replace />;
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen bg-slate-50">
       <Sidebar />
-      <div className="flex-1 ml-64">
+      <div className="flex-1 ml-64 flex flex-col">
         <TopBar />
-        <main className="p-6">
+        <main className="flex-1 p-6">
           <Outlet />
         </main>
       </div>

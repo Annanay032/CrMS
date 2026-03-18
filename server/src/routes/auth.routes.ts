@@ -1,8 +1,11 @@
 import { Router } from 'express';
 import { z } from 'zod';
+import passport from 'passport';
 import * as authController from '../controllers/auth.controller.js';
 import { authenticate } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
+import { env } from '../config/env.js';
+import * as authService from '../services/auth.service.js';
 
 const router = Router();
 
@@ -27,5 +30,36 @@ router.post('/login', validate(loginSchema), authController.login);
 router.post('/refresh', validate(refreshSchema), authController.refresh);
 router.post('/logout', authenticate, authController.logout);
 router.get('/me', authenticate, authController.getMe);
+
+// Google OAuth routes
+if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
+  router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'], session: false }));
+
+  router.get(
+    '/google/callback',
+    passport.authenticate('google', { session: false, failureRedirect: `${env.CLIENT_URL}/login?error=oauth_failed` }),
+    async (req, res) => {
+      try {
+        const user = req.user as { id: string; email: string; role: string };
+        const tokens = await authService.oauthLogin(user);
+        const params = new URLSearchParams({
+          accessToken: tokens.accessToken,
+          refreshToken: tokens.refreshToken,
+        });
+        res.redirect(`${env.CLIENT_URL}/auth/callback?${params.toString()}`);
+      } catch {
+        res.redirect(`${env.CLIENT_URL}/login?error=oauth_failed`);
+      }
+    },
+  );
+} else {
+  // Register fallback routes so the UI gets a clear error instead of a 404
+  router.get('/google', (_req, res) => {
+    res.status(501).json({ success: false, error: 'Google OAuth is not configured. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET.' });
+  });
+  router.get('/google/callback', (_req, res) => {
+    res.status(501).json({ success: false, error: 'Google OAuth is not configured.' });
+  });
+}
 
 export default router;

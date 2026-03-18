@@ -7,11 +7,11 @@ import type { Role } from '../types/enums.js';
 const REFRESH_PREFIX = 'refresh:';
 
 function signAccessToken(payload: JwtPayload): string {
-  return jwt.sign(payload, env.JWT_SECRET, { expiresIn: env.JWT_EXPIRES_IN });
+  return jwt.sign({ ...payload }, env.JWT_SECRET, { expiresIn: env.JWT_EXPIRES_IN as unknown as number });
 }
 
 function signRefreshToken(payload: JwtPayload): string {
-  return jwt.sign(payload, env.JWT_SECRET, { expiresIn: env.JWT_REFRESH_EXPIRES_IN });
+  return jwt.sign({ ...payload }, env.JWT_SECRET, { expiresIn: env.JWT_REFRESH_EXPIRES_IN as unknown as number });
 }
 
 export async function register(email: string, password: string, name: string, role: Role) {
@@ -97,4 +97,12 @@ export async function getMe(userId: string) {
   });
   if (!user) throw Object.assign(new Error('User not found'), { statusCode: 404 });
   return user;
+}
+
+export async function oauthLogin(user: { id: string; email: string; role: string }) {
+  const payload: JwtPayload = { userId: user.id, email: user.email, role: user.role as Role };
+  const accessToken = signAccessToken(payload);
+  const refreshToken = signRefreshToken(payload);
+  await redis.set(`${REFRESH_PREFIX}${user.id}`, refreshToken, 'EX', 7 * 24 * 60 * 60);
+  return { accessToken, refreshToken };
 }

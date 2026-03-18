@@ -1,6 +1,5 @@
 import type { Response } from 'express';
 import * as matchingService from '../matching/matching.service.js';
-import { prisma } from '../config/index.js';
 import type { AuthRequest } from '../types/common.js';
 
 export async function findCreators(req: AuthRequest, res: Response) {
@@ -10,7 +9,7 @@ export async function findCreators(req: AuthRequest, res: Response) {
 }
 
 export async function getMatchResults(req: AuthRequest, res: Response) {
-  const matches = await matchingService.getMatchResults(req.params.campaignId);
+  const matches = await matchingService.getMatchResults(req.params.campaignId as string);
   res.json({ success: true, data: matches });
 }
 

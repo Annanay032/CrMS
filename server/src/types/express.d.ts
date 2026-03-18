@@ -1,0 +1,13 @@
+import type { Role } from './enums.js';
+
+declare global {
+  namespace Express {
+    interface User {
+      userId: string;
+      email: string;
+      role: Role;
+    }
+  }
+}
+
+export {};

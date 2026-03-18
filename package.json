@@ -1,0 +1,40 @@
+{
+  "name": "crms",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Creator Management Platform — AI-powered creator, brand, and community management",
+  "workspaces": [
+    "client/ui",
+    "server"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:server": "npm run dev --workspace=server",
+    "dev:client": "npm run dev --workspace=client/ui",
+    "build": "npm run build --workspaces",
+    "build:server": "npm run build --workspace=server",
+    "build:client": "npm run build --workspace=client/ui",
+    "lint": "npm run lint --workspaces",
+    "db:migrate": "npm run db:migrate --workspace=server",
+    "db:seed": "npm run db:seed --workspace=server",
+    "db:studio": "npm run db:studio --workspace=server"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.2.1",
+    "concurrently": "^9.1.2",
+    "tailwindcss": "^4.2.1"
+  },
+  "dependencies": {
+    "@hookform/resolvers": "^5.2.2",
+    "@tanstack/react-query": "^5.91.0",
+    "axios": "^1.13.6",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.577.0",
+    "react-hook-form": "^7.71.2",
+    "react-router-dom": "^7.13.1",
+    "recharts": "^3.8.0",
+    "tailwind-merge": "^3.5.0",
+    "zod": "^4.3.6",
+    "zustand": "^5.0.12"
+  }
+}

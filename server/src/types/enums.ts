@@ -1,0 +1,75 @@
+export enum Role {
+  CREATOR = 'CREATOR',
+  BRAND = 'BRAND',
+  AGENCY = 'AGENCY',
+  ADMIN = 'ADMIN',
+}
+
+export enum Platform {
+  INSTAGRAM = 'INSTAGRAM',
+  YOUTUBE = 'YOUTUBE',
+  TIKTOK = 'TIKTOK',
+}
+
+export enum PostStatus {
+  IDEA = 'IDEA',
+  DRAFT = 'DRAFT',
+  REVIEW = 'REVIEW',
+  APPROVED = 'APPROVED',
+  SCHEDULED = 'SCHEDULED',
+  PUBLISHED = 'PUBLISHED',
+  FAILED = 'FAILED',
+}
+
+export enum PostType {
+  IMAGE = 'IMAGE',
+  VIDEO = 'VIDEO',
+  REEL = 'REEL',
+  STORY = 'STORY',
+  CAROUSEL = 'CAROUSEL',
+  SHORT = 'SHORT',
+}
+
+export enum CampaignStatus {
+  DRAFT = 'DRAFT',
+  ACTIVE = 'ACTIVE',
+  PAUSED = 'PAUSED',
+  COMPLETED = 'COMPLETED',
+  CANCELLED = 'CANCELLED',
+}
+
+export enum MatchStatus {
+  PENDING = 'PENDING',
+  ACCEPTED = 'ACCEPTED',
+  REJECTED = 'REJECTED',
+  COMPLETED = 'COMPLETED',
+}
+
+export enum AgentType {
+  CONTENT_GENERATION = 'CONTENT_GENERATION',
+  SCHEDULING = 'SCHEDULING',
+  MATCHING = 'MATCHING',
+  ANALYTICS = 'ANALYTICS',
+  ENGAGEMENT = 'ENGAGEMENT',
+  TREND_DETECTION = 'TREND_DETECTION',
+}
+
+export enum InteractionType {
+  COMMENT = 'COMMENT',
+  DM = 'DM',
+  MENTION = 'MENTION',
+}
+
+export enum Sentiment {
+  POSITIVE = 'POSITIVE',
+  NEGATIVE = 'NEGATIVE',
+  NEUTRAL = 'NEUTRAL',
+  QUESTION = 'QUESTION',
+}
+
+export enum OAuthProvider {
+  GOOGLE = 'GOOGLE',
+  INSTAGRAM = 'INSTAGRAM',
+  YOUTUBE = 'YOUTUBE',
+  TIKTOK = 'TIKTOK',
+}

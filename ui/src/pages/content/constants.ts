@@ -13,6 +13,12 @@ export const PLATFORM_OPTIONS = [
   { value: 'INSTAGRAM', label: 'Instagram' },
   { value: 'YOUTUBE', label: 'YouTube' },
   { value: 'TIKTOK', label: 'TikTok' },
+  { value: 'TWITTER', label: 'X (Twitter)' },
+  { value: 'LINKEDIN', label: 'LinkedIn' },
+  { value: 'THREADS', label: 'Threads' },
+  { value: 'BLUESKY', label: 'Bluesky' },
+  { value: 'FACEBOOK', label: 'Facebook' },
+  { value: 'PINTEREST', label: 'Pinterest' },
 ];
 
 export const POST_TYPE_OPTIONS = [
@@ -22,4 +28,5 @@ export const POST_TYPE_OPTIONS = [
   { value: 'STORY', label: 'Story' },
   { value: 'CAROUSEL', label: 'Carousel' },
   { value: 'SHORT', label: 'Short' },
+  { value: 'THREAD', label: 'Thread' },
 ];

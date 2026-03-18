@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Outlet, Navigate } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { TopBar } from './TopBar';
+import { FloatingAiAssistant } from '@/components/ai';
 import { useAppSelector, useAppDispatch } from '@/hooks/store';
 import { setUser } from '@/store/auth.slice';
 import { useGetMeQuery } from '@/store/endpoints/auth';
@@ -27,6 +28,7 @@ export function AppLayout() {
           <Outlet />
         </main>
       </div>
+      <FloatingAiAssistant />
     </div>
   );
 }

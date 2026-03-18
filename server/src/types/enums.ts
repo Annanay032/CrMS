@@ -9,6 +9,12 @@ export enum Platform {
   INSTAGRAM = 'INSTAGRAM',
   YOUTUBE = 'YOUTUBE',
   TIKTOK = 'TIKTOK',
+  TWITTER = 'TWITTER',
+  LINKEDIN = 'LINKEDIN',
+  THREADS = 'THREADS',
+  BLUESKY = 'BLUESKY',
+  FACEBOOK = 'FACEBOOK',
+  PINTEREST = 'PINTEREST',
 }
 
 export enum PostStatus {
@@ -28,6 +34,14 @@ export enum PostType {
   STORY = 'STORY',
   CAROUSEL = 'CAROUSEL',
   SHORT = 'SHORT',
+  THREAD = 'THREAD',
+}
+
+export enum IdeaStatus {
+  SPARK = 'SPARK',
+  DEVELOPING = 'DEVELOPING',
+  READY = 'READY',
+  ARCHIVED = 'ARCHIVED',
 }
 
 export enum CampaignStatus {
@@ -47,11 +61,17 @@ export enum MatchStatus {
 
 export enum AgentType {
   CONTENT_GENERATION = 'CONTENT_GENERATION',
+  PUBLISHING = 'PUBLISHING',
   SCHEDULING = 'SCHEDULING',
   MATCHING = 'MATCHING',
   ANALYTICS = 'ANALYTICS',
   ENGAGEMENT = 'ENGAGEMENT',
   TREND_DETECTION = 'TREND_DETECTION',
+  LISTENING = 'LISTENING',
+  COMPETITIVE = 'COMPETITIVE',
+  CAMPAIGN = 'CAMPAIGN',
+  COLLABORATION = 'COLLABORATION',
+  LINK_IN_BIO = 'LINK_IN_BIO',
 }
 
 export enum InteractionType {

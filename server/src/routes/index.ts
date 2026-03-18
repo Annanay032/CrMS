@@ -8,6 +8,7 @@ import matchingRoutes from './matching.routes.js';
 import communityRoutes from './community.routes.js';
 import dashboardRoutes from './dashboard.routes.js';
 import accountRoutes from './account.routes.js';
+import ideaRoutes from './idea.routes.js';
 
 const router = Router();
 
@@ -20,5 +21,6 @@ router.use('/matching', matchingRoutes);
 router.use('/community', communityRoutes);
 router.use('/dashboard', dashboardRoutes);
 router.use('/accounts', accountRoutes);
+router.use('/ideas', ideaRoutes);
 
 export default router;

@@ -8,21 +8,32 @@ import { Role } from '../types/enums.js';
 const router = Router();
 
 const createPostSchema = z.object({
-  platform: z.enum(['INSTAGRAM', 'YOUTUBE', 'TIKTOK']),
-  postType: z.enum(['IMAGE', 'VIDEO', 'REEL', 'STORY', 'CAROUSEL', 'SHORT']),
-  caption: z.string().max(2200).optional(),
+  platform: z.enum(['INSTAGRAM', 'YOUTUBE', 'TIKTOK', 'TWITTER', 'LINKEDIN', 'THREADS', 'BLUESKY', 'FACEBOOK', 'PINTEREST']),
+  postType: z.enum(['IMAGE', 'VIDEO', 'REEL', 'STORY', 'CAROUSEL', 'SHORT', 'THREAD']),
+  caption: z.string().max(5000).optional(),
   hashtags: z.array(z.string()).optional(),
   mediaUrls: z.array(z.string()).optional(),
   scheduledAt: z.coerce.date().optional(),
   status: z.enum(['IDEA', 'DRAFT', 'REVIEW', 'APPROVED', 'SCHEDULED']).optional(),
+  firstComment: z.string().max(2200).optional(),
+  platformOverrides: z.record(z.string(), z.object({
+    caption: z.string().optional(),
+    hashtags: z.array(z.string()).optional(),
+  })).optional(),
+  bulkGroupId: z.string().optional(),
 });
 
 const updatePostSchema = z.object({
-  caption: z.string().max(2200).optional(),
+  caption: z.string().max(5000).optional(),
   hashtags: z.array(z.string()).optional(),
   mediaUrls: z.array(z.string()).optional(),
   scheduledAt: z.coerce.date().optional(),
   status: z.enum(['IDEA', 'DRAFT', 'REVIEW', 'APPROVED', 'SCHEDULED']).optional(),
+  firstComment: z.string().max(2200).optional(),
+  platformOverrides: z.record(z.string(), z.object({
+    caption: z.string().optional(),
+    hashtags: z.array(z.string()).optional(),
+  })).optional(),
 });
 
 router.post('/', authenticate, authorize(Role.CREATOR), validate(createPostSchema), contentController.createPost);

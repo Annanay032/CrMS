@@ -16,7 +16,7 @@ export function FeatureList() {
           <div className={styles.auth__feature_icon}>
             <FontAwesomeIcon icon={icon} />
           </div>
-          <div>
+          <div className={styles.auth__feature_text}>
             <p className={styles.auth__feature_title}>{title}</p>
             <p className={styles.auth__feature_desc}>{desc}</p>
           </div>

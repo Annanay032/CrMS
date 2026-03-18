@@ -1,0 +1,71 @@
+import { Router } from 'express';
+import { z } from 'zod';
+import * as ideaController from '../controllers/idea.controller.js';
+import { authenticate, authorize } from '../middleware/auth.js';
+import { validate } from '../middleware/validate.js';
+import { Role } from '../types/enums.js';
+
+const router = Router();
+
+// ─── Idea schemas ───────────────────────────────────────────
+
+const createIdeaSchema = z.object({
+  title: z.string().min(1).max(500),
+  body: z.string().max(5000).optional(),
+  status: z.enum(['SPARK', 'DEVELOPING', 'READY', 'ARCHIVED']).optional(),
+  source: z.string().max(50).optional(),
+  mediaUrls: z.array(z.string()).optional(),
+  tagIds: z.array(z.string()).optional(),
+});
+
+const updateIdeaSchema = z.object({
+  title: z.string().min(1).max(500).optional(),
+  body: z.string().max(5000).optional(),
+  status: z.enum(['SPARK', 'DEVELOPING', 'READY', 'ARCHIVED']).optional(),
+  source: z.string().max(50).optional(),
+  mediaUrls: z.array(z.string()).optional(),
+  tagIds: z.array(z.string()).optional(),
+});
+
+// ─── Tag schemas ────────────────────────────────────────────
+
+const createTagSchema = z.object({
+  name: z.string().min(1).max(50),
+  color: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
+});
+
+const updateTagSchema = z.object({
+  name: z.string().min(1).max(50).optional(),
+  color: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
+});
+
+// ─── Template schemas ───────────────────────────────────────
+
+const createTemplateSchema = z.object({
+  name: z.string().min(1).max(200),
+  body: z.string().min(1).max(5000),
+  platform: z.enum(['INSTAGRAM', 'YOUTUBE', 'TIKTOK', 'TWITTER', 'LINKEDIN', 'THREADS', 'BLUESKY', 'FACEBOOK', 'PINTEREST']).optional(),
+  category: z.string().min(1).max(50),
+});
+
+// ─── Idea routes ────────────────────────────────────────────
+
+router.get('/', authenticate, authorize(Role.CREATOR), ideaController.getIdeas);
+router.get('/:id', authenticate, authorize(Role.CREATOR), ideaController.getIdeaById);
+router.post('/', authenticate, authorize(Role.CREATOR), validate(createIdeaSchema), ideaController.createIdea);
+router.put('/:id', authenticate, authorize(Role.CREATOR), validate(updateIdeaSchema), ideaController.updateIdea);
+router.delete('/:id', authenticate, authorize(Role.CREATOR), ideaController.deleteIdea);
+
+// ─── Tag routes ─────────────────────────────────────────────
+
+router.get('/tags/all', authenticate, authorize(Role.CREATOR), ideaController.getTags);
+router.post('/tags', authenticate, authorize(Role.CREATOR), validate(createTagSchema), ideaController.createTag);
+router.put('/tags/:id', authenticate, authorize(Role.CREATOR), validate(updateTagSchema), ideaController.updateTag);
+router.delete('/tags/:id', authenticate, authorize(Role.CREATOR), ideaController.deleteTag);
+
+// ─── Template routes ────────────────────────────────────────
+
+router.get('/templates/all', authenticate, ideaController.getTemplates);
+router.post('/templates', authenticate, validate(createTemplateSchema), ideaController.createTemplate);
+
+export default router;

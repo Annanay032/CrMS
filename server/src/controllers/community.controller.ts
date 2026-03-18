@@ -4,8 +4,11 @@ import { prisma } from '../config/index.js';
 import type { AuthRequest } from '../types/common.js';
 
 async function getCreatorProfileId(userId: string): Promise<string> {
-  const profile = await prisma.creatorProfile.findUnique({ where: { userId } });
-  if (!profile) throw Object.assign(new Error('Creator profile not found'), { statusCode: 404 });
+  const profile = await prisma.creatorProfile.upsert({
+    where: { userId },
+    update: {},
+    create: { userId, niche: [], languages: ['en'] },
+  });
   return profile.id;
 }
 

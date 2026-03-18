@@ -10,6 +10,7 @@ import { CommunityPage } from '@/pages/community';
 import { TrendsPage } from '@/pages/trends';
 import { AiAssistantPage } from '@/pages/ai';
 import { SettingsPage } from '@/pages/settings';
+import { CreatePage } from '@/pages/create';
 
 export default function App() {
   return (
@@ -19,6 +20,7 @@ export default function App() {
       <Route path="/auth/callback" element={<OAuthCallbackPage />} />
       <Route element={<AppLayout />}>
         <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/create" element={<CreatePage />} />
         <Route path="/calendar" element={<CalendarPage />} />
         <Route path="/content/new" element={<CreatePostPage />} />
         <Route path="/analytics" element={<AnalyticsPage />} />

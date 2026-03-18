@@ -11,6 +11,7 @@ import {
   faMagnifyingGlass,
   faUsers,
   faShieldHalved,
+  faLightbulb,
 } from '@fortawesome/free-solid-svg-icons';
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import type { UserRole } from '@/types';
@@ -23,6 +24,7 @@ export interface NavItem {
 
 const creatorLinks: NavItem[] = [
   { to: '/dashboard', icon: faGauge, label: 'Dashboard' },
+  { to: '/create', icon: faLightbulb, label: 'Create' },
   { to: '/calendar', icon: faCalendarDays, label: 'Content Calendar' },
   { to: '/content/new', icon: faPenToSquare, label: 'Create Post' },
   { to: '/analytics', icon: faChartLine, label: 'Analytics' },

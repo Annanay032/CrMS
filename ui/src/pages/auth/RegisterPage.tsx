@@ -45,20 +45,27 @@ export function RegisterPage() {
 
   return (
     <div className={styles.auth}>
-      <BrandPanel tagline={<>Join thousands of<br />creators &amp; brands<br />growing together.</>}>
+      <BrandPanel
+        tagline={<>Join thousands of<br />creators &amp; brands<br />growing together.</>}
+      >
         <StatGrid />
       </BrandPanel>
 
       <div className={styles.auth__form}>
-        <div className={styles.auth__form_inner} style={{ maxWidth: 460 }}>
+        <div className={styles.auth__card} style={{ maxWidth: 460 }}>
           <div className={styles.auth__mobile_logo}>
             <h1>CrMS</h1>
             <p>Creator Management System</p>
           </div>
 
+          <div className={styles.auth__form_logo}>
+            <div className={styles.auth__form_logo_mark}>Cr</div>
+            <span className={styles.auth__form_logo_text}>CrMS</span>
+          </div>
+
           <div className={styles.auth__heading}>
             <h2>Create your account</h2>
-            <p>Get started free — no credit card required</p>
+            <p>Get started free &mdash; no credit card required</p>
           </div>
 
           <GoogleButton />
@@ -67,25 +74,57 @@ export function RegisterPage() {
             <span>or register with email</span>
           </div>
 
-          {error && <Alert type="error" message={error} showIcon style={{ marginBottom: 16 }} closable onClose={() => setError('')} />}
+          {error && (
+            <Alert
+              type="error"
+              message={error}
+              showIcon
+              closable
+              onClose={() => setError('')}
+            />
+          )}
 
           <Form layout="vertical" onFinish={handleSubmit(onSubmit)}>
-            <Form.Item label="Full Name" validateStatus={errors.name ? 'error' : ''} help={errors.name?.message}>
-              <Controller name="name" control={control} render={({ field }) => (
-                <Input {...field} placeholder="Jane Creator" size="large" />
-              )} />
+            <Form.Item
+              label="Full Name"
+              validateStatus={errors.name ? 'error' : ''}
+              help={errors.name?.message}
+            >
+              <Controller
+                name="name"
+                control={control}
+                render={({ field }) => (
+                  <Input {...field} placeholder="Jane Creator" size="large" />
+                )}
+              />
             </Form.Item>
 
-            <Form.Item label="Email" validateStatus={errors.email ? 'error' : ''} help={errors.email?.message}>
-              <Controller name="email" control={control} render={({ field }) => (
-                <Input {...field} placeholder="you@example.com" size="large" />
-              )} />
+            <Form.Item
+              label="Email"
+              validateStatus={errors.email ? 'error' : ''}
+              help={errors.email?.message}
+            >
+              <Controller
+                name="email"
+                control={control}
+                render={({ field }) => (
+                  <Input {...field} placeholder="you@example.com" size="large" />
+                )}
+              />
             </Form.Item>
 
-            <Form.Item label="Password" validateStatus={errors.password ? 'error' : ''} help={errors.password?.message}>
-              <Controller name="password" control={control} render={({ field }) => (
-                <Input.Password {...field} placeholder="Min 8 characters" size="large" />
-              )} />
+            <Form.Item
+              label="Password"
+              validateStatus={errors.password ? 'error' : ''}
+              help={errors.password?.message}
+            >
+              <Controller
+                name="password"
+                control={control}
+                render={({ field }) => (
+                  <Input.Password {...field} placeholder="Min 8 characters" size="large" />
+                )}
+              />
             </Form.Item>
 
             <Form.Item label="I am a...">
@@ -97,7 +136,9 @@ export function RegisterPage() {
                     onClick={() => setValue('role', value)}
                   >
                     <input type="radio" value={value} checked={selectedRole === value} readOnly />
-                    <FontAwesomeIcon icon={icon} style={{ color: selectedRole === value ? '#4f46e5' : '#94a3b8' }} />
+                    <div className={styles.auth__role_icon_wrap}>
+                      <FontAwesomeIcon icon={icon} />
+                    </div>
                     <span className={styles.auth__role_label}>{label}</span>
                     <span className={styles.auth__role_desc}>{desc}</span>
                   </label>
@@ -105,7 +146,12 @@ export function RegisterPage() {
               </div>
             </Form.Item>
 
-            <Button type="primary" htmlType="submit" loading={isLoading} block size="large"
+            <Button
+              type="primary"
+              htmlType="submit"
+              loading={isLoading}
+              block
+              size="large"
               icon={<FontAwesomeIcon icon={faArrowRight} />}
               iconPosition="end"
             >

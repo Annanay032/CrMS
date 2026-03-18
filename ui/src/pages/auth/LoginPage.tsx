@@ -42,15 +42,22 @@ export function LoginPage() {
 
   return (
     <div className={styles.auth}>
-      <BrandPanel tagline={<>Manage creators,<br />amplify brands,<br />grow together.</>}>
+      <BrandPanel
+        tagline={<>Manage creators,<br />amplify brands,<br />grow together.</>}
+      >
         <FeatureList />
       </BrandPanel>
 
       <div className={styles.auth__form}>
-        <div className={styles.auth__form_inner}>
+        <div className={styles.auth__card}>
           <div className={styles.auth__mobile_logo}>
             <h1>CrMS</h1>
             <p>Creator Management System</p>
+          </div>
+
+          <div className={styles.auth__form_logo}>
+            <div className={styles.auth__form_logo_mark}>Cr</div>
+            <span className={styles.auth__form_logo_text}>CrMS</span>
           </div>
 
           <div className={styles.auth__heading}>
@@ -64,22 +71,51 @@ export function LoginPage() {
             <span>or sign in with email</span>
           </div>
 
-          {error && <Alert type="error" message={error} showIcon style={{ marginBottom: 16 }} closable onClose={() => setError('')} />}
+          {error && (
+            <Alert
+              type="error"
+              message={error}
+              showIcon
+              closable
+              onClose={() => setError('')}
+            />
+          )}
 
           <Form layout="vertical" onFinish={handleSubmit(onSubmit)}>
-            <Form.Item label="Email" validateStatus={errors.email ? 'error' : ''} help={errors.email?.message}>
-              <Controller name="email" control={control} render={({ field }) => (
-                <Input {...field} placeholder="you@example.com" size="large" />
-              )} />
+            <Form.Item
+              label="Email"
+              validateStatus={errors.email ? 'error' : ''}
+              help={errors.email?.message}
+            >
+              <Controller
+                name="email"
+                control={control}
+                render={({ field }) => (
+                  <Input {...field} placeholder="you@example.com" size="large" />
+                )}
+              />
             </Form.Item>
 
-            <Form.Item label="Password" validateStatus={errors.password ? 'error' : ''} help={errors.password?.message}>
-              <Controller name="password" control={control} render={({ field }) => (
-                <Input.Password {...field} placeholder="••••••••" size="large" />
-              )} />
+            <Form.Item
+              label="Password"
+              validateStatus={errors.password ? 'error' : ''}
+              help={errors.password?.message}
+            >
+              <Controller
+                name="password"
+                control={control}
+                render={({ field }) => (
+                  <Input.Password {...field} placeholder="Enter your password" size="large" />
+                )}
+              />
             </Form.Item>
 
-            <Button type="primary" htmlType="submit" loading={isLoading} block size="large"
+            <Button
+              type="primary"
+              htmlType="submit"
+              loading={isLoading}
+              block
+              size="large"
               icon={<FontAwesomeIcon icon={faArrowRight} />}
               iconPosition="end"
             >

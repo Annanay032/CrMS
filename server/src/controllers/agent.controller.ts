@@ -58,12 +58,21 @@ export async function getEngagementSuggestions(req: AuthRequest, res: Response) 
 }
 
 export async function getTrends(req: AuthRequest, res: Response) {
-  const result = await orchestrator.run(
-    'TREND_DETECTION' as AgentType,
-    req.user!.userId,
-    req.body,
-  );
-  res.json({ success: true, data: result.output });
+  try {
+    const result = await orchestrator.run(
+      'TREND_DETECTION' as AgentType,
+      req.user!.userId,
+      req.body,
+    );
+    res.json({ success: true, data: result.output });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Unknown error';
+    if (message.includes('API key') || message.includes('authentication') || message.includes('401')) {
+      res.status(503).json({ success: false, error: 'AI service is not configured. Please set a valid OPENAI_API_KEY.' });
+      return;
+    }
+    throw err;
+  }
 }
 
 export async function listAgents(_req: AuthRequest, res: Response) {

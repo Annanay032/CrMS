@@ -9,10 +9,16 @@ interface BrandPanelProps {
 export function BrandPanel({ tagline, children }: BrandPanelProps) {
   return (
     <div className={styles.auth__brand}>
+      <div className={`${styles.auth__glow} ${styles['auth__glow--1']}`} />
+      <div className={`${styles.auth__glow} ${styles['auth__glow--2']}`} />
+
       <div className={styles.auth__brand_inner}>
-        <div>
-          <h1 className={styles.auth__brand_title}>CrMS</h1>
-          <p className={styles.auth__brand_sub}>Creator Management System</p>
+        <div className={styles.auth__logo}>
+          <div className={styles.auth__logo_mark}>Cr</div>
+          <div className={styles.auth__logo_text}>
+            <h1>CrMS</h1>
+            <span>Creator Management System</span>
+          </div>
         </div>
 
         <div>

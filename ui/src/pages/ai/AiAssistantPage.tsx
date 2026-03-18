@@ -2,6 +2,8 @@ import { useState, useRef, useEffect } from 'react';
 import { Card, Button, Input, Typography, Avatar } from 'antd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faRobot, faPaperPlane } from '@fortawesome/free-solid-svg-icons';
+import { useAppDispatch } from '@/hooks/store';
+import { aiTaskStarted, aiTaskCompleted, aiTaskFailed } from '@/store/ai.slice';
 import { useRunAgentMutation } from '@/store/endpoints/agents';
 import type { Message } from './types';
 import { WELCOME_MESSAGE, routeAgent } from './utils';
@@ -10,6 +12,7 @@ import { ChatMessage } from './components/ChatMessage';
 const { Title } = Typography;
 
 export function AiAssistantPage() {
+  const dispatch = useAppDispatch();
   const [messages, setMessages] = useState<Message[]>([
     { role: 'ai', content: WELCOME_MESSAGE },
   ]);
@@ -26,17 +29,23 @@ export function AiAssistantPage() {
     setMessages((prev) => [...prev, { role: 'user', content: userMessage }]);
 
     const { agentType, input: agentInput } = routeAgent(userMessage);
+    const taskId = `page-${Date.now()}`;
+    const label = agentType.replace(/_/g, ' ').toLowerCase();
+
+    dispatch(aiTaskStarted({ id: taskId, label, agentType, startedAt: Date.now() }));
 
     try {
       const result = await runAgent({ agentType, input: agentInput }).unwrap();
       const output = result.data;
       const formatted = typeof output === 'string' ? output : JSON.stringify(output, null, 2);
       setMessages((prev) => [...prev, { role: 'ai', content: formatted }]);
+      dispatch(aiTaskCompleted({ id: taskId, label, agentType }));
     } catch (err: unknown) {
       const e = err as { data?: { error?: string }; message?: string };
       setMessages((prev) => [
         ...prev, { role: 'ai', content: `Sorry, I encountered an error: ${e?.data?.error ?? e?.message ?? 'Unknown error'}` },
       ]);
+      dispatch(aiTaskFailed({ id: taskId, label, agentType }));
     }
   };
 

@@ -75,9 +75,51 @@ export interface ContentPost {
   scheduledAt?: string;
   publishedAt?: string;
   createdAt: string;
+  firstComment?: string;
+  platformOverrides?: Record<string, { caption?: string; hashtags?: string[] }>;
+  bulkGroupId?: string;
+  ideaId?: string;
 }
 
-export type AgentType = 'CONTENT_GENERATION' | 'SCHEDULING' | 'TREND_DETECTION' | 'ANALYTICS' | 'ENGAGEMENT' | 'MATCHING';
+// ─── Ideas & Tags ──────────────────────────────────────────
+
+export type IdeaStatus = 'SPARK' | 'DEVELOPING' | 'READY' | 'ARCHIVED';
+
+export interface ContentIdea {
+  id: string;
+  creatorProfileId: string;
+  title: string;
+  body?: string;
+  status: IdeaStatus;
+  source?: string;
+  mediaUrls: string[];
+  createdAt: string;
+  updatedAt: string;
+  tags: Array<{ tag: ContentTag }>;
+}
+
+export interface ContentTag {
+  id: string;
+  creatorProfileId: string;
+  name: string;
+  color: string;
+  createdAt: string;
+}
+
+export interface ContentTemplate {
+  id: string;
+  name: string;
+  body: string;
+  platform?: string;
+  category: string;
+  isGlobal: boolean;
+  userId?: string;
+  createdAt: string;
+}
+
+// ─── Agents ─────────────────────────────────────────────────
+
+export type AgentType = 'CONTENT_GENERATION' | 'PUBLISHING' | 'SCHEDULING' | 'TREND_DETECTION' | 'ANALYTICS' | 'ENGAGEMENT' | 'MATCHING' | 'LISTENING' | 'COMPETITIVE' | 'CAMPAIGN' | 'COLLABORATION' | 'LINK_IN_BIO';
 export type TaskStatus = 'PENDING' | 'RUNNING' | 'COMPLETED' | 'FAILED';
 
 export interface AgentTask {

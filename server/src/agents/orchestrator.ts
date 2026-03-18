@@ -1,6 +1,7 @@
 import type { AgentType } from '../types/enums.js';
 import type { BaseAgent, AgentInput, AgentResult } from './base.js';
 import { ContentGenerationAgent } from './content.agent.js';
+import { PublishingAgent } from './publishing.agent.js';
 import { SchedulingAgent } from './scheduling.agent.js';
 import { MatchingAgent } from './matching.agent.js';
 import { AnalyticsAgent } from './analytics.agent.js';
@@ -10,6 +11,7 @@ import { logger } from '../config/logger.js';
 
 const agents: Record<string, BaseAgent> = {
   CONTENT_GENERATION: new ContentGenerationAgent(),
+  PUBLISHING: new PublishingAgent(),
   SCHEDULING: new SchedulingAgent(),
   MATCHING: new MatchingAgent(),
   ANALYTICS: new AnalyticsAgent(),

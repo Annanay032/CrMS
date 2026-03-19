@@ -31,7 +31,8 @@ const envSchema = z.object({
   TIKTOK_CALLBACK_URL: z.string().optional(),
 
   OPENAI_API_KEY: z.string().optional(),
-  OPENAI_MODEL: z.string().default('gpt-4'),
+  OPENAI_BASE_URL: z.string().optional(),
+  OPENAI_MODEL: z.string().default('gpt-4o-mini'),
 
   CLIENT_URL: z.string().default('http://localhost:5173'),
 

@@ -8,7 +8,7 @@ export const settingsApi = api.injectEndpoints({
       providesTags: ['Settings'],
     }),
 
-    updateUserSettings: build.mutation<ApiResponse<UserSettings>, Partial<Pick<UserSettings, 'listeningFrequency' | 'competitiveFrequency' | 'emailDigest'>>>({
+    updateUserSettings: build.mutation<ApiResponse<UserSettings>, Partial<UserSettings>>({
       query: (body) => ({ url: '/settings', method: 'PATCH', body }),
       invalidatesTags: ['Settings'],
     }),

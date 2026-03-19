@@ -1,11 +1,8 @@
-import OpenAI from 'openai';
 import { env } from '../config/env.js';
-import { prisma } from '../config/index.js';
+import { prisma, openai } from '../config/index.js';
 import { BaseAgent } from './base.js';
 import type { AgentInput, AgentResult } from './base.js';
 import { AgentType } from '../types/enums.js';
-
-const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY || 'sk-placeholder' });
 
 type EngagementAction = 'suggest_replies' | 'draft_reply' | 'learn_voice' | 'reply_in_voice' | 'suggest_saved_reply' | 'detect_spike';
 

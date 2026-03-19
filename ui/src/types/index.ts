@@ -497,9 +497,29 @@ export interface UsageHistoryEntry {
 export interface UserSettings {
   id: string;
   userId: string;
+  // Data refresh
   listeningFrequency: number;
   competitiveFrequency: number;
+  // Notifications
   emailDigest: boolean;
+  pushNotifications: boolean;
+  notifyNewFollower: boolean;
+  notifyMention: boolean;
+  notifyCampaignUpdate: boolean;
+  notifyCommentReply: boolean;
+  // Publishing defaults
+  defaultPlatform: string | null;
+  defaultPostType: string | null;
+  defaultHashtags: string[];
+  autoSchedule: boolean;
+  timezone: string;
+  // AI preferences
+  aiTone: string;
+  aiLanguage: string;
+  aiAutoSuggest: boolean;
+  // Privacy
+  profileVisibility: string;
+  showAnalytics: boolean;
 }
 
 // ─── V2: Media Library ──────────────────────────────────────

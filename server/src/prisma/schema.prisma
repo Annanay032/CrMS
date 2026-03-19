@@ -1081,9 +1081,35 @@ model PlatformRateLimit {
 model UserSettings {
   id                    String    @id @default(cuid())
   userId                String    @unique
+
+  // ── Data Refresh ──
   listeningFrequency    Int       @default(1)  // polls per day
   competitiveFrequency  Int       @default(1)
+
+  // ── Notifications ──
   emailDigest           Boolean   @default(true)
+  pushNotifications     Boolean   @default(true)
+  notifyNewFollower     Boolean   @default(true)
+  notifyMention         Boolean   @default(true)
+  notifyCampaignUpdate  Boolean   @default(true)
+  notifyCommentReply    Boolean   @default(true)
+
+  // ── Publishing Defaults ──
+  defaultPlatform       String?                // e.g. "INSTAGRAM"
+  defaultPostType       String?                // e.g. "REEL"
+  defaultHashtags       String[]  @default([]) // auto-appended
+  autoSchedule          Boolean   @default(false)
+  timezone              String    @default("UTC")
+
+  // ── AI Preferences ──
+  aiTone                String    @default("friendly")
+  aiLanguage            String    @default("en")
+  aiAutoSuggest         Boolean   @default(true)
+
+  // ── Privacy & Security ──
+  profileVisibility     String    @default("public") // public | private | connections-only
+  showAnalytics         Boolean   @default(true)     // show analytics on public profile
+
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
 

@@ -1,10 +1,8 @@
-import OpenAI from 'openai';
 import { env } from '../config/env.js';
+import { openai } from '../config/index.js';
 import { BaseAgent } from './base.js';
 import type { AgentInput, AgentResult } from './base.js';
 import { AgentType } from '../types/enums.js';
-
-const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY || 'sk-placeholder' });
 
 interface PlatformSpec {
   captionMax: number;

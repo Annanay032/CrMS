@@ -868,7 +868,27 @@ async function main() {
     await prisma.userSettings.upsert({
       where: { userId: u.id },
       update: {},
-      create: { userId: u.id, listeningFrequency: 2, competitiveFrequency: 1, emailDigest: true },
+      create: {
+        userId: u.id,
+        listeningFrequency: 2,
+        competitiveFrequency: 1,
+        emailDigest: true,
+        pushNotifications: true,
+        notifyNewFollower: true,
+        notifyMention: true,
+        notifyCampaignUpdate: true,
+        notifyCommentReply: true,
+        defaultPlatform: 'INSTAGRAM',
+        defaultPostType: 'POST',
+        defaultHashtags: ['crms', 'creator'],
+        autoSchedule: false,
+        timezone: 'America/New_York',
+        aiTone: 'friendly',
+        aiLanguage: 'en',
+        aiAutoSuggest: true,
+        profileVisibility: 'public',
+        showAnalytics: true,
+      },
     });
   }
   console.log('User settings seeded ✓');

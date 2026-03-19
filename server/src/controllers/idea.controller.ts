@@ -99,3 +99,25 @@ export async function createTemplate(req: AuthRequest, res: Response) {
   const template = await ideaService.createTemplate(req.user!.userId, req.body);
   res.status(201).json({ success: true, data: template });
 }
+
+// ─── Quick Capture (browser extension) ──────────────────────
+
+export async function quickCapture(req: AuthRequest, res: Response) {
+  const cpId = await getCreatorProfileId(req.user!.userId);
+  const { title, body, sourceUrl, selectedText, imageUrl } = req.body as {
+    title: string; body?: string; sourceUrl?: string; selectedText?: string; imageUrl?: string;
+  };
+
+  const ideaBody = [body, selectedText, sourceUrl ? `Source: ${sourceUrl}` : null]
+    .filter(Boolean)
+    .join('\n\n');
+
+  const idea = await ideaService.createIdea(cpId, {
+    title,
+    body: ideaBody || undefined,
+    source: 'extension',
+    mediaUrls: imageUrl ? [imageUrl] : [],
+  });
+
+  res.status(201).json({ success: true, data: idea });
+}

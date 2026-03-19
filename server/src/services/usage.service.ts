@@ -1,6 +1,7 @@
 import { prisma } from '../config/index.js';
 import { redis } from '../config/redis.js';
 import type { AgentType } from '../types/enums.js';
+import { getCurrentTier } from './subscription.service.js';
 
 // Agent model tier — high-value agents get gpt-4, lower-stakes get gpt-4o-mini
 const HIGH_VALUE_AGENTS: Set<string> = new Set([
@@ -19,10 +20,21 @@ export function getModelForAgent(agentType: string): string {
 
 /** Ensure a budget record exists for the user, auto-creating if needed. */
 export async function ensureBudget(userId: string) {
+  const tier = await getCurrentTier(userId);
+  const limit = TIER_LIMITS[tier] ?? TIER_LIMITS.FREE;
+
   let budget = await prisma.usageBudget.findUnique({ where: { userId } });
   if (!budget) {
     budget = await prisma.usageBudget.create({
-      data: { userId, tier: 'FREE', dailyTokenLimit: TIER_LIMITS.FREE },
+      data: { userId, dailyTokenLimit: limit },
+    });
+  }
+
+  // Sync daily limit from subscription tier
+  if (budget.dailyTokenLimit !== limit) {
+    budget = await prisma.usageBudget.update({
+      where: { userId },
+      data: { dailyTokenLimit: limit },
     });
   }
 
@@ -35,7 +47,7 @@ export async function ensureBudget(userId: string) {
     });
   }
 
-  return budget;
+  return { ...budget, tier };
 }
 
 /** Check whether the user has enough budget for an agent call. Throws if over limit. */
@@ -113,14 +125,4 @@ export async function getUsageHistory(userId: string, days = 30) {
   }
 
   return Object.entries(daily).map(([date, data]) => ({ date, ...data }));
-}
-
-/** Update user's budget tier. */
-export async function updateBudgetTier(userId: string, tier: 'FREE' | 'PRO' | 'ENTERPRISE') {
-  const limit = TIER_LIMITS[tier] ?? TIER_LIMITS.FREE;
-  return prisma.usageBudget.upsert({
-    where: { userId },
-    update: { tier, dailyTokenLimit: limit },
-    create: { userId, tier, dailyTokenLimit: limit },
-  });
 }

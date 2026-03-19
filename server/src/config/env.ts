@@ -30,9 +30,56 @@ const envSchema = z.object({
   TIKTOK_CLIENT_SECRET: z.string().optional(),
   TIKTOK_CALLBACK_URL: z.string().optional(),
 
+  TWITTER_CLIENT_ID: z.string().optional(),
+  TWITTER_CLIENT_SECRET: z.string().optional(),
+  TWITTER_CALLBACK_URL: z.string().optional(),
+
+  LINKEDIN_CLIENT_ID: z.string().optional(),
+  LINKEDIN_CLIENT_SECRET: z.string().optional(),
+  LINKEDIN_CALLBACK_URL: z.string().optional(),
+
+  FACEBOOK_APP_ID: z.string().optional(),
+  FACEBOOK_APP_SECRET: z.string().optional(),
+  FACEBOOK_CALLBACK_URL: z.string().optional(),
+
+  PINTEREST_APP_ID: z.string().optional(),
+  PINTEREST_APP_SECRET: z.string().optional(),
+  PINTEREST_CALLBACK_URL: z.string().optional(),
+
+  BLUESKY_CALLBACK_URL: z.string().optional(),
+
+  MASTODON_INSTANCE_URL: z.string().optional(),
+  MASTODON_CLIENT_ID: z.string().optional(),
+  MASTODON_CLIENT_SECRET: z.string().optional(),
+  MASTODON_CALLBACK_URL: z.string().optional(),
+
   OPENAI_API_KEY: z.string().optional(),
   OPENAI_BASE_URL: z.string().optional(),
   OPENAI_MODEL: z.string().default('gpt-4o-mini'),
+
+  // Stripe
+  STRIPE_SECRET_KEY: z.string().optional(),
+  STRIPE_PUBLISHABLE_KEY: z.string().optional(),
+  STRIPE_WEBHOOK_SECRET: z.string().optional(),
+
+  // Razorpay
+  RAZORPAY_KEY_ID: z.string().optional(),
+  RAZORPAY_KEY_SECRET: z.string().optional(),
+  RAZORPAY_WEBHOOK_SECRET: z.string().optional(),
+
+  // Google Business Profile
+  GOOGLE_BUSINESS_CLIENT_ID: z.string().optional(),
+  GOOGLE_BUSINESS_CLIENT_SECRET: z.string().optional(),
+
+  // Cloud Storage Imports
+  GOOGLE_DRIVE_API_KEY: z.string().optional(),
+  DROPBOX_APP_KEY: z.string().optional(),
+  CANVA_API_KEY: z.string().optional(),
+
+  // Web Push (VAPID)
+  VAPID_PUBLIC_KEY: z.string().optional(),
+  VAPID_PRIVATE_KEY: z.string().optional(),
+  VAPID_CONTACT_EMAIL: z.string().email().optional(),
 
   CLIENT_URL: z.string().default('http://localhost:5173'),
 

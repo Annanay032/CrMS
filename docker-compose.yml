@@ -56,9 +56,37 @@ services:
       TIKTOK_CLIENT_KEY: ${TIKTOK_CLIENT_KEY:-}
       TIKTOK_CLIENT_SECRET: ${TIKTOK_CLIENT_SECRET:-}
       TIKTOK_CALLBACK_URL: http://localhost:3001/api/accounts/callback/tiktok
+      TWITTER_CLIENT_ID: ${TWITTER_CLIENT_ID:-}
+      TWITTER_CLIENT_SECRET: ${TWITTER_CLIENT_SECRET:-}
+      TWITTER_CALLBACK_URL: http://localhost:3001/api/accounts/callback/twitter
+      LINKEDIN_CLIENT_ID: ${LINKEDIN_CLIENT_ID:-}
+      LINKEDIN_CLIENT_SECRET: ${LINKEDIN_CLIENT_SECRET:-}
+      LINKEDIN_CALLBACK_URL: http://localhost:3001/api/accounts/callback/linkedin
+      FACEBOOK_APP_ID: ${FACEBOOK_APP_ID:-}
+      FACEBOOK_APP_SECRET: ${FACEBOOK_APP_SECRET:-}
+      FACEBOOK_CALLBACK_URL: http://localhost:3001/api/accounts/callback/facebook
+      PINTEREST_APP_ID: ${PINTEREST_APP_ID:-}
+      PINTEREST_APP_SECRET: ${PINTEREST_APP_SECRET:-}
+      PINTEREST_CALLBACK_URL: http://localhost:3001/api/accounts/callback/pinterest
+      MASTODON_INSTANCE_URL: ${MASTODON_INSTANCE_URL:-https://mastodon.social}
+      MASTODON_CLIENT_ID: ${MASTODON_CLIENT_ID:-}
+      MASTODON_CLIENT_SECRET: ${MASTODON_CLIENT_SECRET:-}
+      MASTODON_CALLBACK_URL: http://localhost:3001/api/accounts/callback/mastodon
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OPENAI_BASE_URL: ${OPENAI_BASE_URL:-}
       OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
+      # Stripe
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      # Razorpay
+      RAZORPAY_KEY_ID: ${RAZORPAY_KEY_ID:-}
+      RAZORPAY_KEY_SECRET: ${RAZORPAY_KEY_SECRET:-}
+      RAZORPAY_WEBHOOK_SECRET: ${RAZORPAY_WEBHOOK_SECRET:-}
+      # Web Push (VAPID)
+      VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
+      VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
+      VAPID_CONTACT_EMAIL: ${VAPID_CONTACT_EMAIL:-}
     depends_on:
       postgres:
         condition: service_healthy

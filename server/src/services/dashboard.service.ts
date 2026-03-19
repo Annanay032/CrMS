@@ -193,3 +193,49 @@ export async function getAnalyticsDashboard(creatorProfileId: string, period: 'w
     })),
   };
 }
+
+// ─── Organic vs Boosted Analytics (Phase 12) ────────────────
+
+export async function getOrganicVsBoostedStats(
+  creatorProfileId: string,
+  period: 'week' | 'month' | 'quarter' | 'year' = 'month',
+) {
+  const daysBack = period === 'year' ? 365 : period === 'quarter' ? 90 : period === 'month' ? 30 : 7;
+  const since = new Date(Date.now() - daysBack * 86_400_000);
+
+  const posts = await prisma.contentPost.findMany({
+    where: { creatorProfileId, status: 'PUBLISHED', publishedAt: { gte: since } },
+    include: { analytics: true },
+  });
+
+  const organic = posts.filter((p) => !p.isBoosted);
+  const boosted = posts.filter((p) => p.isBoosted);
+
+  function aggregate(subset: typeof posts) {
+    const count = subset.length;
+    const impressions = subset.reduce((s, p) => s + (p.analytics?.impressions ?? 0), 0);
+    const reach = subset.reduce((s, p) => s + (p.analytics?.reach ?? 0), 0);
+    const engagement = subset.reduce(
+      (s, p) => s + (p.analytics?.likes ?? 0) + (p.analytics?.comments ?? 0) + (p.analytics?.shares ?? 0),
+      0,
+    );
+    const adSpend = subset.reduce((s, p) => s + (p.adSpend ?? 0), 0);
+    const engRate = reach > 0 ? Math.round((engagement / reach) * 10000) / 100 : 0;
+    return { count, impressions, reach, engagement, engRate, adSpend };
+  }
+
+  const organicStats = aggregate(organic);
+  const boostedStats = aggregate(boosted);
+
+  // ROI for boosted: engagement per currency unit spent
+  const boostedROI = boostedStats.adSpend > 0
+    ? Math.round((boostedStats.engagement / boostedStats.adSpend) * 100) / 100
+    : 0;
+
+  return {
+    organic: organicStats,
+    boosted: { ...boostedStats, roi: boostedROI },
+    totalPosts: posts.length,
+    period,
+  };
+}

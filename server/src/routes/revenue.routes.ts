@@ -3,8 +3,10 @@ import { z } from 'zod';
 import * as revenueController from '../controllers/revenue.controller.js';
 import { authenticate } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
+import { requirePlan } from '../middleware/plan-gate.js';
 
 const router = Router();
+router.use(authenticate, requirePlan('PRO'));
 
 // ─── Validation Schemas ──────────────────────────────────────
 
@@ -68,27 +70,27 @@ const updateInvoiceSchema = z.object({
 
 // ─── Summaries ───────────────────────────────────────────────
 
-router.get('/summary', authenticate, revenueController.getRevenueSummary);
-router.get('/post-roi', authenticate, revenueController.getPostROI);
+router.get('/summary', revenueController.getRevenueSummary);
+router.get('/post-roi', revenueController.getPostROI);
 
 // ─── Revenue Streams ─────────────────────────────────────────
 
-router.get('/streams', authenticate, revenueController.listRevenueStreams);
-router.post('/streams', authenticate, validate(createRevenueStreamSchema), revenueController.createRevenueStream);
-router.delete('/streams/:id', authenticate, revenueController.deleteRevenueStream);
+router.get('/streams', revenueController.listRevenueStreams);
+router.post('/streams', validate(createRevenueStreamSchema), revenueController.createRevenueStream);
+router.delete('/streams/:id', revenueController.deleteRevenueStream);
 
 // ─── Brand Deals ─────────────────────────────────────────────
 
-router.get('/deals', authenticate, revenueController.listBrandDeals);
-router.post('/deals', authenticate, validate(createBrandDealSchema), revenueController.createBrandDeal);
-router.put('/deals/:id', authenticate, validate(updateBrandDealSchema), revenueController.updateBrandDeal);
-router.delete('/deals/:id', authenticate, revenueController.deleteBrandDeal);
+router.get('/deals', revenueController.listBrandDeals);
+router.post('/deals', validate(createBrandDealSchema), revenueController.createBrandDeal);
+router.put('/deals/:id', validate(updateBrandDealSchema), revenueController.updateBrandDeal);
+router.delete('/deals/:id', revenueController.deleteBrandDeal);
 
 // ─── Invoices ────────────────────────────────────────────────
 
-router.get('/invoices', authenticate, revenueController.listInvoices);
-router.post('/invoices', authenticate, validate(createInvoiceSchema), revenueController.createInvoice);
-router.put('/invoices/:id', authenticate, validate(updateInvoiceSchema), revenueController.updateInvoice);
-router.delete('/invoices/:id', authenticate, revenueController.deleteInvoice);
+router.get('/invoices', revenueController.listInvoices);
+router.post('/invoices', validate(createInvoiceSchema), revenueController.createInvoice);
+router.put('/invoices/:id', validate(updateInvoiceSchema), revenueController.updateInvoice);
+router.delete('/invoices/:id', revenueController.deleteInvoice);
 
 export default router;

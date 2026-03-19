@@ -9,7 +9,6 @@ enum UsageTier {
 model UsageBudget {
   id              String    @id @default(cuid())
   userId          String    @unique
-  tier            UsageTier @default(FREE)
   dailyTokenLimit Int       @default(50000)
   tokensUsedToday Int       @default(0)
   resetAt         DateTime  @default(now())

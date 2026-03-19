@@ -22,4 +22,5 @@ enum Platform {
   FACEBOOK
   PINTEREST
   REDDIT
+  GOOGLE_BUSINESS
 }

@@ -8,6 +8,7 @@ enum PostStatus {
   SCHEDULED
   PUBLISHED
   FAILED
+  PENDING_MANUAL
 }
 
 enum PostType {
@@ -117,6 +118,10 @@ model ContentPost {
   // ── Repost / Retweet ──
   repostSourceUrl  String?    // URL of external post to repost/retweet
   repostType       String?    // "retweet" | "quote" | "boost"
+
+  // ── Boosted / Paid ──
+  isBoosted        Boolean    @default(false)
+  adSpend          Float?     // amount spent on boosting/promoting
 
   // ── Media ──
   thumbnailUrl     String?    // Custom thumbnail for video posts

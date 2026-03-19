@@ -40,6 +40,17 @@ export async function fetchAnalytics() {
         create: { postId: post.id, ...analytics },
       });
 
+      // Detect boosted / promoted posts from platform analytics
+      if (analytics.isPaid || analytics.adSpend) {
+        await prisma.contentPost.update({
+          where: { id: post.id },
+          data: {
+            isBoosted: true,
+            ...(analytics.adSpend ? { adSpend: Number(analytics.adSpend) } : {}),
+          },
+        });
+      }
+
       updated++;
     } catch (err) {
       logger.error(`Failed to fetch analytics for post ${post.id}`, err);

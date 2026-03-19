@@ -3,8 +3,10 @@ import { z } from 'zod';
 import * as listeningController from '../controllers/listening.controller.js';
 import { authenticate } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
+import { requirePlan } from '../middleware/plan-gate.js';
 
 const router = Router();
+router.use(authenticate, requirePlan('PRO'));
 
 const createQuerySchema = z.object({
   name: z.string().min(1).max(200),
@@ -19,13 +21,13 @@ const updateQuerySchema = z.object({
   isActive: z.boolean().optional(),
 });
 
-router.get('/', authenticate, listeningController.getQueries);
-router.post('/', authenticate, validate(createQuerySchema), listeningController.createQuery);
-router.get('/:id', authenticate, listeningController.getQueryById);
-router.put('/:id', authenticate, validate(updateQuerySchema), listeningController.updateQuery);
-router.delete('/:id', authenticate, listeningController.deleteQuery);
-router.get('/:id/mentions', authenticate, listeningController.getMentions);
-router.get('/:id/sentiment/timeline', authenticate, listeningController.getSentimentTimeline);
-router.get('/:id/sentiment/summary', authenticate, listeningController.getSentimentSummary);
+router.get('/', listeningController.getQueries);
+router.post('/', validate(createQuerySchema), listeningController.createQuery);
+router.get('/:id', listeningController.getQueryById);
+router.put('/:id', validate(updateQuerySchema), listeningController.updateQuery);
+router.delete('/:id', listeningController.deleteQuery);
+router.get('/:id/mentions', listeningController.getMentions);
+router.get('/:id/sentiment/timeline', listeningController.getSentimentTimeline);
+router.get('/:id/sentiment/summary', listeningController.getSentimentSummary);
 
 export default router;

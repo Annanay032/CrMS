@@ -96,12 +96,10 @@ export async function getMe(userId: string) {
       creatorProfile: { include: { platformStats: true } },
       brandProfile: true,
       agencyProfile: { include: { creators: true } },
-      usageBudget: { select: { tier: true } },
     },
   });
   if (!user) throw Object.assign(new Error('User not found'), { statusCode: 404 });
-  const { usageBudget, ...rest } = user;
-  return { ...rest, tier: usageBudget?.tier ?? 'FREE' };
+  return user;
 }
 
 export async function oauthLogin(user: { id: string; email: string; role: string }) {

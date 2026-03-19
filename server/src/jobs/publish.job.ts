@@ -28,11 +28,22 @@ export async function publishScheduledPosts() {
       );
 
       if (!oauthAccount) {
-        logger.warn(`No OAuth token for ${post.platform} — post ${post.id}`);
+        // Phase 14: Fall back to manual posting via push notification
+        logger.warn(`No OAuth token for ${post.platform} — marking post ${post.id} as PENDING_MANUAL`);
         await prisma.contentPost.update({
           where: { id: post.id },
-          data: { status: 'FAILED', lastError: `No OAuth token for ${post.platform}` },
+          data: { status: 'PENDING_MANUAL', lastError: `No OAuth token for ${post.platform}` },
         });
+
+        // Send push notification for manual posting
+        try {
+          const { sendPushNotification } = await import('../services/web-push.service.js');
+          await sendPushNotification(post.creatorProfile.userId, {
+            title: 'Post Ready to Publish',
+            body: `Your ${post.platform} post is ready. Tap to publish manually.`,
+            data: { type: 'PENDING_MANUAL', postId: post.id },
+          });
+        } catch { /* push notification is best-effort */ }
         continue;
       }
 

@@ -1,7 +1,11 @@
 import { useEffect } from 'react';
-import { Card, Typography, message, InputNumber, Switch, Divider, Select, Input, Tag } from 'antd';
+import { Card, Typography, message, InputNumber, Switch, Divider, Select, Input, Tag, Tabs } from 'antd';
 import { useSearchParams } from 'react-router-dom';
-import { faGear } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+  faGear, faUser, faPlug, faPaperPlane, faBell, faWandMagicSparkles,
+  faShieldHalved, faCrown,
+} from '@fortawesome/free-solid-svg-icons';
 import { useAppSelector } from '@/hooks/store';
 import { PageHeader } from '@/components/common';
 import { ProfileForm } from './components/ProfileForm';
@@ -56,25 +60,88 @@ export function SettingsPage() {
     }
   }, [params, setParams]);
 
-  return (
-    <div style={{ maxWidth: 640, margin: '0 auto' }}>
-      <PageHeader icon={faGear} title="Settings" />
-      <ProfileForm />
-      {user?.role === 'CREATOR' && <CreatorProfileForm />}
-      {user?.role === 'BRAND' && <BrandProfileForm />}
-      <ConnectedAccounts />
-      <PlanCard />
-      <PublishingDefaults />
-      <NotificationSettings />
-      <AIPreferences />
-      <DataRefreshSettings />
-      <PrivacySettings />
+  const tabItems = [
+    {
+      key: 'profile',
+      label: (
+        <span><FontAwesomeIcon icon={faUser} style={{ marginRight: 8 }} />Profile</span>
+      ),
+      children: (
+        <>
+          <ProfileForm />
+          {user?.role === 'CREATOR' && <CreatorProfileForm />}
+          {user?.role === 'BRAND' && <BrandProfileForm />}
+        </>
+      ),
+    },
+    {
+      key: 'channels',
+      label: (
+        <span><FontAwesomeIcon icon={faPlug} style={{ marginRight: 8 }} />Channels</span>
+      ),
+      children: <ConnectedAccounts />,
+    },
+    {
+      key: 'publishing',
+      label: (
+        <span><FontAwesomeIcon icon={faPaperPlane} style={{ marginRight: 8 }} />Publishing</span>
+      ),
+      children: <PublishingDefaults />,
+    },
+    {
+      key: 'notifications',
+      label: (
+        <span><FontAwesomeIcon icon={faBell} style={{ marginRight: 8 }} />Notifications</span>
+      ),
+      children: <NotificationSettings />,
+    },
+    {
+      key: 'ai',
+      label: (
+        <span><FontAwesomeIcon icon={faWandMagicSparkles} style={{ marginRight: 8 }} />AI</span>
+      ),
+      children: <AIPreferences />,
+    },
+    {
+      key: 'privacy',
+      label: (
+        <span><FontAwesomeIcon icon={faShieldHalved} style={{ marginRight: 8 }} />Privacy & Data</span>
+      ),
+      children: (
+        <>
+          <DataRefreshSettings />
+          <PrivacySettings />
+        </>
+      ),
+    },
+    {
+      key: 'plan',
+      label: (
+        <span><FontAwesomeIcon icon={faCrown} style={{ marginRight: 8 }} />Plan</span>
+      ),
+      children: <PlanCard />,
+    },
+  ];
 
-      <Card style={{ marginTop: 24 }}>
-        <Text type="secondary">
+  // If redirected from an OAuth callback, default to the Channels tab; if ?tab=plan, open Plan
+  const defaultTab = params.get('tab') ?? (params.get('connected') || params.get('error') ? 'channels' : 'profile');
+
+  return (
+    <div>
+      <PageHeader icon={faGear} title="Settings" />
+      <Tabs
+        defaultActiveKey={defaultTab}
+        items={tabItems}
+        tabPosition="left"
+        style={{ minHeight: 600 }}
+        tabBarStyle={{ width: 180, flexShrink: 0 }}
+      />
+
+      <div style={{ marginTop: 16, padding: '8px 0', textAlign: 'center' }}>
+        <Text type="secondary" style={{ fontSize: 12 }}>
           CrMS v2.0 · Account created {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : '—'}
         </Text>
-      </Card>
+      </div>
     </div>
   );
 }
@@ -82,12 +149,12 @@ export function SettingsPage() {
 /* ── Reusable row layout ─────────────────────────────────── */
 function SettingRow({ label, description, children }: { label: string; description?: string; children: React.ReactNode }) {
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 0' }}>
       <div style={{ flex: 1 }}>
         <Text strong>{label}</Text>
         {description && <><br /><Text type="secondary" style={{ fontSize: 12 }}>{description}</Text></>}
       </div>
-      <div style={{ marginLeft: 16, flexShrink: 0 }}>{children}</div>
+      <div style={{ marginLeft: 24, flexShrink: 0, minWidth: 220 }}>{children}</div>
     </div>
   );
 }
@@ -99,12 +166,12 @@ function PublishingDefaults() {
   const s = settingsRes?.data;
 
   return (
-    <Card style={{ marginTop: 24 }}>
+    <Card>
       <Title level={5} style={{ marginTop: 0 }}>Publishing Defaults</Title>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         <SettingRow label="Default Platform" description="Pre-selected platform when creating posts">
           <Select
-            style={{ width: 160 }}
+            style={{ width: '100%' }}
             value={s?.defaultPlatform ?? undefined}
             allowClear
             placeholder="None"
@@ -119,7 +186,7 @@ function PublishingDefaults() {
         <Divider style={{ margin: 0 }} />
         <SettingRow label="Default Post Type" description="Pre-selected format for new content">
           <Select
-            style={{ width: 160 }}
+            style={{ width: '100%' }}
             value={s?.defaultPostType ?? undefined}
             allowClear
             placeholder="None"
@@ -136,7 +203,7 @@ function PublishingDefaults() {
         <Divider style={{ margin: 0 }} />
         <SettingRow label="Timezone" description="Used for scheduling & analytics">
           <Select
-            style={{ width: 200 }}
+            style={{ width: '100%' }}
             value={s?.timezone ?? 'UTC'}
             showSearch
             onChange={(v) => updateSettings({ timezone: v })}
@@ -147,7 +214,7 @@ function PublishingDefaults() {
         <SettingRow label="Default Hashtags" description="Automatically appended to posts">
           <Select
             mode="tags"
-            style={{ width: 240 }}
+            style={{ width: '100%' }}
             value={s?.defaultHashtags ?? []}
             placeholder="Add hashtags"
             onChange={(v) => updateSettings({ defaultHashtags: v })}
@@ -176,7 +243,7 @@ function NotificationSettings() {
   const s = settingsRes?.data;
 
   return (
-    <Card style={{ marginTop: 24 }}>
+    <Card>
       <Title level={5} style={{ marginTop: 0 }}>Notifications</Title>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         <SettingRow label="Email Digest" description="Receive a daily summary email">
@@ -214,12 +281,12 @@ function AIPreferences() {
   const s = settingsRes?.data;
 
   return (
-    <Card style={{ marginTop: 24 }}>
+    <Card>
       <Title level={5} style={{ marginTop: 0 }}>AI Preferences</Title>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         <SettingRow label="Default AI Tone" description="Sets the voice for generated content & replies">
           <Select
-            style={{ width: 160 }}
+            style={{ width: '100%' }}
             value={s?.aiTone ?? 'friendly'}
             onChange={(v) => updateSettings({ aiTone: v })}
             options={AI_TONE_OPTIONS}
@@ -228,7 +295,7 @@ function AIPreferences() {
         <Divider style={{ margin: 0 }} />
         <SettingRow label="AI Language" description="Preferred language for AI-generated text">
           <Select
-            style={{ width: 160 }}
+            style={{ width: '100%' }}
             value={s?.aiLanguage ?? 'en'}
             onChange={(v) => updateSettings({ aiLanguage: v })}
             options={AI_LANGUAGE_OPTIONS}
@@ -250,7 +317,7 @@ function DataRefreshSettings() {
   const s = settingsRes?.data;
 
   return (
-    <Card style={{ marginTop: 24 }}>
+    <Card>
       <Title level={5} style={{ marginTop: 0 }}>Data Refresh Frequency</Title>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         <SettingRow label="Social Listening" description="How many times per day to poll for mentions">
@@ -282,12 +349,12 @@ function PrivacySettings() {
   const s = settingsRes?.data;
 
   return (
-    <Card style={{ marginTop: 24 }}>
+    <Card style={{ marginTop: 16 }}>
       <Title level={5} style={{ marginTop: 0 }}>Privacy & Visibility</Title>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         <SettingRow label="Profile Visibility" description="Who can see your CrMS profile">
           <Select
-            style={{ width: 180 }}
+            style={{ width: '100%' }}
             value={s?.profileVisibility ?? 'public'}
             onChange={(v) => updateSettings({ profileVisibility: v })}
             options={[

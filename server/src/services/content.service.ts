@@ -414,3 +414,82 @@ export async function deleteTemplate(templateId: string, userId: string) {
     where: { id: templateId, userId, isGlobal: false },
   });
 }
+
+// ─── Instagram Grid Planner (Phase 11) ──────────────────────
+
+/**
+ * Get the last N published + scheduled posts for an Instagram account
+ * arranged in a 3-column grid preview.
+ */
+export async function getGridPreview(
+  creatorProfileId: string,
+  _accountId: string,
+  limit: number = 18,
+) {
+  const posts = await prisma.contentPost.findMany({
+    where: {
+      creatorProfileId,
+      platform: 'INSTAGRAM',
+      status: { in: ['PUBLISHED', 'SCHEDULED'] },
+    },
+    orderBy: [
+      { publishedAt: 'desc' },
+      { scheduledAt: 'desc' },
+    ],
+    take: limit,
+    select: {
+      id: true,
+      caption: true,
+      mediaUrls: true,
+      thumbnailUrl: true,
+      status: true,
+      scheduledAt: true,
+      publishedAt: true,
+      postType: true,
+    },
+  });
+
+  return posts;
+}
+
+/**
+ * Reorder scheduled posts by adjusting scheduledAt timestamps.
+ * Takes an ordered array of post IDs and reassigns their scheduledAt
+ * to maintain the desired sequence.
+ */
+export async function reorderScheduledPosts(
+  creatorProfileId: string,
+  orderedPostIds: string[],
+) {
+  // Fetch current scheduled times for these posts
+  const posts = await prisma.contentPost.findMany({
+    where: {
+      id: { in: orderedPostIds },
+      creatorProfileId,
+      status: 'SCHEDULED',
+    },
+    orderBy: { scheduledAt: 'asc' },
+    select: { id: true, scheduledAt: true },
+  });
+
+  // Extract existing timestamps and sort them
+  const timestamps = posts
+    .map((p) => p.scheduledAt)
+    .filter((t): t is Date => t !== null)
+    .sort((a, b) => a.getTime() - b.getTime());
+
+  // Reassign timestamps to the new order
+  const updates = orderedPostIds.map((postId, i) => {
+    if (i < timestamps.length) {
+      return prisma.contentPost.update({
+        where: { id: postId, creatorProfileId },
+        data: { scheduledAt: timestamps[i] },
+      });
+    }
+    return null;
+  }).filter(Boolean);
+
+  await prisma.$transaction(updates as ReturnType<typeof prisma.contentPost.update>[]);
+
+  return { reordered: orderedPostIds.length };
+}

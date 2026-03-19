@@ -22,6 +22,8 @@ import webhookRoutes from './webhook.routes.js';
 import rssRoutes from './rss.routes.js';
 import publicApiRoutes from './public-api.routes.js';
 import studioRoutes from './studio.routes.js';
+import subscriptionRoutes from './subscription.routes.js';
+import cloudImportRoutes from './cloud-import.routes.js';
 const router = Router();
 
 router.use('/auth', authRoutes);
@@ -47,5 +49,7 @@ router.use('/webhooks', webhookRoutes);
 router.use('/rss', rssRoutes);
 router.use('/public', publicApiRoutes);
 router.use('/studio', studioRoutes);
+router.use('/subscriptions', subscriptionRoutes);
+router.use('/cloud-import', cloudImportRoutes);
 
 export default router;

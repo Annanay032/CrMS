@@ -48,6 +48,18 @@ const createTemplateSchema = z.object({
   category: z.string().min(1).max(50),
 });
 
+// ─── Quick capture (browser extension) ─────────────────────
+
+const quickCaptureSchema = z.object({
+  title: z.string().min(1).max(500),
+  body: z.string().max(5000).optional(),
+  sourceUrl: z.string().url().optional(),
+  selectedText: z.string().max(5000).optional(),
+  imageUrl: z.string().url().optional(),
+});
+
+router.post('/quick', authenticate, validate(quickCaptureSchema), ideaController.quickCapture);
+
 // ─── Idea routes ────────────────────────────────────────────
 
 router.get('/', authenticate, authorize(Role.CREATOR), ideaController.getIdeas);

@@ -1,6 +1,6 @@
 # CrMS — Creator Management System
 
-AI-powered platform for managing creators, brands, campaigns, and community engagement across Instagram, YouTube, TikTok, Twitter/X, LinkedIn, Threads, Bluesky, Facebook, Pinterest, and Reddit. Inspired by [Buffer](https://buffer.com).
+AI-powered platform for managing creators, brands, campaigns, and community engagement across Instagram, YouTube, TikTok, Twitter/X, LinkedIn, Threads, Bluesky, Facebook, Pinterest, Reddit, and Google Business Profile. Inspired by [Buffer](https://buffer.com).
 
 ---
 
@@ -15,6 +15,8 @@ AI-powered platform for managing creators, brands, campaigns, and community enga
 | Job Queue   | BullMQ (publishing, analytics, trends, social listening, competitive intel, reports, growth, inbox, token refresh) |
 | Real-Time   | Socket.IO (WebSocket notifications & live agent activity) |
 | Auth        | JWT (access + refresh tokens via Redis), bcrypt, Passport.js, Google OAuth |
+| Payments    | Stripe (USD), Razorpay (INR), webhook-verified subscriptions |
+| Push        | Web Push (VAPID / web-push) for notification-based posting |
 | Infra       | Docker Compose, npm workspaces monorepo |
 
 ---
@@ -139,6 +141,20 @@ See [.env.example](.env.example) for the full list. Key variables:
 | `INSTAGRAM_APP_ID` | Instagram app ID | *(optional)* |
 | `YOUTUBE_CLIENT_ID` | YouTube client ID | *(optional)* |
 | `TIKTOK_CLIENT_KEY` | TikTok client key | *(optional)* |
+| `STRIPE_SECRET_KEY` | Stripe secret key for checkout | *(optional)* |
+| `STRIPE_PUBLISHABLE_KEY` | Stripe publishable key (sent to frontend) | *(optional)* |
+| `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret | *(optional)* |
+| `RAZORPAY_KEY_ID` | Razorpay key ID | *(optional)* |
+| `RAZORPAY_KEY_SECRET` | Razorpay key secret | *(optional)* |
+| `RAZORPAY_WEBHOOK_SECRET` | Razorpay webhook signing secret | *(optional)* |
+| `GOOGLE_BUSINESS_CLIENT_ID` | Google Business Profile OAuth client ID | *(optional)* |
+| `GOOGLE_BUSINESS_CLIENT_SECRET` | Google Business Profile OAuth secret | *(optional)* |
+| `GOOGLE_DRIVE_API_KEY` | Google Drive API key for cloud imports | *(optional)* |
+| `DROPBOX_APP_KEY` | Dropbox app key for cloud imports | *(optional)* |
+| `CANVA_API_KEY` | Canva API key for design imports | *(optional)* |
+| `VAPID_PUBLIC_KEY` | VAPID public key for web push notifications | *(optional)* |
+| `VAPID_PRIVATE_KEY` | VAPID private key for web push notifications | *(optional)* |
+| `VAPID_CONTACT_EMAIL` | Contact email for VAPID | *(optional)* |
 
 ---
 
@@ -195,7 +211,7 @@ CrMS/
 │       │   ├── error.ts            #   Global error handler + 404
 │       │   └── index.ts
 │       │
-│       ├── routes/                 # API route definitions (24 modules)
+│       ├── routes/                 # API route definitions (27 modules)
 │       │   ├── auth.routes.ts      #   Register, login, refresh, logout, Google OAuth
 │       │   ├── user.routes.ts      #   Profile management (creator/brand/agency)
 │       │   ├── content.routes.ts   #   CRUD posts + calendar + filter by status
@@ -215,13 +231,15 @@ CrMS/
 │       │   ├── settings.routes.ts  #   User preferences & polling settings
 │       │   ├── media.routes.ts     #   Media library (folders + asset uploads)
 │       │   ├── revenue.routes.ts   #   Revenue streams, brand deals, invoices, post ROI
-│       │   ├── webhook.routes.ts   #   WhatsApp webhook verification & message ingestion
+│       │   ├── webhook.routes.ts   #   Stripe + Razorpay + WhatsApp webhook ingestion
 │       │   ├── studio.routes.ts    #   AI Studio (compose, rewrite, image gen, intelligence, video)
 │       │   ├── rss.routes.ts       #   RSS feed management (import content ideas)
 │       │   ├── public-api.routes.ts #  Public API (API key auth, external post/analytics access)
+│       │   ├── subscription.routes.ts # Subscription management, checkout, billing
+│       │   ├── cloud-import.routes.ts # Cloud media imports (Google Drive, Dropbox, Canva)
 │       │   └── index.ts            #   Mounts all route groups under /api
 │       │
-│       ├── controllers/            # Request handlers (19 modules)
+│       ├── controllers/            # Request handlers (21 modules)
 │       │   ├── auth.controller.ts
 │       │   ├── user.controller.ts
 │       │   ├── content.controller.ts
@@ -241,9 +259,11 @@ CrMS/
 │       │   ├── settings.controller.ts
 │       │   ├── media.controller.ts
 │       │   ├── revenue.controller.ts
-│       │   └── studio.controller.ts #   AI Studio endpoints (compose, rewrite, image gen, etc.)
+│       │   ├── studio.controller.ts #   AI Studio endpoints (compose, rewrite, image gen, etc.)
+│       │   ├── subscription.controller.ts # Subscription checkout, billing, plan changes
+│       │   └── cloud-import.controller.ts # Cloud storage media imports
 │       │
-│       ├── services/               # Business logic (27 modules)
+│       ├── services/               # Business logic (33 modules)
 │       │   ├── auth.service.ts     #   Register, login, JWT + refresh token rotation
 │       │   ├── user.service.ts     #   Profile management (creator/brand/agency)
 │       │   ├── content.service.ts  #   Post CRUD, calendar, scheduling
@@ -270,7 +290,13 @@ CrMS/
 │       │   ├── rss.service.ts      #   RSS feed management + import
 │       │   ├── hashtag-analytics.service.ts # Hashtag performance tracking
 │       │   ├── integration-hub.service.ts # Third-party integration management
-│       │   └── index.ts
+│       │   ├── subscription.service.ts # Subscription lifecycle, trials, tier changes
+│       │   ├── stripe.service.ts   #   Stripe Checkout sessions + webhook handling
+│       │   ├── razorpay.service.ts  #   Razorpay subscriptions + webhook handling
+│       │   ├── web-push.service.ts  #   VAPID web push notifications for manual posting
+│       │   ├── cloud-import.service.ts # Google Drive, Dropbox, Canva media imports
+│       │   └── platforms/
+│       │       └── gbp.service.ts   #   Google Business Profile publish + insights
 │       │
 │       ├── agents/                 # AI Agent system (14 agents + orchestrator)
 │       │   ├── base.ts             #   BaseAgent abstract class (execute → run)
@@ -308,13 +334,13 @@ CrMS/
 │       │   └── token-refresh.job.ts#   OAuth token refresh for connected accounts
 │       │
 │       ├── prisma/
-│       │   ├── schema/             #   Multi-file Prisma schema (19 files)
+│       │   ├── schema/             #   Multi-file Prisma schema (20 files)
 │       │   │   ├── base.prisma, user.prisma, creator.prisma, brand-agency.prisma
 │       │   │   ├── content.prisma, campaign.prisma, community.prisma
 │       │   │   ├── analytics.prisma, competitive.prisma, listening.prisma
 │       │   │   ├── team.prisma, startpage.prisma, media.prisma
 │       │   │   ├── revenue.prisma, usage.prisma, workflow.prisma
-│       │   │   ├── notification.prisma, agent.prisma
+│       │   │   ├── notification.prisma, agent.prisma, subscription.prisma
 │       │   │   └── migrations/
 │       │   ├── seed.ts             #   Sample data seeder (orchestrator)
 │       │   └── seed/               #   Modular seed files
@@ -362,10 +388,12 @@ CrMS/
         │       ├── media.ts
         │       ├── revenue.ts      #   Revenue streams, deals, invoices, post ROI
         │       ├── growth.ts       #   Growth Copilot (daily, hooks, predict, plan)
-        │       └── studio.ts       #   AI Studio (compose, rewrite, image gen, intelligence)
+        │       ├── studio.ts       #   AI Studio (compose, rewrite, image gen, intelligence)
+        │       └── subscription.ts  #   Subscription, checkout, billing, Razorpay verify
         │
         ├── hooks/
-        │   └── store.ts            #   Typed useAppSelector / useAppDispatch
+        │   ├── store.ts            #   Typed useAppSelector / useAppDispatch
+        │   └── usePlanGate.ts      #   Feature gating hook (tier check)
         │
         ├── components/
         │   ├── ai/                 # AI-related components
@@ -400,7 +428,7 @@ CrMS/
         │   │   ├── RegisterPage.tsx
         │   │   └── OAuthCallbackPage.tsx
         │   ├── pricing/
-        │   │   └── PricingPage.tsx       # Public tier comparison (no auth)
+        │   │   └── PricingPage.tsx       # Tier comparison + checkout (auth-aware, Stripe/Razorpay)
         │   ├── dashboard/
         │   │   └── DashboardPage.tsx
         │   ├── content/
@@ -500,6 +528,8 @@ All routes are prefixed with `/api`.
 | DELETE | `/content/:id` | Creator | Delete a post |
 | GET | `/content/calendar` | Creator | Monthly calendar view |
 | GET | `/content/status/:status` | Creator | Filter posts by status |
+| GET | `/content/grid/:accountId` | Creator | Instagram grid preview (3-column layout) |
+| PATCH | `/content/reorder` | Creator | Reorder scheduled posts |
 
 ### Campaigns (`/campaigns`)
 | Method | Path | Auth | Description |
@@ -552,6 +582,8 @@ All routes are prefixed with `/api`.
 | POST | `/community/:id/responded` | Creator | Mark as responded |
 | PATCH | `/community/:id/read` | Creator | Mark as read |
 | POST | `/community/bulk-read` | Creator | Bulk mark as read |
+| GET | `/community/score/current` | Creator | Get community comment score |
+| POST | `/community/:id/to-post` | Creator | Create post from reply |
 | PATCH | `/community/:id/case` | Creator | Update interaction case |
 | PATCH | `/community/:id/assign` | Creator | Assign to team member |
 | GET | `/community/saved-replies/list` | Creator | List saved reply templates |
@@ -572,9 +604,10 @@ All routes are prefixed with `/api`.
 | GET | `/dashboard/reports` | Yes | List generated reports |
 | POST | `/dashboard/reports` | Yes | Create report configuration |
 | GET | `/dashboard/reports/:id` | Yes | Get report details |
-| PUT | `/dashboard/reports/:id` | Yes | Update report |
+| PUT | `/dashboard/reports/:id` | Yes | Update report (including branding) |
 | DELETE | `/dashboard/reports/:id` | Yes | Delete report |
 | POST | `/dashboard/reports/:id/generate` | Yes | Trigger report generation |
+| GET | `/dashboard/organic-vs-boosted` | Yes | Organic vs boosted post analytics |
 
 ### Accounts (`/accounts`)
 | Method | Path | Auth | Description |
@@ -600,6 +633,7 @@ All routes are prefixed with `/api`.
 | DELETE | `/ideas/tags/:id` | Creator | Delete tag |
 | GET | `/ideas/templates/all` | Yes | List content templates |
 | POST | `/ideas/templates` | Yes | Create template |
+| POST | `/ideas/quick` | Yes | Quick capture from browser extension |
 
 ### Teams (`/teams`)
 | Method | Path | Auth | Description |
@@ -648,6 +682,8 @@ All routes are prefixed with `/api`.
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
 | PATCH | `/notifications/read-all` | Yes | Mark all notifications as read |
+| GET | `/notifications/push/vapid-key` | Yes | Get VAPID public key for push subscription |
+| POST | `/notifications/push/subscribe` | Yes | Register push subscription |
 | GET | `/usage/` | Yes | Get AI token budget & usage stats |
 | PATCH | `/usage/tier` | Yes | Update subscription tier |
 | PATCH | `/settings/` | Yes | Update user preferences |
@@ -674,6 +710,8 @@ All routes are prefixed with `/api`.
 ### Webhooks (`/webhooks`)
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
+| POST | `/webhooks/stripe` | No | Stripe webhook (signature verified) |
+| POST | `/webhooks/razorpay` | No | Razorpay webhook (HMAC verified) |
 | GET | `/webhooks/whatsapp` | No | WhatsApp webhook verification (challenge) |
 | POST | `/webhooks/whatsapp` | No | WhatsApp incoming message ingestion |
 
@@ -707,6 +745,27 @@ All routes are prefixed with `/api`.
 | POST | `/public/posts` | API Key | Create post (external access) |
 | GET | `/public/posts/:id` | API Key | Get post details |
 | GET | `/public/analytics` | API Key | Get analytics data |
+
+### Subscriptions (`/subscriptions`)
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET | `/subscriptions/pricing` | No | Get plan pricing for all tiers |
+| GET | `/subscriptions/config` | No | Get public checkout config (Razorpay key, Stripe key) |
+| GET | `/subscriptions/` | Yes | Get current subscription + billing status |
+| POST | `/subscriptions/checkout` | Yes | Create Stripe checkout session or Razorpay subscription |
+| PATCH | `/subscriptions/change` | Yes | Change plan tier or billing cycle |
+| POST | `/subscriptions/cancel` | Yes | Cancel subscription at period end |
+| POST | `/subscriptions/reactivate` | Yes | Reactivate canceled subscription |
+| GET | `/subscriptions/payments` | Yes | Get payment history |
+| POST | `/subscriptions/portal` | Yes | Create Stripe billing portal session |
+| POST | `/subscriptions/verify-razorpay` | Yes | Verify Razorpay payment signature |
+
+### Cloud Imports (`/cloud-import`)
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| POST | `/cloud-import/google-drive` | Yes (PRO) | Import media assets from Google Drive |
+| POST | `/cloud-import/dropbox` | Yes (PRO) | Import media assets from Dropbox |
+| POST | `/cloud-import/canva` | Yes (PRO) | Import designs from Canva |
 
 ---
 
@@ -810,6 +869,9 @@ All agents log their tasks (input, output, tokens used) to the `AgentTask` table
 | `Invoice` | Invoices tied to brand deals (DRAFT → SENT → PAID/OVERDUE) |
 | **Unified Inbox** | |
 | `InboxChannel` | Connected inbox channels (Instagram DM, WhatsApp, Email, Brand Inquiry) |
+| **Subscription & Billing** | |
+| `Subscription` | Per-user subscription (tier, cycle, status, trial dates, provider IDs) |
+| `PaymentTransaction` | Payment records (amount, currency, provider, invoice URL) |
 
 ---
 
@@ -828,8 +890,8 @@ All agents log their tasks (input, output, tokens used) to the `AgentTask` table
 
 | Queue | Schedule | Description |
 |-------|----------|-------------|
-| `publish` | Every 60 seconds | Checks for scheduled posts within a 2-min window and publishes via platform APIs |
-| `analytics` | Every 6 hours | Fetches post analytics from platform APIs and updates creator snapshots |
+| `publish` | Every 60 seconds | Checks for scheduled posts within a 2-min window and publishes via platform APIs. Falls back to PENDING_MANUAL + web push notification when no OAuth token is available |
+| `analytics` | Every 6 hours | Fetches post analytics from platform APIs, updates creator snapshots, and detects boosted/promoted posts |
 | `trends` | On-demand | Scans for trending content by niche/platform |
 | `listening` | Every 15 minutes | Polls social platforms for brand mentions and keyword matches |
 | `competitive` | Daily | Collects competitor metrics and activity for benchmarking |
@@ -844,7 +906,7 @@ All agents log their tasks (input, output, tokens used) to the `AgentTask` table
 
 ## Subscription Tiers
 
-The platform uses a soft-wall pricing model with three tiers. All features remain navigable on every tier — gated items show upgrade badges in the sidebar but are not hard-blocked.
+The platform uses a tiered subscription model with Stripe (USD) and Razorpay (INR) payment integration, 14-day free trials, and webhook-verified billing.
 
 | Feature | Free | Pro (₹1,499/mo) | Enterprise (₹4,999/mo) |
 |---------|------|------------------|------------------------|
@@ -858,13 +920,20 @@ The platform uses a soft-wall pricing model with three tiers. All features remai
 | Trend detection | — | ✓ | ✓ |
 | Social listening | — | ✓ | ✓ |
 | Growth Copilot | — | ✓ | ✓ |
+| Cloud imports (Drive/Dropbox/Canva) | — | ✓ | ✓ |
+| Branded/white-label reports | — | ✓ | ✓ |
 | Competitive intel | — | — | ✓ |
 | Approval workflows | — | ✓ | ✓ |
 | Dedicated support | — | — | ✓ |
 
-Tier is stored on the `UsageBudget` model (`FREE`, `PRO`, `ENTERPRISE`) and returned with the user session. The existing `updateTier` mutation on the Usage page handles tier changes for demo purposes (no Stripe integration yet).
+### Billing Flow
 
-A public `/pricing` page is accessible without authentication and displays a full feature comparison matrix.
+1. **Pricing page** (`/pricing`) is accessible with or without auth. Logged-in users see “Upgrade to Pro” / “Upgrade to Enterprise” CTAs; unauthenticated users see “Start 14-day free trial” which leads to registration.
+2. **INR payments** use Razorpay inline checkout (modal); **USD payments** redirect to Stripe hosted checkout.
+3. After successful payment, Razorpay sends the user to `/settings?tab=plan&checkout=success`; Stripe redirects to the same URL.
+4. **Webhooks** (`/webhooks/stripe`, `/webhooks/razorpay`) verify signatures and activate the subscription, record payment transactions, and handle renewals/failures/cancellations.
+5. Tier is stored on the `Subscription` model and enforced by the `requirePlan()` middleware on protected routes and the `usePlanGate()` hook on the frontend.
+6. Trials expire after 14 days — users without a payment method are downgraded to FREE.
 
 ---
 
@@ -887,6 +956,10 @@ Single-item groups (e.g., Home, Communication) render inline without a header. C
 - Set `NODE_ENV=production`
 - Use managed PostgreSQL and Redis services
 - Configure real OAuth credentials for Google, Instagram, YouTube, TikTok
+- Configure Stripe keys (`STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET`) for USD billing
+- Configure Razorpay keys (`RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET`) for INR billing
+- Create Razorpay plans matching `RAZORPAY_PLAN_MAP` IDs in `razorpay.service.ts`
+- Set VAPID keys for web push notifications (`VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_CONTACT_EMAIL`)
 - Set a valid `OPENAI_API_KEY`
 - Put the API behind a reverse proxy (nginx/Caddy) with TLS
 - Rate limiting is already configured via `express-rate-limit` (200 req/15 min)

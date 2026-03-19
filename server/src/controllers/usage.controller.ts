@@ -12,9 +12,3 @@ export async function getUsageHistory(req: AuthRequest, res: Response) {
   const data = await usageService.getUsageHistory(req.user!.userId, days);
   res.json({ success: true, data });
 }
-
-export async function updateTier(req: AuthRequest, res: Response) {
-  const { tier } = req.body as { tier: 'FREE' | 'PRO' | 'ENTERPRISE' };
-  const data = await usageService.updateBudgetTier(req.user!.userId, tier);
-  res.json({ success: true, data });
-}

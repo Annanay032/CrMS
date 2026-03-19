@@ -105,7 +105,7 @@ export async function seedPlatform(ctx: SeedContext) {
     await prisma.usageBudget.upsert({
       where: { userId: u.id },
       update: {},
-      create: { userId: u.id, tier: t.tier, dailyTokenLimit: t.limit, tokensUsedToday: 0 },
+      create: { userId: u.id, dailyTokenLimit: t.limit, tokensUsedToday: 0 },
     });
   }
 

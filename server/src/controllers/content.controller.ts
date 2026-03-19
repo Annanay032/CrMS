@@ -153,3 +153,20 @@ export async function deleteTemplate(req: AuthRequest, res: Response) {
   await contentService.deleteTemplate(req.params.id as string, req.user!.userId);
   res.json({ success: true, message: 'Template deleted' });
 }
+
+// ─── Instagram Grid Planner (Phase 11) ──────────────────────
+
+export async function getGridPreview(req: AuthRequest, res: Response) {
+  const creatorProfileId = await getCreatorProfileId(req.user!.userId);
+  const accountId = req.params.accountId as string;
+  const limit = Number(req.query.limit) || 18;
+  const posts = await contentService.getGridPreview(creatorProfileId, accountId, limit);
+  res.json({ success: true, data: posts });
+}
+
+export async function reorderScheduledPosts(req: AuthRequest, res: Response) {
+  const creatorProfileId = await getCreatorProfileId(req.user!.userId);
+  const { postIds } = req.body as { postIds: string[] };
+  const result = await contentService.reorderScheduledPosts(creatorProfileId, postIds);
+  res.json({ success: true, data: result });
+}

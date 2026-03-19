@@ -175,3 +175,20 @@ export async function unstarInteraction(req: AuthRequest, res: Response) {
   const interaction = await communityService.starInteraction(req.params.id as string, false);
   res.json({ success: true, data: interaction });
 }
+
+/* ── Create Post from Reply (Phase 10) ─────────────────── */
+
+export async function createPostFromReply(req: AuthRequest, res: Response) {
+  const creatorProfileId = await getCreatorProfileId(req.user!.userId);
+  const interactionId = req.params.id as string;
+  const post = await communityService.createPostFromReply(interactionId, creatorProfileId);
+  res.status(201).json({ success: true, data: post });
+}
+
+/* ── Comment Score (Phase 9) ───────────────────────────── */
+
+export async function getCommentScore(req: AuthRequest, res: Response) {
+  const creatorProfileId = await getCreatorProfileId(req.user!.userId);
+  const score = await communityService.calculateCommentScore(creatorProfileId);
+  res.json({ success: true, data: score });
+}

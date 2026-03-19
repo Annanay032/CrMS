@@ -46,6 +46,67 @@ function getPlatformConfig(provider: string): PlatformOAuthConfig | null {
         callbackUrl: env.TIKTOK_CALLBACK_URL,
         scopes: ['user.info.basic', 'video.list'],
       };
+    case 'TWITTER':
+      if (!env.TWITTER_CLIENT_ID || !env.TWITTER_CLIENT_SECRET || !env.TWITTER_CALLBACK_URL) return null;
+      return {
+        authUrl: 'https://twitter.com/i/oauth2/authorize',
+        tokenUrl: 'https://api.twitter.com/2/oauth2/token',
+        clientId: env.TWITTER_CLIENT_ID,
+        clientSecret: env.TWITTER_CLIENT_SECRET,
+        callbackUrl: env.TWITTER_CALLBACK_URL,
+        scopes: ['tweet.read', 'tweet.write', 'users.read', 'offline.access'],
+      };
+    case 'LINKEDIN':
+      if (!env.LINKEDIN_CLIENT_ID || !env.LINKEDIN_CLIENT_SECRET || !env.LINKEDIN_CALLBACK_URL) return null;
+      return {
+        authUrl: 'https://www.linkedin.com/oauth/v2/authorization',
+        tokenUrl: 'https://www.linkedin.com/oauth/v2/accessToken',
+        clientId: env.LINKEDIN_CLIENT_ID,
+        clientSecret: env.LINKEDIN_CLIENT_SECRET,
+        callbackUrl: env.LINKEDIN_CALLBACK_URL,
+        scopes: ['openid', 'profile', 'w_member_social'],
+      };
+    case 'FACEBOOK':
+      if (!env.FACEBOOK_APP_ID || !env.FACEBOOK_APP_SECRET || !env.FACEBOOK_CALLBACK_URL) return null;
+      return {
+        authUrl: 'https://www.facebook.com/v19.0/dialog/oauth',
+        tokenUrl: 'https://graph.facebook.com/v19.0/oauth/access_token',
+        clientId: env.FACEBOOK_APP_ID,
+        clientSecret: env.FACEBOOK_APP_SECRET,
+        callbackUrl: env.FACEBOOK_CALLBACK_URL,
+        scopes: ['pages_show_list', 'pages_read_engagement', 'pages_manage_posts'],
+      };
+    case 'THREADS':
+      // Threads uses Instagram's Graph API (same Meta OAuth)
+      if (!env.INSTAGRAM_APP_ID || !env.INSTAGRAM_APP_SECRET || !env.INSTAGRAM_CALLBACK_URL) return null;
+      return {
+        authUrl: 'https://threads.net/oauth/authorize',
+        tokenUrl: 'https://graph.threads.net/oauth/access_token',
+        clientId: env.INSTAGRAM_APP_ID,
+        clientSecret: env.INSTAGRAM_APP_SECRET,
+        callbackUrl: env.INSTAGRAM_CALLBACK_URL,
+        scopes: ['threads_basic', 'threads_content_publish'],
+      };
+    case 'PINTEREST':
+      if (!env.PINTEREST_APP_ID || !env.PINTEREST_APP_SECRET || !env.PINTEREST_CALLBACK_URL) return null;
+      return {
+        authUrl: 'https://www.pinterest.com/oauth/',
+        tokenUrl: 'https://api.pinterest.com/v5/oauth/token',
+        clientId: env.PINTEREST_APP_ID,
+        clientSecret: env.PINTEREST_APP_SECRET,
+        callbackUrl: env.PINTEREST_CALLBACK_URL,
+        scopes: ['boards:read', 'pins:read', 'pins:write', 'user_accounts:read'],
+      };
+    case 'MASTODON':
+      if (!env.MASTODON_CLIENT_ID || !env.MASTODON_CLIENT_SECRET || !env.MASTODON_CALLBACK_URL) return null;
+      return {
+        authUrl: `${env.MASTODON_INSTANCE_URL ?? 'https://mastodon.social'}/oauth/authorize`,
+        tokenUrl: `${env.MASTODON_INSTANCE_URL ?? 'https://mastodon.social'}/oauth/token`,
+        clientId: env.MASTODON_CLIENT_ID,
+        clientSecret: env.MASTODON_CLIENT_SECRET,
+        callbackUrl: env.MASTODON_CALLBACK_URL,
+        scopes: ['read', 'write'],
+      };
     default:
       return null;
   }
@@ -60,6 +121,7 @@ export async function getConnectedAccounts(userId: string) {
       provider: true,
       providerAccountId: true,
       expiresAt: true,
+      paused: true,
       createdAt: true,
       updatedAt: true,
     },
@@ -86,6 +148,7 @@ export async function getConnectedAccounts(userId: string) {
         connectedAt: account.createdAt,
         expiresAt: account.expiresAt,
         isExpired: account.expiresAt ? new Date(account.expiresAt) < new Date() : false,
+        paused: account.paused,
         stats: stats
           ? {
               handle: stats.handle,
@@ -102,11 +165,22 @@ export async function getConnectedAccounts(userId: string) {
 
 // ─── Check which platforms are available for OAuth ──────────
 export function getAvailablePlatforms() {
-  const platforms = ['INSTAGRAM', 'YOUTUBE', 'TIKTOK'] as const;
+  const platforms = [
+    { provider: 'INSTAGRAM', manualConnectAvailable: true },
+    { provider: 'YOUTUBE', manualConnectAvailable: true },
+    { provider: 'TIKTOK', manualConnectAvailable: true },
+    { provider: 'TWITTER', manualConnectAvailable: true },
+    { provider: 'LINKEDIN', manualConnectAvailable: true },
+    { provider: 'THREADS', manualConnectAvailable: true },
+    { provider: 'BLUESKY', manualConnectAvailable: true },
+    { provider: 'FACEBOOK', manualConnectAvailable: true },
+    { provider: 'PINTEREST', manualConnectAvailable: true },
+    { provider: 'MASTODON', manualConnectAvailable: true },
+  ] as const;
   return platforms.map((p) => ({
-    provider: p,
-    oauthConfigured: getPlatformConfig(p) !== null,
-    manualConnectAvailable: true,
+    provider: p.provider,
+    oauthConfigured: getPlatformConfig(p.provider) !== null,
+    manualConnectAvailable: p.manualConnectAvailable,
   }));
 }
 
@@ -129,6 +203,16 @@ export function getOAuthUrl(provider: string, userId: string): string | null {
   if (provider === 'YOUTUBE') {
     params.set('access_type', 'offline');
     params.set('prompt', 'consent');
+  }
+
+  if (provider === 'TWITTER') {
+    // Twitter OAuth 2.0 with PKCE
+    params.set('code_challenge', 'challenge');
+    params.set('code_challenge_method', 'plain');
+  }
+
+  if (provider === 'LINKEDIN') {
+    params.set('response_type', 'code');
   }
 
   return `${config.authUrl}?${params.toString()}`;
@@ -348,6 +432,25 @@ export async function disconnectAccount(userId: string, provider: OAuthProvider)
   await prisma.oAuthAccount.delete({ where: { id: account.id } });
 
   return { provider, disconnected: true };
+}
+
+// ─── Toggle pause on account ────────────────────────────────
+export async function toggleAccountPause(userId: string, provider: OAuthProvider) {
+  const account = await prisma.oAuthAccount.findFirst({
+    where: { userId, provider },
+  });
+
+  if (!account) {
+    throw Object.assign(new Error('Account not connected'), { statusCode: 404 });
+  }
+
+  const updated = await prisma.oAuthAccount.update({
+    where: { id: account.id },
+    data: { paused: !account.paused },
+    select: { provider: true, paused: true },
+  });
+
+  return { provider: updated.provider, paused: updated.paused };
 }
 
 // ─── Refresh OAuth token ────────────────────────────────────

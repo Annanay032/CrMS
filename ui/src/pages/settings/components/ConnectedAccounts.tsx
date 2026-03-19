@@ -1,64 +1,94 @@
 import { useState } from 'react';
-import { Card, Button, Typography, Tag, Spin, Popconfirm, message, Space, Tooltip } from 'antd';
+import { Button, Typography, Tag, Spin, Popconfirm, message, Space, Tooltip, Empty, Table, Switch } from 'antd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {
-  faInstagram, faYoutube, faTiktok, faRedditAlien,
-} from '@fortawesome/free-brands-svg-icons';
-import {
-  faLink, faLinkSlash, faRotate, faPlug, faTriangleExclamation,
-} from '@fortawesome/free-solid-svg-icons';
-import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
+import { faLink, faLinkSlash, faRotate, faPlug, faTriangleExclamation, faPlus, faPause, faPlay, faTrash } from '@fortawesome/free-solid-svg-icons';
 import {
   useGetConnectedAccountsQuery,
   useLazyInitiateOAuthQuery,
   useDisconnectAccountMutation,
   useRefreshAccountTokenMutation,
+  useTogglePauseAccountMutation,
 } from '@/store/endpoints/accounts';
 import type { ConnectedAccount, PlatformAvailability } from '@/store/endpoints/accounts';
+import { ChannelConnectModal, CHANNEL_META } from './ChannelConnectModal';
+import { InstagramConnectChoice } from './InstagramConnectChoice';
 import { ManualConnectModal } from './ManualConnectModal';
 
 const { Text } = Typography;
-
-const PLATFORM_META: Record<string, { icon: IconDefinition; color: string; label: string }> = {
-  INSTAGRAM: { icon: faInstagram, color: '#E4405F', label: 'Instagram' },
-  YOUTUBE: { icon: faYoutube, color: '#FF0000', label: 'YouTube' },
-  TIKTOK: { icon: faTiktok, color: '#000000', label: 'TikTok' },
-  REDDIT: { icon: faRedditAlien, color: '#FF4500', label: 'Reddit' },
-};
 
 export function ConnectedAccounts() {
   const { data, isLoading } = useGetConnectedAccountsQuery();
   const [triggerOAuth] = useLazyInitiateOAuthQuery();
   const [disconnect, { isLoading: disconnecting }] = useDisconnectAccountMutation();
   const [refreshToken, { isLoading: refreshing }] = useRefreshAccountTokenMutation();
+  const [togglePause, { isLoading: toggling }] = useTogglePauseAccountMutation();
+
+  const [channelModalOpen, setChannelModalOpen] = useState(false);
+  const [igChoiceOpen, setIgChoiceOpen] = useState(false);
   const [manualModalPlatform, setManualModalPlatform] = useState<string | null>(null);
+  const [pendingPlatform, setPendingPlatform] = useState<PlatformAvailability | null>(null);
 
   const accounts = data?.data?.accounts ?? [];
   const platforms = data?.data?.platforms ?? [];
 
-  const getAccount = (provider: string): ConnectedAccount | undefined =>
-    accounts.find((a) => a.provider === provider);
+  const connectedProviders = accounts.map((a) => a.provider);
 
-  const handleConnect = async (platform: PlatformAvailability) => {
-    if (platform.oauthConfigured) {
-      try {
-        const result = await triggerOAuth(platform.provider).unwrap();
-        if (result.data?.url) {
-          window.location.href = result.data.url;
-        }
-      } catch {
-        message.error('Failed to initiate connection. Try manual connect.');
-        setManualModalPlatform(platform.provider);
+  const handleSelectPlatform = (platform: PlatformAvailability) => {
+    setChannelModalOpen(false);
+
+    if (platform.provider === 'INSTAGRAM') {
+      if (platform.oauthConfigured) {
+        // OAuth available — show Professional vs Personal choice
+        setPendingPlatform(platform);
+        setIgChoiceOpen(true);
+      } else {
+        // No OAuth — go straight to manual connect
+        setManualModalPlatform('INSTAGRAM');
       }
+      return;
+    }
+
+    initiateOAuth(platform.provider);
+  };
+
+  const handleManualConnect = (provider: string) => {
+    setChannelModalOpen(false);
+    setManualModalPlatform(provider);
+  };
+
+  const handleInstagramChoice = (type: 'professional' | 'personal') => {
+    setIgChoiceOpen(false);
+    if (!pendingPlatform) return;
+
+    if (type === 'personal') {
+      setManualModalPlatform('INSTAGRAM');
     } else {
-      setManualModalPlatform(platform.provider);
+      if (pendingPlatform.oauthConfigured) {
+        initiateOAuth('INSTAGRAM');
+      } else {
+        setManualModalPlatform('INSTAGRAM');
+      }
+    }
+    setPendingPlatform(null);
+  };
+
+  const initiateOAuth = async (provider: string) => {
+    try {
+      const result = await triggerOAuth(provider).unwrap();
+      if (result.data?.url) {
+        window.location.href = result.data.url;
+      }
+    } catch {
+      message.error('Failed to initiate connection. Try manual connect.');
+      setManualModalPlatform(provider);
     }
   };
 
   const handleDisconnect = async (provider: string) => {
     try {
       await disconnect(provider).unwrap();
-      message.success(`${PLATFORM_META[provider]?.label ?? provider} disconnected`);
+      const meta = CHANNEL_META[provider];
+      message.success(`${meta?.label ?? provider} disconnected`);
     } catch {
       message.error('Failed to disconnect account');
     }
@@ -73,154 +103,203 @@ export function ConnectedAccounts() {
     }
   };
 
+  const handleTogglePause = async (provider: string) => {
+    try {
+      const result = await togglePause(provider).unwrap();
+      const meta = CHANNEL_META[provider];
+      message.success(`${meta?.label ?? provider} ${result.data?.paused ? 'paused' : 'resumed'}`);
+    } catch {
+      message.error('Failed to update channel status');
+    }
+  };
+
   if (isLoading) {
-    return (
-      <Card title="Connected Accounts">
-        <div style={{ textAlign: 'center', padding: 32 }}><Spin /></div>
-      </Card>
-    );
+    return <div style={{ textAlign: 'center', padding: 48 }}><Spin size="large" /></div>;
   }
 
-  const allPlatforms = platforms.length > 0
+  const allPlatforms: PlatformAvailability[] = platforms.length > 0
     ? platforms
-    : (['INSTAGRAM', 'YOUTUBE', 'TIKTOK', 'REDDIT'] as const).map((p) => ({
+    : (['INSTAGRAM', 'YOUTUBE', 'TIKTOK', 'TWITTER', 'LINKEDIN', 'THREADS', 'BLUESKY', 'FACEBOOK', 'PINTEREST', 'MASTODON'] as const).map((p) => ({
         provider: p,
         oauthConfigured: false,
         manualConnectAvailable: true,
       }));
 
-  return (
-    <>
-      <Card
-        title={
-          <Space>
-            <FontAwesomeIcon icon={faPlug} style={{ color: '#6366f1' }} />
-            Connected Accounts
-          </Space>
-        }
-        style={{ marginBottom: 24 }}
-      >
-        {allPlatforms.map((platform) => {
-          const meta = PLATFORM_META[platform.provider];
-          const account = getAccount(platform.provider);
-
-          return (
+  const columns = [
+    {
+      title: 'Channel',
+      dataIndex: 'provider',
+      key: 'channel',
+      render: (_: string, record: ConnectedAccount) => {
+        const meta = CHANNEL_META[record.provider];
+        return (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div
-              key={platform.provider}
               style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                padding: 16,
+                width: 40,
+                height: 40,
                 borderRadius: 10,
-                background: account ? '#f0fdf4' : '#f8fafc',
-                border: account
-                  ? account.isExpired ? '1px solid #fecaca' : '1px solid #bbf7d0'
-                  : '1px solid #e2e8f0',
-                marginBottom: 10,
+                background: record.paused ? '#e2e8f0' : meta?.color,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                opacity: record.paused ? 0.6 : 1,
+                transition: 'all 0.2s',
               }}
             >
-              {/* Left side: icon + info */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                <div
-                  style={{
-                    width: 42,
-                    height: 42,
-                    borderRadius: 10,
-                    background: account ? meta.color : '#e2e8f0',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <FontAwesomeIcon
-                    icon={meta.icon}
-                    style={{ color: account ? '#fff' : '#94a3b8', fontSize: 20 }}
-                  />
-                </div>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <Text strong style={{ fontSize: 15 }}>{meta.label}</Text>
-                    {account && (
-                      <Tag color="green" style={{ margin: 0 }}>
-                        <FontAwesomeIcon icon={faLink} style={{ marginRight: 4 }} />
-                        Connected
-                      </Tag>
-                    )}
-                    {account?.isExpired && (
-                      <Tag color="red" style={{ margin: 0 }}>
-                        <FontAwesomeIcon icon={faTriangleExclamation} style={{ marginRight: 4 }} />
-                        Expired
-                      </Tag>
-                    )}
-                  </div>
-                  {account?.stats?.handle && (
-                    <Text type="secondary" style={{ fontSize: 13 }}>
-                      {account.stats.handle}
-                      {account.stats.followers > 0 && (
-                        <> · {account.stats.followers.toLocaleString()} followers · {account.stats.engagementRate}% ER</>
-                      )}
-                    </Text>
-                  )}
-                  {account && !account.stats?.handle && (
-                    <Text type="secondary" style={{ fontSize: 13 }}>
-                      ID: {account.providerAccountId}
-                    </Text>
-                  )}
-                  {!account && (
-                    <Text type="secondary" style={{ fontSize: 13 }}>
-                      {platform.oauthConfigured ? 'Connect via OAuth' : 'Connect with your handle'}
-                    </Text>
-                  )}
-                </div>
-              </div>
-
-              {/* Right side: actions */}
-              <Space size={8}>
-                {account ? (
-                  <>
-                    {account.isExpired && (
-                      <Tooltip title="Refresh token">
-                        <Button
-                          size="small"
-                          icon={<FontAwesomeIcon icon={faRotate} />}
-                          onClick={() => handleRefresh(platform.provider)}
-                          loading={refreshing}
-                        />
-                      </Tooltip>
-                    )}
-                    <Popconfirm
-                      title={`Disconnect ${meta.label}?`}
-                      description="This will remove the linked account."
-                      onConfirm={() => handleDisconnect(platform.provider)}
-                      okText="Disconnect"
-                      okButtonProps={{ danger: true }}
-                    >
-                      <Button
-                        size="small"
-                        danger
-                        icon={<FontAwesomeIcon icon={faLinkSlash} />}
-                        loading={disconnecting}
-                      >
-                        Disconnect
-                      </Button>
-                    </Popconfirm>
-                  </>
-                ) : (
-                  <Button
-                    type="primary"
-                    size="small"
-                    icon={<FontAwesomeIcon icon={faLink} />}
-                    onClick={() => handleConnect(platform)}
-                  >
-                    Connect
-                  </Button>
-                )}
-              </Space>
+              <FontAwesomeIcon icon={meta?.icon ?? faPlug} style={{ color: '#fff', fontSize: 18 }} />
             </div>
-          );
-        })}
-      </Card>
+            <div>
+              <Text strong style={{ opacity: record.paused ? 0.5 : 1 }}>{meta?.label ?? record.provider}</Text>
+              <br />
+              <Text type="secondary" style={{ fontSize: 12 }}>
+                {record.stats?.handle ?? `ID: ${record.providerAccountId}`}
+              </Text>
+            </div>
+          </div>
+        );
+      },
+    },
+    {
+      title: 'Status',
+      key: 'status',
+      width: 140,
+      render: (_: unknown, record: ConnectedAccount) => {
+        if (record.paused) {
+          return <Tag color="default"><FontAwesomeIcon icon={faPause} style={{ marginRight: 4 }} />Paused</Tag>;
+        }
+        if (record.isExpired) {
+          return <Tag color="red"><FontAwesomeIcon icon={faTriangleExclamation} style={{ marginRight: 4 }} />Expired</Tag>;
+        }
+        return <Tag color="green"><FontAwesomeIcon icon={faLink} style={{ marginRight: 4 }} />Active</Tag>;
+      },
+    },
+    {
+      title: 'Followers',
+      key: 'followers',
+      width: 110,
+      render: (_: unknown, record: ConnectedAccount) =>
+        record.stats?.followers
+          ? <Text>{record.stats.followers.toLocaleString()}</Text>
+          : <Text type="secondary">—</Text>,
+    },
+    {
+      title: 'Eng. Rate',
+      key: 'er',
+      width: 100,
+      render: (_: unknown, record: ConnectedAccount) =>
+        record.stats?.engagementRate
+          ? <Text>{record.stats.engagementRate}%</Text>
+          : <Text type="secondary">—</Text>,
+    },
+    {
+      title: 'Active',
+      key: 'pause',
+      width: 80,
+      render: (_: unknown, record: ConnectedAccount) => (
+        <Tooltip title={record.paused ? 'Resume channel' : 'Pause channel'}>
+          <Switch
+            size="small"
+            checked={!record.paused}
+            loading={toggling}
+            onChange={() => handleTogglePause(record.provider)}
+          />
+        </Tooltip>
+      ),
+    },
+    {
+      title: '',
+      key: 'actions',
+      width: 120,
+      render: (_: unknown, record: ConnectedAccount) => (
+        <Space size={4}>
+          {record.isExpired && (
+            <Tooltip title="Refresh token">
+              <Button
+                size="small"
+                type="text"
+                icon={<FontAwesomeIcon icon={faRotate} />}
+                onClick={() => handleRefresh(record.provider)}
+                loading={refreshing}
+              />
+            </Tooltip>
+          )}
+          <Popconfirm
+            title={`Delete ${CHANNEL_META[record.provider]?.label ?? record.provider}?`}
+            description="This will permanently remove this channel and its data."
+            onConfirm={() => handleDisconnect(record.provider)}
+            okText="Delete"
+            okButtonProps={{ danger: true }}
+          >
+            <Tooltip title="Delete channel">
+              <Button
+                size="small"
+                type="text"
+                danger
+                icon={<FontAwesomeIcon icon={faTrash} />}
+                loading={disconnecting}
+              />
+            </Tooltip>
+          </Popconfirm>
+        </Space>
+      ),
+    },
+  ];
+
+  return (
+    <>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+        <div>
+          <Text strong style={{ fontSize: 16 }}>Connected Channels</Text>
+          <br />
+          <Text type="secondary" style={{ fontSize: 13 }}>
+            {accounts.length} channel{accounts.length !== 1 ? 's' : ''} connected
+          </Text>
+        </div>
+        <Button
+          type="primary"
+          icon={<FontAwesomeIcon icon={faPlus} style={{ marginRight: 6 }} />}
+          onClick={() => setChannelModalOpen(true)}
+        >
+          Connect Channel
+        </Button>
+      </div>
+
+      {accounts.length === 0 ? (
+        <Empty
+          description="No channels connected yet"
+          image={Empty.PRESENTED_IMAGE_SIMPLE}
+          style={{ padding: 48 }}
+        >
+          <Button type="primary" onClick={() => setChannelModalOpen(true)}>
+            Connect Your First Channel
+          </Button>
+        </Empty>
+      ) : (
+        <Table
+          dataSource={accounts}
+          columns={columns}
+          rowKey="id"
+          pagination={false}
+          size="middle"
+          style={{ borderRadius: 12, overflow: 'hidden' }}
+        />
+      )}
+
+      <ChannelConnectModal
+        open={channelModalOpen}
+        platforms={allPlatforms}
+        connectedProviders={connectedProviders}
+        onOAuthConnect={handleSelectPlatform}
+        onManualConnect={handleManualConnect}
+        onClose={() => setChannelModalOpen(false)}
+      />
+
+      <InstagramConnectChoice
+        open={igChoiceOpen}
+        onChoose={handleInstagramChoice}
+        onBack={() => { setIgChoiceOpen(false); setChannelModalOpen(true); }}
+      />
 
       <ManualConnectModal
         platform={manualModalPlatform}

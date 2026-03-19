@@ -39,4 +39,10 @@ router.delete('/channels/:type', ...auth, communityController.deleteChannel);
 router.post('/:id/star', ...auth, communityController.starInteraction);
 router.delete('/:id/star', ...auth, communityController.unstarInteraction);
 
+/* Create post from reply (Phase 10) */
+router.post('/:id/to-post', ...auth, communityController.createPostFromReply);
+
+/* Comment Score (Phase 9) */
+router.get('/score/current', ...auth, communityController.getCommentScore);
+
 export default router;

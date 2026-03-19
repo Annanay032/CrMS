@@ -19,6 +19,9 @@ router.get('/hashtags', authenticate, dashboardController.getHashtagAnalytics);
 router.get('/hashtags/top', authenticate, dashboardController.getTopHashtags);
 router.post('/hashtags/refresh', authenticate, dashboardController.refreshHashtagAnalytics);
 
+// Organic vs Boosted
+router.get('/organic-vs-boosted', authenticate, dashboardController.getOrganicVsBoosted);
+
 // Reports CRUD
 router.get('/reports', authenticate, dashboardController.getReports);
 router.post('/reports', authenticate, dashboardController.createReport);

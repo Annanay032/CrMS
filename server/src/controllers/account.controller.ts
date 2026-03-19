@@ -67,3 +67,9 @@ export async function refreshToken(req: AuthRequest, res: Response) {
   const result = await accountService.refreshAccountToken(req.user!.userId, provider);
   res.json({ success: true, data: result });
 }
+
+export async function togglePause(req: AuthRequest, res: Response) {
+  const provider = (req.params.provider as string).toUpperCase() as OAuthProvider;
+  const result = await accountService.toggleAccountPause(req.user!.userId, provider);
+  res.json({ success: true, data: result });
+}

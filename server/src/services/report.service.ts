@@ -35,6 +35,11 @@ export async function createReport(userId: string, data: {
   format?: string;
   schedule?: string;
   creatorProfileId?: string;
+  brandLogo?: string;
+  brandColor?: string;
+  brandName?: string;
+  footerText?: string;
+  isWhiteLabel?: boolean;
 }) {
   return prisma.analyticsReport.create({
     data: {
@@ -49,6 +54,11 @@ export async function createReport(userId: string, data: {
       format: (data.format ?? 'PDF') as ReportFormat,
       status: data.schedule ? 'SCHEDULED' as ReportStatus : 'DRAFT' as ReportStatus,
       schedule: data.schedule,
+      brandLogo: data.brandLogo,
+      brandColor: data.brandColor,
+      brandName: data.brandName,
+      footerText: data.footerText,
+      isWhiteLabel: data.isWhiteLabel ?? false,
     },
   });
 }
@@ -62,6 +72,11 @@ export async function updateReport(id: string, userId: string, data: {
   platforms?: string[];
   format?: string;
   schedule?: string;
+  brandLogo?: string;
+  brandColor?: string;
+  brandName?: string;
+  footerText?: string;
+  isWhiteLabel?: boolean;
 }) {
   const update: Record<string, unknown> = {};
   if (data.title) update.title = data.title;
@@ -72,6 +87,11 @@ export async function updateReport(id: string, userId: string, data: {
   if (data.platforms) update.platforms = data.platforms as Platform[];
   if (data.format) update.format = data.format as ReportFormat;
   if (data.schedule !== undefined) update.schedule = data.schedule;
+  if (data.brandLogo !== undefined) update.brandLogo = data.brandLogo;
+  if (data.brandColor !== undefined) update.brandColor = data.brandColor;
+  if (data.brandName !== undefined) update.brandName = data.brandName;
+  if (data.footerText !== undefined) update.footerText = data.footerText;
+  if (data.isWhiteLabel !== undefined) update.isWhiteLabel = data.isWhiteLabel;
 
   return prisma.analyticsReport.update({ where: { id, userId }, data: update });
 }

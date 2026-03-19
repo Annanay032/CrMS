@@ -2,13 +2,13 @@
 
 ## Platform Overview
 
-**CrMS (Creator Management System)** is an influencer/creator marketing platform that connects social media creators (Instagram, YouTube, TikTok, Twitter/X, LinkedIn, Threads, Bluesky, Facebook, Pinterest, Reddit) with brands for campaign collaborations. It features an AI Content Studio, content management, scheduling, analytics, community engagement, AI-powered matching, revenue tracking, a Growth Copilot, unified inbox, public API, RSS feed import, and 14 specialized GPT-4 agents plus a Studio agent.
+**CrMS (Creator Management System)** is an influencer/creator marketing platform that connects social media creators (Instagram, YouTube, TikTok, Twitter/X, LinkedIn, Threads, Bluesky, Facebook, Pinterest, Reddit, Google Business Profile) with brands for campaign collaborations. It features an AI Content Studio, content management, scheduling, analytics, community engagement, AI-powered matching, revenue tracking, a Growth Copilot, unified inbox, public API, RSS feed import, subscription billing (Stripe + Razorpay), cloud media imports (Google Drive, Dropbox, Canva), and 14 specialized GPT-4 agents plus a Studio agent.
 
 ### Tech Stack
 
 | Layer | Stack |
 |---|---|
-| Backend | Node.js, Express 5, TypeScript, Prisma 6, BullMQ, ioredis, OpenAI SDK |
+| Backend | Node.js, Express 5, TypeScript, Prisma 6, BullMQ, ioredis, OpenAI SDK, Stripe, Razorpay, web-push |
 | Frontend | React 19, Vite 8, TypeScript, Ant Design 6, React Router 7, Redux Toolkit (RTK Query), Recharts, SCSS Modules |
 | Database | PostgreSQL 16 |
 | Cache/Queue | Redis 7 |
@@ -207,16 +207,16 @@ gt warrant                   # Manage stuck agents
 │  ├── Link-in-Bio Builder                                     │
 │  ├── Media Library                                           │
 │  ├── AI Assistant                                            │
-│  ├── Pricing (public)                                        │
-│  └── Settings (Profile, Teams, Usage)                         │
+│  ├── Pricing (public) + Checkout (Stripe/Razorpay)              │
+│  └── Settings (Profile, Teams, Usage, Plan & Billing)           │
 ├──────────────────────────────────────────────────────────────┤
 │  API Server (Express 5 + TypeScript)                         │
-│  ├── Routes (24): auth, users, content, campaigns, matching, │
+│  ├── Routes (27): auth, users, content, campaigns, matching, │
 │  │   agents, community, dashboard, accounts, ideas,          │
 │  │   listening, competitive, teams, startpages, notifications,│
 │  │   usage, settings, media, revenue, webhooks, studio, rss,  │
-│  │   public-api                                              │
-│  ├── Services (27): full business logic layer                  │
+│  │   public-api, subscription, cloud-import                   │
+│  ├── Services (33): full business logic layer                  │
 │  ├── AI Agents (14 + Studio): content, scheduling, analytics, │
 │  │   engagement, trends, matching, growth, publishing,        │
 │  │   listening, competitive, campaign, collaboration,         │
@@ -227,7 +227,7 @@ gt warrant                   # Manage stuck agents
 │  └── Middleware: auth JWT, validation, error, rate-limit       │
 ├──────────────────────────────────────────────────────────────┤
 │  Data Layer                                                  │
-│  ├── PostgreSQL 16 (Prisma ORM, 19 schema files, 40+ models) │
+│  ├── PostgreSQL 16 (Prisma ORM, 20 schema files, 40+ models) │
 │  └── Redis 7 (sessions, queues, cache)                       │
 └──────────────────────────────────────────────────────────────┘
 ```
@@ -254,7 +254,7 @@ gt forget <memory-id>                        # remove outdated ones
 |---|---|---|---|
 | 1 | Platform services are stubs (Instagram, YouTube, TikTok OAuth publish) | HIGH | Server |
 | 2 | OAuth flows not fully wired (Passport installed, Google works, social pending) | HIGH | Server |
-| 3 | No payment/billing system (Stripe integration) | MEDIUM | Server |
+| 3 | ~~No payment/billing system~~ **DONE** — Stripe (USD) + Razorpay (INR) with webhooks, 14-day trials, subscription lifecycle | ✅ | Server+UI |
 | 4 | Agency features minimal (models exist, limited routes/UI) | LOW | Both |
 | 5 | Admin dashboard UI is basic | LOW | UI |
 
@@ -270,8 +270,12 @@ cd ~/gt/CrMS/crew/annanay
 # Wire real social platform APIs
 gt sling "Implement Instagram Graph API publish + analytics in platform.service.ts. Wire YouTube Data API v3 for uploads and analytics. Implement TikTok Content Posting API. All behind the existing ConnectedAccount OAuth tokens." --agent claude
 
-# Payment/billing integration
-gt sling "Integrate Stripe Checkout for PRO/ENTERPRISE tier upgrades. Add webhook handler for subscription events. Update UsageBudget model on successful payment. Wire to the existing PricingPage and PlanCard components." --agent copilot
+# Payment/billing integration - COMPLETED
+# Stripe (USD) + Razorpay (INR) are fully wired with:
+#   - Checkout sessions, inline Razorpay modal, webhook verification
+#   - Subscription lifecycle (trials, activation, cancellation, renewal)
+#   - requirePlan() middleware + usePlanGate() hook for feature gating
+#   - PricingPage auth-aware CTAs, PlanCard with billing status
 
 # Agency features expansion
 gt sling "Build agency dashboard: managed creators table with aggregated analytics, bulk content scheduling, cross-creator performance reports. Extend existing AgencyProfile and AgencyCreator models." --agent gemini
@@ -346,6 +350,8 @@ gt mayor stop
 | RevenueStream | type, amount, recurring |
 | BrandDeal | brand, status (PROSPECT→NEGOTIATING→ACTIVE→COMPLETED), value |
 | Invoice | status (DRAFT→SENT→PAID/OVERDUE), amount |
+| Subscription | tier, billingCycle, status, currency, providerSubscriptionId, trialEnd |
+| PaymentTransaction | subscriptionId, amount, currency, provider, status, invoiceUrl |
 | ApiKey | name, scopes, hashedKey |
 
 ## API Endpoints Quick Reference

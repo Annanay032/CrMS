@@ -9,4 +9,8 @@ router.patch('/read-all', authenticate, ctrl.markAllRead);
 router.patch('/:id/read', authenticate, ctrl.markRead);
 router.delete('/:id', authenticate, ctrl.deleteNotification);
 
+// Push subscription
+router.get('/push/vapid-key', authenticate, ctrl.getVapidKey);
+router.post('/push/subscribe', authenticate, ctrl.registerPushSubscription);
+
 export default router;

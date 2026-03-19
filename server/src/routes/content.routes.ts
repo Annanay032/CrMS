@@ -129,4 +129,8 @@ router.get('/templates', authenticate, contentController.getTemplates);
 router.post('/templates', authenticate, authorize(Role.CREATOR), validate(createTemplateSchema), contentController.createTemplate);
 router.delete('/templates/:id', authenticate, authorize(Role.CREATOR), contentController.deleteTemplate);
 
+// ── Instagram Grid Planner (Phase 11) ──
+router.get('/grid/:accountId', authenticate, authorize(Role.CREATOR), contentController.getGridPreview);
+router.patch('/reorder', authenticate, authorize(Role.CREATOR), contentController.reorderScheduledPosts);
+
 export default router;

@@ -22,6 +22,7 @@ model MediaAsset {
   mimeType     String
   size         Int
   url          String
+  source       String?  // e.g. UPLOAD, GOOGLE_DRIVE, DROPBOX, CANVA
   thumbnailUrl String?
   tags         String[] @default([])
   folderId     String?

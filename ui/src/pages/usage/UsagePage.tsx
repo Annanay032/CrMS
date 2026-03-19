@@ -1,9 +1,9 @@
-import { Card, Progress, Tag, Typography, Select, Table, Empty } from 'antd';
+import { Card, Progress, Tag, Typography, Table, Empty } from 'antd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faGauge, faBolt, faChartColumn } from '@fortawesome/free-solid-svg-icons';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { PageHeader } from '@/components/common';
-import { useGetUsageSummaryQuery, useGetUsageHistoryQuery, useUpdateUsageTierMutation } from '@/store/endpoints/usage';
+import { useGetUsageSummaryQuery, useGetUsageHistoryQuery } from '@/store/endpoints/usage';
 import type { UsageTier } from '@/types';
 
 const { Text, Title } = Typography;
@@ -13,8 +13,6 @@ const TIER_COLORS: Record<UsageTier, string> = { FREE: 'blue', PRO: 'gold', ENTE
 export function UsagePage() {
   const { data: summaryRes } = useGetUsageSummaryQuery();
   const { data: historyRes } = useGetUsageHistoryQuery({ days: 30 });
-  const [updateTier] = useUpdateUsageTierMutation();
-
   const summary = summaryRes?.data;
   const history = historyRes?.data ?? [];
   const pct = summary ? Math.round((summary.usedToday / summary.dailyLimit) * 100) : 0;
@@ -41,19 +39,9 @@ export function UsagePage() {
               {summary?.usedToday.toLocaleString() ?? 0} / {summary?.dailyLimit.toLocaleString() ?? 0} tokens
             </Text>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <Text type="secondary">Tier:</Text>
-            <Select
-              value={summary?.tier ?? 'FREE'}
-              onChange={(v) => updateTier({ tier: v })}
-              style={{ width: 140 }}
-              options={[
-                { value: 'FREE', label: <Tag color="blue">Free · 50k</Tag> },
-                { value: 'PRO', label: <Tag color="gold">Pro · 200k</Tag> },
-                { value: 'ENTERPRISE', label: <Tag color="purple">Enterprise · 1M</Tag> },
-              ]}
-            />
-          </div>
+          <Tag color={TIER_COLORS[summary?.tier ?? 'FREE']}>
+            {summary?.tier ?? 'FREE'}
+          </Tag>
         </div>
         <Progress
           percent={pct}

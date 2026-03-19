@@ -13,6 +13,8 @@ export interface PlatformAnalytics {
   shares: number;
   saves: number;
   clicks: number;
+  isPaid?: boolean;
+  adSpend?: number;
 }
 
 export interface PlatformProfile {

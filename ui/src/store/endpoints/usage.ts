@@ -13,15 +13,10 @@ export const usageApi = api.injectEndpoints({
       providesTags: ['Usage'],
     }),
 
-    updateUsageTier: build.mutation<ApiResponse<unknown>, { tier: string }>({
-      query: (body) => ({ url: '/usage/tier', method: 'PATCH', body }),
-      invalidatesTags: ['Usage'],
-    }),
   }),
 });
 
 export const {
   useGetUsageSummaryQuery,
   useGetUsageHistoryQuery,
-  useUpdateUsageTierMutation,
 } = usageApi;

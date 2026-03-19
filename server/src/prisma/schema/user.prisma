@@ -12,6 +12,13 @@ enum OAuthProvider {
   INSTAGRAM
   YOUTUBE
   TIKTOK
+  TWITTER
+  LINKEDIN
+  THREADS
+  BLUESKY
+  FACEBOOK
+  PINTEREST
+  MASTODON
 }
 
 model User {
@@ -41,6 +48,7 @@ model User {
   startPages       StartPage[]
   notifications    Notification[]
   usageBudget      UsageBudget?
+  subscription     Subscription?
   userSettings     UserSettings?
   apiKeys          ApiKey[]
 
@@ -55,6 +63,7 @@ model OAuthAccount {
   accessToken       String // encrypted at rest via app layer
   refreshToken      String? // encrypted at rest via app layer
   expiresAt         DateTime?
+  paused            Boolean       @default(false)
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
 
@@ -95,6 +104,9 @@ model UserSettings {
   // ── Privacy & Security ──
   profileVisibility     String    @default("public") // public | private | connections-only
   showAnalytics         Boolean   @default(true)     // show analytics on public profile
+
+  // ── Web Push ──
+  pushSubscription      Json?     // serialized PushSubscription object
 
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt

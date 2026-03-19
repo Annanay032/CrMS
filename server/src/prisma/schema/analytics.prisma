@@ -68,6 +68,13 @@ model AnalyticsReport {
   status           ReportStatus @default(DRAFT)
   fileUrl          String?      // generated report file path
   schedule         String?      // cron expression for recurring reports
+
+  // ── Branding ──
+  brandLogo        String?      // URL to uploaded logo image
+  brandColor       String?      // hex color e.g. "#4f46e5"
+  brandName        String?      // custom brand name for report header
+  footerText       String?      // custom footer text
+  isWhiteLabel     Boolean      @default(false) // remove CrMS branding
   lastGeneratedAt  DateTime?
   generatedData    Json?        // cached computed data for the report
   createdAt        DateTime     @default(now())

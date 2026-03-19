@@ -1,8 +1,9 @@
-import { Card, Typography, Progress, Tag, Button } from 'antd';
-import { useNavigate } from 'react-router-dom';
+import { Card, Typography, Progress, Tag, Button, Alert } from 'antd';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCrown } from '@fortawesome/free-solid-svg-icons';
 import { useGetUsageSummaryQuery } from '@/store/endpoints/usage';
+import { useGetSubscriptionQuery } from '@/store/endpoints/subscription';
 import { TIER_CONFIG, PLAN_FEATURES } from '@/constants/features';
 import type { UsageTier } from '@/types';
 
@@ -11,9 +12,14 @@ const TIER_TAG_COLOR: Record<UsageTier, string> = { FREE: 'blue', PRO: 'gold', E
 
 export function PlanCard() {
   const { data: summaryRes } = useGetUsageSummaryQuery();
+  const { data: subRes } = useGetSubscriptionQuery();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const tier: UsageTier = summaryRes?.data?.tier ?? 'FREE';
+  const checkoutSuccess = searchParams.get('checkout') === 'success';
+
+  const sub = subRes?.data;
+  const tier: UsageTier = sub?.tier ?? 'FREE';
   const cfg = TIER_CONFIG[tier];
   const summary = summaryRes?.data;
   const pct = summary ? Math.round((summary.usedToday / summary.dailyLimit) * 100) : 0;
@@ -22,8 +28,33 @@ export function PlanCard() {
   const highlights = PLAN_FEATURES.filter((f) => f[tierKey] === true || typeof f[tierKey] === 'string')
     .slice(0, 6);
 
+  function formatPlanPrice(): string {
+    if (!sub || tier === 'FREE') return '₹0 forever';
+    const prices = TIER_CONFIG[tier];
+    if (sub.currency === 'INR') {
+      const amount = sub.billingCycle === 'YEARLY' ? prices.yearlyPriceINR : prices.monthlyPriceINR;
+      return `₹${amount.toLocaleString('en-IN')}/${sub.billingCycle === 'YEARLY' ? 'yr' : 'mo'}`;
+    }
+    const amount = sub.billingCycle === 'YEARLY' ? prices.yearlyPriceUSD : prices.monthlyPriceUSD;
+    return `$${amount}/${sub.billingCycle === 'YEARLY' ? 'yr' : 'mo'}`;
+  }
+
   return (
     <Card style={{ marginTop: 24 }}>
+      {checkoutSuccess && (
+        <Alert
+          type="success"
+          message="Payment successful! Your plan has been upgraded."
+          showIcon
+          closable
+          onClose={() => {
+            searchParams.delete('checkout');
+            setSearchParams(searchParams);
+          }}
+          style={{ marginBottom: 16 }}
+        />
+      )}
+
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
         <div>
           <Title level={5} style={{ margin: 0 }}>
@@ -32,8 +63,23 @@ export function PlanCard() {
           </Title>
           <div style={{ marginTop: 4 }}>
             <Tag color={TIER_TAG_COLOR[tier]}>{cfg.label}</Tag>
-            <Text type="secondary">{cfg.price} {cfg.priceSubtext}</Text>
+            <Text type="secondary">{formatPlanPrice()}</Text>
           </div>
+          {sub?.status === 'TRIALING' && sub.trialDaysRemaining > 0 && (
+            <div style={{ marginTop: 4 }}>
+              <Tag color="orange">{sub.trialDaysRemaining} days left in trial</Tag>
+            </div>
+          )}
+          {sub?.cancelAtPeriodEnd && (
+            <div style={{ marginTop: 4 }}>
+              <Tag color="red">Cancels at period end</Tag>
+            </div>
+          )}
+          {sub?.currentPeriodEnd && sub.status === 'ACTIVE' && (
+            <Text type="secondary" style={{ fontSize: 12, display: 'block', marginTop: 4 }}>
+              Renews {new Date(sub.currentPeriodEnd).toLocaleDateString()}
+            </Text>
+          )}
         </div>
         {tier !== 'ENTERPRISE' && (
           <Button type="primary" onClick={() => navigate('/pricing')}>

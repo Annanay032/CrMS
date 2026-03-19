@@ -3,8 +3,10 @@ import { z } from 'zod';
 import * as competitiveController from '../controllers/competitive.controller.js';
 import { authenticate } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
+import { requirePlan } from '../middleware/plan-gate.js';
 
 const router = Router();
+router.use(authenticate, requirePlan('ENTERPRISE'));
 
 const createCompetitorSchema = z.object({
   name: z.string().min(1).max(200),
@@ -21,12 +23,12 @@ const updateCompetitorSchema = z.object({
   isActive: z.boolean().optional(),
 });
 
-router.get('/', authenticate, competitiveController.getCompetitors);
-router.post('/', authenticate, validate(createCompetitorSchema), competitiveController.createCompetitor);
-router.get('/benchmark', authenticate, competitiveController.getBenchmark);
-router.get('/:id', authenticate, competitiveController.getCompetitorById);
-router.put('/:id', authenticate, validate(updateCompetitorSchema), competitiveController.updateCompetitor);
-router.delete('/:id', authenticate, competitiveController.deleteCompetitor);
-router.get('/:id/snapshots', authenticate, competitiveController.getSnapshots);
+router.get('/', competitiveController.getCompetitors);
+router.post('/', validate(createCompetitorSchema), competitiveController.createCompetitor);
+router.get('/benchmark', competitiveController.getBenchmark);
+router.get('/:id', competitiveController.getCompetitorById);
+router.put('/:id', validate(updateCompetitorSchema), competitiveController.updateCompetitor);
+router.delete('/:id', competitiveController.deleteCompetitor);
+router.get('/:id/snapshots', competitiveController.getSnapshots);
 
 export default router;

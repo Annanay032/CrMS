@@ -226,3 +226,92 @@ export async function deleteChannel(creatorProfileId: string, type: string) {
 export async function starInteraction(id: string, star: boolean) {
   return prisma.communityInteraction.update({ where: { id }, data: { isStarred: star } });
 }
+
+/* ── Comment Score (Phase 9) ───────────────────────────── */
+
+export async function calculateCommentScore(creatorProfileId: string) {
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
+  const interactions = await prisma.communityInteraction.findMany({
+    where: { creatorProfileId, createdAt: { gte: thirtyDaysAgo } },
+    select: { id: true, createdAt: true, respondedAt: true },
+  });
+
+  const total = interactions.length;
+  if (total === 0) {
+    return { responseRate: 0, avgResponseMinutes: 0, consistency: 0, overallScore: 0, total: 0 };
+  }
+
+  const responded = interactions.filter((i) => i.respondedAt !== null);
+  const responseRate = (responded.length / total) * 100;
+
+  // Avg response time in minutes
+  const responseTimes = responded
+    .map((i) => (i.respondedAt!.getTime() - i.createdAt.getTime()) / 60_000)
+    .filter((t) => t > 0);
+  const avgResponseMinutes = responseTimes.length > 0
+    ? responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length
+    : 0;
+
+  // Consistency: group replies by day, measure std deviation
+  const dailyCounts: Record<string, number> = {};
+  for (const i of responded) {
+    const day = i.respondedAt!.toISOString().slice(0, 10);
+    dailyCounts[day] = (dailyCounts[day] ?? 0) + 1;
+  }
+  const counts = Object.values(dailyCounts);
+  const mean = counts.reduce((a, b) => a + b, 0) / Math.max(counts.length, 1);
+  const variance = counts.reduce((s, c) => s + (c - mean) ** 2, 0) / Math.max(counts.length, 1);
+  const stdDev = Math.sqrt(variance);
+  // Lower std dev = more consistent. Normalize to 0-100 (cap at 50 stdDev)
+  const consistency = Math.max(0, 100 - (stdDev / 50) * 100);
+
+  // Weighted overall score: 40% rate, 30% speed (capped at 60min=100), 30% consistency
+  const speedScore = Math.max(0, 100 - (avgResponseMinutes / 60) * 100);
+  const overallScore = Math.round(responseRate * 0.4 + speedScore * 0.3 + consistency * 0.3);
+
+  // Persist snapshot
+  const period = new Date().toISOString().slice(0, 7); // "2026-03"
+  await prisma.commentScore.upsert({
+    where: { creatorProfileId_period: { creatorProfileId, period } },
+    update: { responseRate, avgResponseTime: avgResponseMinutes, consistency, calculatedAt: new Date() },
+    create: { creatorProfileId, period, responseRate, avgResponseTime: avgResponseMinutes, consistency },
+  });
+
+  return {
+    responseRate: Math.round(responseRate * 10) / 10,
+    avgResponseMinutes: Math.round(avgResponseMinutes),
+    consistency: Math.round(consistency),
+    overallScore,
+    total,
+  };
+}
+
+/* ── Create Post from Reply (Phase 10) ─────────────────── */
+
+export async function createPostFromReply(interactionId: string, creatorProfileId: string) {
+  const interaction = await prisma.communityInteraction.findFirst({
+    where: { id: interactionId, creatorProfileId },
+  });
+
+  if (!interaction) {
+    throw Object.assign(new Error('Interaction not found'), { statusCode: 404 });
+  }
+
+  // Create a DRAFT post pre-filled with the interaction content
+  const caption = interaction.aiSuggestion ?? interaction.content;
+
+  const post = await prisma.contentPost.create({
+    data: {
+      creatorProfileId,
+      platform: interaction.platform,
+      postType: 'IMAGE', // default, user can change
+      caption: `${caption}\n\n(Inspired by a community interaction)`,
+      status: 'DRAFT',
+      hashtags: [],
+      mediaUrls: [],
+    },
+  });
+
+  return post;
+}

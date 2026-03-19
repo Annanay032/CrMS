@@ -29,4 +29,7 @@ router.delete('/:provider', authenticate, accountController.disconnectAccount);
 // Refresh a platform's token
 router.post('/:provider/refresh', authenticate, accountController.refreshToken);
 
+// Pause / resume a platform
+router.patch('/:provider/pause', authenticate, accountController.togglePause);
+
 export default router;

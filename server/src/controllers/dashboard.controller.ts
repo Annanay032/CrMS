@@ -118,6 +118,15 @@ export async function generateReport(req: AuthRequest, res: Response) {
   res.json({ success: true, message: 'Report generation started', data: { id: report.id, status: 'GENERATING' } });
 }
 
+/* ── Organic vs Boosted Analytics ──────────────────────── */
+
+export async function getOrganicVsBoosted(req: AuthRequest, res: Response) {
+  const profile = await getOrCreateProfile(req.user!.userId);
+  const period = (req.query.period as 'week' | 'month' | 'quarter' | 'year') || 'month';
+  const data = await dashboardService.getOrganicVsBoostedStats(profile.id, period);
+  res.json({ success: true, data });
+}
+
 /* ── Audience Insights ─────────────────────────────────── */
 
 export async function getAudienceInsights(req: AuthRequest, res: Response) {

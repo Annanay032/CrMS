@@ -1,7 +1,7 @@
 import { api } from '../api';
 import type { ApiResponse } from '@/types';
 
-export type SocialProvider = 'INSTAGRAM' | 'YOUTUBE' | 'TIKTOK' | 'TWITTER' | 'LINKEDIN' | 'THREADS' | 'BLUESKY' | 'FACEBOOK' | 'PINTEREST' | 'REDDIT';
+export type SocialProvider = 'INSTAGRAM' | 'YOUTUBE' | 'TIKTOK' | 'TWITTER' | 'LINKEDIN' | 'THREADS' | 'BLUESKY' | 'FACEBOOK' | 'PINTEREST' | 'MASTODON' | 'REDDIT';
 
 export interface ConnectedAccount {
   id: string;
@@ -11,6 +11,7 @@ export interface ConnectedAccount {
   connectedAt: string;
   expiresAt: string | null;
   isExpired: boolean;
+  paused: boolean;
   stats: {
     handle: string | null;
     followers: number;
@@ -66,6 +67,13 @@ export const accountsApi = api.injectEndpoints({
       }),
       invalidatesTags: ['Accounts'],
     }),
+    togglePauseAccount: build.mutation<ApiResponse<{ provider: string; paused: boolean }>, string>({
+      query: (provider) => ({
+        url: `/accounts/${provider.toLowerCase()}/pause`,
+        method: 'PATCH',
+      }),
+      invalidatesTags: ['Accounts'],
+    }),
   }),
 });
 
@@ -75,4 +83,5 @@ export const {
   useManualConnectMutation,
   useDisconnectAccountMutation,
   useRefreshAccountTokenMutation,
+  useTogglePauseAccountMutation,
 } = accountsApi;

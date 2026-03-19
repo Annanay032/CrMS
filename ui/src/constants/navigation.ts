@@ -1,7 +1,6 @@
 import {
   faGauge,
   faCalendarDays,
-  faPenToSquare,
   faChartLine,
   faBullhorn,
   faComments,
@@ -20,6 +19,7 @@ import {
   faBolt,
   faIndianRupeeSign,
   faSeedling,
+  faFilm,
 } from '@fortawesome/free-solid-svg-icons';
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import type { UserRole, UsageTier } from '@/types';
@@ -49,9 +49,9 @@ const creatorGroups: NavGroup[] = [
   {
     label: 'Content',
     items: [
+      { to: '/studio', icon: faFilm, label: 'Studio' },
       { to: '/create', icon: faLightbulb, label: 'Ideas' },
       { to: '/calendar', icon: faCalendarDays, label: 'Calendar' },
-      { to: '/content/new', icon: faPenToSquare, label: 'Create Post' },
       { to: '/media', icon: faPhotoFilm, label: 'Media Library' },
     ],
   },

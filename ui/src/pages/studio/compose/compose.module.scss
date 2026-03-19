@@ -1,0 +1,499 @@
+/* ── Compose — tabbed editor layout ── */
+
+.compose {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ─── Left: Editor pane ─── */
+
+.editor {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-right: 1px solid $color-slate-200;
+}
+
+.editor_tabs {
+  padding: $space-2 $space-4;
+  border-bottom: 1px solid $color-slate-100;
+  flex-shrink: 0;
+}
+
+.editor_content {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─── Toolbar ─── */
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $space-3 $space-4;
+  border-bottom: 1px solid $color-slate-100;
+  background: $color-slate-50;
+  flex-shrink: 0;
+}
+
+/* ─── Write tab ─── */
+
+.write_tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.write_area {
+  flex: 1;
+  padding: $space-4 $space-6;
+  min-height: 200px;
+}
+
+.write_textarea {
+  font-size: $font-size-md !important;
+  line-height: $line-height-relaxed !important;
+  color: $color-slate-800 !important;
+  resize: none !important;
+
+  &::placeholder {
+    color: $color-slate-400;
+  }
+}
+
+.write_footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $space-2 $space-6 $space-3;
+  border-top: 1px solid $color-slate-50;
+  gap: $space-3;
+}
+
+.write_hashtag {
+  font-size: $font-size-sm !important;
+  flex: 1;
+}
+
+.write_charcount {
+  flex-shrink: 0;
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* ─── Media / Details tabs ─── */
+
+.media_tab,
+.details_tab {
+  flex: 1;
+  padding: $space-4 $space-5;
+  overflow-y: auto;
+}
+
+/* ─── Actions bar ─── */
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  padding: $space-3 $space-6;
+  border-top: 1px solid $color-slate-200;
+  background: $color-slate-50;
+  flex-shrink: 0;
+}
+
+/* ─── Right: Panel pane ─── */
+
+.panel {
+  width: 380px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: $color-white;
+}
+
+.panel_header {
+  padding: $space-3 $space-4;
+  border-bottom: 1px solid $color-slate-100;
+  display: flex;
+  justify-content: center;
+}
+
+/* ─── Media zone (shared by all uploaders) ─── */
+
+.media_zone {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+}
+
+.media_zone_header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $space-2;
+}
+
+.media_grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-3;
+  margin-bottom: $space-3;
+}
+
+.media_thumb {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  border-radius: $radius-lg;
+  overflow: hidden;
+  border: 2px solid $color-slate-200;
+  transition: border-color $transition-fast;
+
+  &:hover {
+    border-color: $color-primary-500;
+  }
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  &:hover .media_overlay {
+    opacity: 1;
+  }
+
+  &:hover .media_reorder {
+    opacity: 1;
+  }
+}
+
+.media_overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $space-2;
+  opacity: 0;
+  transition: opacity $transition-fast;
+}
+
+.media_badge {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  background: $color-primary-500;
+  color: $color-white;
+  border-radius: $radius-sm;
+  font-size: 10px;
+  font-weight: $font-weight-bold;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.media_reorder {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity $transition-fast;
+}
+
+/* ─── Uploader (drag-drop area) ─── */
+
+.uploader {
+  border-radius: $radius-lg !important;
+}
+
+.uploader_body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $space-2;
+  padding: $space-6 $space-4;
+}
+
+.uploader_icon {
+  font-size: 28px;
+  color: $color-primary-400;
+}
+
+.uploader_title {
+  font-size: $font-size-sm;
+}
+
+.uploader_link {
+  color: $color-primary-500;
+  cursor: pointer;
+}
+
+.uploader_hint {
+  font-size: $font-size-xs !important;
+}
+
+/* ─── Video preview ─── */
+
+.video_preview {
+  display: flex;
+  gap: $space-4;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.video_player {
+  max-width: 320px;
+  max-height: 240px;
+  border-radius: $radius-lg;
+  background: #000;
+
+  &--vertical {
+    max-width: 160px;
+    max-height: 280px;
+  }
+}
+
+.video_meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 120px;
+}
+
+/* ─── Story preview ─── */
+
+.story_preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.story_frame {
+  width: 180px;
+  height: 320px;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 3px solid $color-slate-200;
+  background: #000;
+  position: relative;
+}
+
+.story_media {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ─── Thread ─── */
+
+.thread {
+  display: flex;
+  flex-direction: column;
+}
+
+.thread_entry {
+  display: flex;
+  gap: $space-3;
+  margin-bottom: $space-2;
+}
+
+.thread_connector {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 16px;
+  flex-shrink: 0;
+  padding-top: 6px;
+}
+
+.thread_dot {
+  width: 10px;
+  height: 10px;
+  border-radius: $radius-full;
+  background: $color-primary-500;
+  flex-shrink: 0;
+}
+
+.thread_line {
+  width: 2px;
+  flex: 1;
+  background: $color-slate-200;
+  margin-top: 4px;
+}
+
+.thread_content {
+  flex: 1;
+  border: 1px solid $color-slate-100;
+  border-radius: $radius-md;
+  padding: $space-2 $space-3;
+  transition: border-color $transition-fast;
+
+  &:focus-within {
+    border-color: $color-primary-300;
+  }
+}
+
+.thread_head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $space-1;
+}
+
+/* ─── Chat panel ─── */
+
+.chat_messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: $space-4;
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+}
+
+.chat_msg {
+  display: flex;
+  gap: $space-2;
+
+  &--user {
+    justify-content: flex-end;
+
+    .chat_bubble {
+      background: $color-primary-500;
+      color: $color-white;
+      border-radius: $radius-lg $radius-lg 4px $radius-lg;
+    }
+  }
+
+  &--ai {
+    .chat_bubble {
+      background: $color-slate-100;
+      color: $color-slate-800;
+      border-radius: $radius-lg $radius-lg $radius-lg 4px;
+    }
+  }
+}
+
+.chat_avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: $radius-full;
+  background: $color-primary-50;
+  color: $color-primary-600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.chat_bubble {
+  max-width: 280px;
+  padding: $space-2 $space-3;
+  font-size: $font-size-sm;
+  line-height: $line-height-normal;
+}
+
+.chat_thinking {
+  color: $color-slate-500;
+  font-style: italic;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.chat_input {
+  padding: $space-3 $space-4;
+  border-top: 1px solid $color-slate-100;
+}
+
+/* ─── Settings panel ─── */
+
+.settings {
+  padding: $space-4;
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+}
+
+.settings_item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-3;
+}
+
+/* ─── Intelligence panel ─── */
+
+.intel {
+  flex: 1;
+  overflow-y: auto;
+  padding: $space-3;
+}
+
+.intel_empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: $space-8 $space-4;
+  height: 100%;
+}
+
+.intel_body {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+}
+
+.intel_card {
+  padding: $space-3;
+  background: $color-slate-50;
+  border-radius: $radius-md;
+  border: 1px solid $color-slate-100;
+}
+
+.intel_score {
+  display: flex;
+  justify-content: center;
+  padding: $space-3 0;
+}
+
+.intel_tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: $space-2;
+}
+
+.intel_tips {
+  margin: $space-2 0 0;
+  padding-left: $space-4;
+  list-style: disc;
+
+  li {
+    margin-bottom: 4px;
+  }
+}
+
+/* ─── Animation ─── */
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}

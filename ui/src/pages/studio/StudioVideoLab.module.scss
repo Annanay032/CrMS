@@ -1,0 +1,59 @@
+.videolab {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+
+  &__header {
+    margin-bottom: 24px;
+  }
+
+  &__input {
+    margin-bottom: 24px;
+    border-radius: 12px;
+  }
+
+  &__loading {
+    display: flex;
+    justify-content: center;
+    padding: 64px 0;
+  }
+
+  &__empty {
+    padding: 64px 0;
+  }
+
+  &__results {
+    margin-bottom: 32px;
+  }
+
+  &__clip_card {
+    border-radius: 10px;
+    transition: box-shadow 0.2s;
+
+    &:hover {
+      box-shadow: 0 4px 20px rgba(99, 102, 241, 0.12);
+    }
+  }
+
+  &__clip_header {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  &__clip_time {
+    display: flex;
+    align-items: center;
+    font-size: 12px;
+    color: #64748b;
+  }
+
+  &__cuts {
+    margin-bottom: 32px;
+  }
+
+  &__cut_card {
+    margin-bottom: 8px;
+    border-radius: 8px;
+  }
+}

@@ -1,0 +1,21 @@
+.templates {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow-y: auto;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: $space-4 $space-6;
+    border-bottom: 1px solid $color-slate-100;
+    flex-shrink: 0;
+  }
+
+  &__grid {
+    flex: 1;
+    padding: $space-4 0;
+    overflow-y: auto;
+  }
+}

@@ -20,6 +20,7 @@ import { MediaLibraryPage } from '@/pages/media';
 import RevenuePage from '@/pages/revenue/RevenuePage';
 import GrowthCopilotPage from '@/pages/growth/GrowthCopilotPage';
 import { PricingPage } from '@/pages/pricing';
+import { StudioLayout, StudioCompose, StudioMediaLab, StudioTemplates, StudioAiCopilot, StudioVideoLab, StudioVideoAnalysis } from '@/pages/studio';
 
 export default function App() {
   return (
@@ -48,6 +49,15 @@ export default function App() {
         <Route path="/media" element={<MediaLibraryPage />} />
         <Route path="/revenue" element={<RevenuePage />} />
         <Route path="/growth" element={<GrowthCopilotPage />} />
+        <Route path="/studio" element={<StudioLayout />}>
+          <Route index element={<StudioCompose />} />
+          <Route path="compose" element={<StudioCompose />} />
+          <Route path="media-lab" element={<StudioMediaLab />} />
+          <Route path="templates" element={<StudioTemplates />} />
+          <Route path="video-lab" element={<StudioVideoLab />} />
+          <Route path="video-analysis" element={<StudioVideoAnalysis />} />
+          <Route path="ai" element={<StudioAiCopilot />} />
+        </Route>
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>

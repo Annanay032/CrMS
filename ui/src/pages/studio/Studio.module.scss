@@ -1,0 +1,95 @@
+.studio {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: calc(100vh - $topbar-height);
+  background: $color-white;
+  margin: -$space-6;
+  border-radius: 0;
+
+  // Zen mode hides the main sidebar + topbar
+  &--zen {
+    position: fixed;
+    inset: 0;
+    z-index: $z-modal;
+    min-height: 100vh;
+    margin: 0;
+  }
+
+  // ── Header ──
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 52px;
+    padding: 0 $space-4;
+    border-bottom: 1px solid $color-slate-200;
+    background: $color-white;
+    flex-shrink: 0;
+  }
+
+  &__header_left {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+  }
+
+  &__header_right {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+  }
+
+  &__back {
+    color: $color-slate-500 !important;
+
+    &:hover {
+      color: $color-slate-700 !important;
+    }
+  }
+
+  &__title {
+    font-size: $font-size-md;
+    font-weight: $font-weight-semibold;
+    color: $color-slate-900;
+    letter-spacing: -0.01em;
+  }
+
+  // ── Navigation tabs ──
+  &__nav {
+    display: flex;
+    align-items: center;
+    gap: $space-1;
+  }
+
+  &__nav_item {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    padding: $space-2 $space-3;
+    border-radius: $radius-md;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    color: $color-slate-500;
+    text-decoration: none;
+    transition: all $transition-fast;
+
+    &:hover {
+      color: $color-slate-700;
+      background: $color-slate-50;
+    }
+
+    &--active {
+      color: $color-primary-600;
+      background: $color-primary-50;
+    }
+  }
+
+  // ── Body ──
+  &__body {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+}

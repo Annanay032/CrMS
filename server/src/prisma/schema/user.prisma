@@ -42,6 +42,7 @@ model User {
   notifications    Notification[]
   usageBudget      UsageBudget?
   userSettings     UserSettings?
+  apiKeys          ApiKey[]
 
   @@map("users")
 }
@@ -114,4 +115,25 @@ model UserVoiceProfile {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("user_voice_profiles")
+}
+
+// ─── API Keys (Public API) ──────────────────────────────────
+
+model ApiKey {
+  id          String    @id @default(cuid())
+  userId      String
+  name        String
+  keyHash     String    @unique
+  keyPrefix   String
+  scopes      String[]  @default(["read"])
+  lastUsedAt  DateTime?
+  expiresAt   DateTime?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([keyHash])
+  @@map("api_keys")
 }

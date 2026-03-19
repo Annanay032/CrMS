@@ -19,6 +19,9 @@ import settingsRoutes from './settings.routes.js';
 import mediaRoutes from './media.routes.js';
 import revenueRoutes from './revenue.routes.js';
 import webhookRoutes from './webhook.routes.js';
+import rssRoutes from './rss.routes.js';
+import publicApiRoutes from './public-api.routes.js';
+import studioRoutes from './studio.routes.js';
 const router = Router();
 
 router.use('/auth', authRoutes);
@@ -41,5 +44,8 @@ router.use('/settings', settingsRoutes);
 router.use('/media', mediaRoutes);
 router.use('/revenue', revenueRoutes);
 router.use('/webhooks', webhookRoutes);
+router.use('/rss', rssRoutes);
+router.use('/public', publicApiRoutes);
+router.use('/studio', studioRoutes);
 
 export default router;

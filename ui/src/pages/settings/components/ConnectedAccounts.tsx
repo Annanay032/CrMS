@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Card, Button, Typography, Tag, Spin, Popconfirm, message, Space, Tooltip } from 'antd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-  faInstagram, faYoutube, faTiktok,
+  faInstagram, faYoutube, faTiktok, faRedditAlien,
 } from '@fortawesome/free-brands-svg-icons';
 import {
   faLink, faLinkSlash, faRotate, faPlug, faTriangleExclamation,
@@ -23,6 +23,7 @@ const PLATFORM_META: Record<string, { icon: IconDefinition; color: string; label
   INSTAGRAM: { icon: faInstagram, color: '#E4405F', label: 'Instagram' },
   YOUTUBE: { icon: faYoutube, color: '#FF0000', label: 'YouTube' },
   TIKTOK: { icon: faTiktok, color: '#000000', label: 'TikTok' },
+  REDDIT: { icon: faRedditAlien, color: '#FF4500', label: 'Reddit' },
 };
 
 export function ConnectedAccounts() {
@@ -82,7 +83,7 @@ export function ConnectedAccounts() {
 
   const allPlatforms = platforms.length > 0
     ? platforms
-    : (['INSTAGRAM', 'YOUTUBE', 'TIKTOK'] as const).map((p) => ({
+    : (['INSTAGRAM', 'YOUTUBE', 'TIKTOK', 'REDDIT'] as const).map((p) => ({
         provider: p,
         oauthConfigured: false,
         manualConnectAvailable: true,

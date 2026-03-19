@@ -101,18 +101,47 @@ model ContentPost {
   ideaId           String?    // Link back to the idea this was created from
   approvalStatus   ApprovalStatus  @default(NONE)
   teamId           String?
-  createdAt        DateTime        @default(now())
-  updatedAt        DateTime        @updatedAt
+
+  // ── Threading ──
+  parentPostId     String?    // For thread parts, links to the first post in thread
+  threadOrder      Int?       // 0-based order within a thread
+
+  // ── Recurring / Evergreen ──
+  isRecurring      Boolean    @default(false)
+  recurrenceRule   String?    // iCal RRULE e.g. "FREQ=WEEKLY;BYDAY=MO,WE,FR"
+  maxRecurrences   Int?       // null = unlimited
+  recurrenceCount  Int        @default(0) // how many times this has been re-posted
+  lastRecurredAt   DateTime?
+  sourcePostId     String?    // If this is a clone, references the original recurring post
+
+  // ── Repost / Retweet ──
+  repostSourceUrl  String?    // URL of external post to repost/retweet
+  repostType       String?    // "retweet" | "quote" | "boost"
+
+  // ── Media ──
+  thumbnailUrl     String?    // Custom thumbnail for video posts
+
+  // ── Reliability ──
+  retryCount       Int        @default(0) // number of publish retries attempted
+  maxRetries       Int        @default(3)
+  lastError        String?    // last publish error message
+
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
 
   creatorProfile CreatorProfile @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
   analytics      PostAnalytics?
   team           Team?          @relation(fields: [teamId], references: [id], onDelete: SetNull)
   comments       PostComment[]
+  parentPost     ContentPost?   @relation("ThreadParts", fields: [parentPostId], references: [id], onDelete: SetNull)
+  threadParts    ContentPost[]  @relation("ThreadParts")
 
   @@index([creatorProfileId, status])
   @@index([scheduledAt])
   @@index([bulkGroupId])
   @@index([teamId, approvalStatus])
+  @@index([parentPostId])
+  @@index([isRecurring, status])
   @@map("content_posts")
 }
 
@@ -130,4 +159,45 @@ model PostingSchedule {
 
   @@unique([creatorProfileId, platform, dayOfWeek, timeSlot])
   @@map("posting_schedules")
+}
+
+// ─── Calendar Notes ──────────────────────────────────────────
+
+model CalendarNote {
+  id               String   @id @default(cuid())
+  creatorProfileId String
+  date             DateTime @db.Date
+  title            String
+  description      String?
+  color            String   @default("#6366f1") // hex color
+  isAllDay         Boolean  @default(true)
+  startTime        String?  // "HH:MM" if not all-day
+  endTime          String?  // "HH:MM" if not all-day
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  creatorProfile CreatorProfile @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
+
+  @@index([creatorProfileId, date])
+  @@map("calendar_notes")
+}
+
+// ─── RSS Feeds ───────────────────────────────────────────────
+
+model RssFeed {
+  id               String   @id @default(cuid())
+  creatorProfileId String
+  url              String
+  title            String?
+  isActive         Boolean  @default(true)
+  autoCreateIdeas  Boolean  @default(true) // auto-create ContentIdea from new items
+  lastFetchedAt    DateTime?
+  lastItemGuid     String?  // GUID of last processed item to avoid duplicates
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  creatorProfile CreatorProfile @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
+
+  @@unique([creatorProfileId, url])
+  @@map("rss_feeds")
 }

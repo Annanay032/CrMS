@@ -15,6 +15,7 @@ export enum Platform {
   BLUESKY = 'BLUESKY',
   FACEBOOK = 'FACEBOOK',
   PINTEREST = 'PINTEREST',
+  REDDIT = 'REDDIT',
 }
 
 export enum PostStatus {
@@ -101,6 +102,7 @@ export enum AgentType {
   COLLABORATION = 'COLLABORATION',
   LINK_IN_BIO = 'LINK_IN_BIO',
   GROWTH = 'GROWTH',
+  STUDIO = 'STUDIO',
 }
 
 export enum InteractionType {

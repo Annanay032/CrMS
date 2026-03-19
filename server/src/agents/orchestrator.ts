@@ -14,6 +14,7 @@ import { CollaborationAgent } from './collaboration.agent.js';
 import { CampaignAgent } from './campaign.agent.js';
 import { LinkInBioAgent } from './linkinbio.agent.js';
 import { GrowthAgent } from './growth.agent.js';
+import { StudioAgent } from './studio.agent.js';
 import { prisma } from '../config/index.js';
 import { logger } from '../config/logger.js';
 import { checkBudget, recordUsage, getModelForAgent } from '../services/usage.service.js';
@@ -50,6 +51,7 @@ const agents: Record<string, BaseAgent> = {
   CAMPAIGN: new CampaignAgent(),
   LINK_IN_BIO: new LinkInBioAgent(),
   GROWTH: new GrowthAgent(),
+  STUDIO: new StudioAgent(),
 };
 
 export class AgentOrchestrator extends EventEmitter {

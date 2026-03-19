@@ -122,6 +122,75 @@ export interface ContentPost {
   approvalStatus?: ApprovalStatus;
   teamId?: string;
   comments?: PostComment[];
+  // Threading
+  parentPostId?: string;
+  threadOrder?: number;
+  threadParts?: ContentPost[];
+  // Recurring
+  isRecurring?: boolean;
+  recurrenceRule?: string;
+  maxRecurrences?: number;
+  recurrenceCount?: number;
+  sourcePostId?: string;
+  // Repost
+  repostSourceUrl?: string;
+  repostType?: string;
+  // Media
+  thumbnailUrl?: string;
+  mediaUrls?: string[];
+  // Reliability
+  retryCount?: number;
+  lastError?: string;
+}
+
+export interface CalendarNote {
+  id: string;
+  creatorProfileId: string;
+  date: string;
+  title: string;
+  description?: string;
+  color: string;
+  isAllDay: boolean;
+  startTime?: string;
+  endTime?: string;
+  createdAt: string;
+}
+
+export interface RssFeed {
+  id: string;
+  creatorProfileId: string;
+  url: string;
+  title?: string;
+  isActive: boolean;
+  autoCreateIdeas: boolean;
+  lastFetchedAt?: string;
+  createdAt: string;
+}
+
+export interface HashtagAnalytics {
+  id: string;
+  creatorProfileId: string;
+  hashtag: string;
+  platform?: string;
+  totalPosts: number;
+  totalImpressions: number;
+  totalReach: number;
+  totalLikes: number;
+  totalComments: number;
+  totalShares: number;
+  avgEngagementRate: number;
+  lastUsedAt?: string;
+}
+
+export interface ApiKeyInfo {
+  id: string;
+  name: string;
+  keyPrefix: string;
+  scopes: string[];
+  lastUsedAt?: string;
+  expiresAt?: string;
+  isActive: boolean;
+  createdAt: string;
 }
 
 // ─── Ideas & Tags ──────────────────────────────────────────

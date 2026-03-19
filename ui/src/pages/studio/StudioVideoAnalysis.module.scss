@@ -1,0 +1,100 @@
+.analysis {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+
+  &__header {
+    margin-bottom: 24px;
+  }
+
+  &__input {
+    margin-bottom: 24px;
+    border-radius: 12px;
+  }
+
+  &__loading {
+    display: flex;
+    justify-content: center;
+    padding: 64px 0;
+  }
+
+  &__empty {
+    padding: 64px 0;
+  }
+
+  &__metrics {
+    margin-bottom: 20px;
+  }
+
+  &__metric_card {
+    border-radius: 10px;
+    text-align: center;
+  }
+
+  &__metric_value {
+    font-size: 22px;
+    font-weight: 700;
+    color: #6366f1;
+    margin-top: 4px;
+  }
+
+  &__section {
+    margin-bottom: 20px;
+    border-radius: 12px;
+  }
+
+  &__retention {
+    padding: 8px 0;
+  }
+
+  &__retention_chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 160px;
+    padding: 0 4px;
+  }
+
+  &__retention_bar {
+    flex: 1;
+    min-width: 4px;
+    border-radius: 2px 2px 0 0;
+    transition: height 0.3s;
+    cursor: pointer;
+
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+
+  &__retention_labels {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 4px 0;
+  }
+
+  &__hotspot {
+    padding: 8px 0;
+  }
+
+  &__hotspot_bar {
+    height: 8px;
+    background: #f1f5f9;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 6px;
+  }
+
+  &__hotspot_fill {
+    height: 100%;
+    background: linear-gradient(90deg, #f59e0b, #f97316);
+    border-radius: 4px;
+    transition: width 0.3s;
+  }
+
+  &__hotspot_info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+}

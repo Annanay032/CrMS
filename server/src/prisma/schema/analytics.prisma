@@ -98,3 +98,27 @@ model AudienceInsight {
   @@index([creatorProfileId])
   @@map("audience_insights")
 }
+
+// ─── Hashtag Analytics ──────────────────────────────────────
+
+model HashtagAnalytics {
+  id               String   @id @default(cuid())
+  creatorProfileId String
+  hashtag          String   // normalized, lowercase, no # prefix
+  platform         Platform?
+  totalPosts       Int      @default(0)
+  totalImpressions Int      @default(0)
+  totalReach       Int      @default(0)
+  totalLikes       Int      @default(0)
+  totalComments    Int      @default(0)
+  totalShares      Int      @default(0)
+  avgEngagementRate Float   @default(0)
+  lastUsedAt       DateTime?
+  updatedAt        DateTime @updatedAt
+
+  creatorProfile CreatorProfile @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
+
+  @@unique([creatorProfileId, hashtag, platform])
+  @@index([creatorProfileId])
+  @@map("hashtag_analytics")
+}

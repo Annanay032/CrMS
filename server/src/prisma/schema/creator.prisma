@@ -36,6 +36,9 @@ model CreatorProfile {
   invoices         Invoice[]
   brandDeals       BrandDeal[]
   inboxChannels    InboxChannel[]
+  calendarNotes    CalendarNote[]
+  rssFeeds         RssFeed[]
+  hashtagAnalytics HashtagAnalytics[]
 
   @@map("creator_profiles")
 }

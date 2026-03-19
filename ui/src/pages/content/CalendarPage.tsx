@@ -1,12 +1,13 @@
 import { useState } from 'react';
-import { Card, Button, Tag, Typography } from 'antd';
+import { Card, Button, Tag, Typography, Tooltip } from 'antd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
-import { useGetCalendarQuery } from '@/store/endpoints/content';
-import type { ContentPost } from '@/types';
+import { faChevronLeft, faChevronRight, faStickyNote, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { useGetCalendarQuery, useDeleteCalendarNoteMutation } from '@/store/endpoints/content';
+import type { ContentPost, CalendarNote } from '@/types';
 import { DAYS, STATUS_COLORS } from './constants';
 import { CalendarGrid } from './components/CalendarGrid';
 import { ApprovalDrawer } from './components/ApprovalDrawer';
+import { CalendarNoteModal } from '@/components/content/CalendarNoteModal';
 
 const { Title } = Typography;
 
@@ -15,9 +16,15 @@ export function CalendarPage() {
   const year = date.getFullYear();
   const month = date.getMonth() + 1;
   const [selectedPost, setSelectedPost] = useState<ContentPost | null>(null);
+  const [noteModalOpen, setNoteModalOpen] = useState(false);
+  const [selectedNote, setSelectedNote] = useState<CalendarNote | undefined>();
+  const [noteDefaultDate, setNoteDefaultDate] = useState<string | undefined>();
 
   const { data } = useGetCalendarQuery({ month, year });
-  const posts: ContentPost[] = data?.data ?? [];
+  const calendarData = data?.data;
+  const posts: ContentPost[] = calendarData?.posts ?? (Array.isArray(calendarData) ? calendarData : []);
+  const notes: CalendarNote[] = calendarData?.notes ?? [];
+  const [deleteNote] = useDeleteCalendarNoteMutation();
 
   const daysInMonth = new Date(year, month, 0).getDate();
   const firstDay = new Date(year, month - 1, 1).getDay();
@@ -34,11 +41,28 @@ export function CalendarPage() {
       return d.getDate() === day;
     });
 
+  const getNotesForDay = (day: number) =>
+    notes.filter((n) => new Date(n.date).getDate() === day);
+
+  const openNoteModal = (day?: number) => {
+    setSelectedNote(undefined);
+    setNoteDefaultDate(day ? `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}` : undefined);
+    setNoteModalOpen(true);
+  };
+
+  const editNote = (note: CalendarNote) => {
+    setSelectedNote(note);
+    setNoteModalOpen(true);
+  };
+
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
         <Title level={2} style={{ margin: 0 }}>Content Calendar</Title>
-        <Button type="primary" href="/content/new">+ New Post</Button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <Button icon={<FontAwesomeIcon icon={faStickyNote} />} onClick={() => openNoteModal()}>Add Note</Button>
+          <Button type="primary" href="/content/new">+ New Post</Button>
+        </div>
       </div>
 
       <Card>
@@ -79,6 +103,33 @@ export function CalendarPage() {
         open={!!selectedPost}
         onClose={() => setSelectedPost(null)}
       />
+
+      <CalendarNoteModal
+        open={noteModalOpen}
+        onClose={() => { setNoteModalOpen(false); setSelectedNote(undefined); }}
+        note={selectedNote}
+        defaultDate={noteDefaultDate}
+      />
+
+      {notes.length > 0 && (
+        <Card size="small" title="Calendar Notes" style={{ marginTop: 16 }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {notes.map((n) => (
+              <Tag
+                key={n.id}
+                color={n.color}
+                style={{ cursor: 'pointer', fontSize: 12 }}
+                onClick={() => editNote(n)}
+                closable
+                onClose={(e) => { e.preventDefault(); deleteNote(n.id); }}
+              >
+                <FontAwesomeIcon icon={faStickyNote} style={{ marginRight: 4 }} />
+                {new Date(n.date).getDate()} - {n.title}
+              </Tag>
+            ))}
+          </div>
+        </Card>
+      )}
     </div>
   );
 }

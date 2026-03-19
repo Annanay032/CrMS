@@ -10,6 +10,8 @@ import { processScheduledReports } from './report.job.js';
 import { runDailyGrowthRecommendations } from './growth.job.js';
 import { pollEmailInboxes } from './inbox.job.js';
 import { refreshExpiringTokens } from './token-refresh.job.js';
+import { processRecurringPosts } from './recurring-post.job.js';
+import { processRssFeeds } from './rss-import.job.js';
 const connection = { connection: redis as any };
 
 // ── Queues ──────────────────────────────────────────────────
@@ -23,6 +25,8 @@ export const reportQueue = new Queue('reports', connection);
 export const growthQueue = new Queue('growth-daily', connection);
 export const inboxEmailQueue = new Queue('inbox-email-poll', connection);
 export const tokenRefreshQueue = new Queue('token-refresh', connection);
+export const recurringPostQueue = new Queue('recurring-posts', connection);
+export const rssImportQueue = new Queue('rss-import', connection);
 
 // ── Workers ─────────────────────────────────────────────────
 
@@ -83,12 +87,24 @@ export function startWorkers() {
     await refreshExpiringTokens();
   }, connection);
 
+  const recurringPostWorker = new Worker('recurring-posts', async (job) => {
+    logger.info(`Recurring post job ${job.id}`);
+    await processRecurringPosts();
+  }, connection);
+
+  const rssImportWorker = new Worker('rss-import', async (job) => {
+    logger.info(`RSS import job ${job.id}`);
+    await processRssFeeds();
+  }, connection);
+
   growthWorker.on('failed', (job, err) => logger.error(`Growth job ${job?.id} failed`, err));
   inboxEmailWorker.on('failed', (job, err) => logger.error(`Inbox email job ${job?.id} failed`, err));
   tokenRefreshWorker.on('failed', (job, err) => logger.error(`Token refresh job ${job?.id} failed`, err));
+  recurringPostWorker.on('failed', (job, err) => logger.error(`Recurring post job ${job?.id} failed`, err));
+  rssImportWorker.on('failed', (job, err) => logger.error(`RSS import job ${job?.id} failed`, err));
 
   logger.info('BullMQ workers started');
-  return { publishWorker, analyticsWorker, trendsWorker, listeningWorker, competitiveWorker, reportWorker, growthWorker, inboxEmailWorker, tokenRefreshWorker };
+  return { publishWorker, analyticsWorker, trendsWorker, listeningWorker, competitiveWorker, reportWorker, growthWorker, inboxEmailWorker, tokenRefreshWorker, recurringPostWorker, rssImportWorker };
 }
 
 // ── Scheduled (repeating) jobs ──────────────────────────────
@@ -148,6 +164,20 @@ export async function scheduleRecurringJobs() {
     every: 24 * 60 * 60_000,
   }, {
     name: 'token-refresh-daily',
+  });
+
+  // Process recurring/evergreen posts every 30 minutes
+  await recurringPostQueue.upsertJobScheduler('recurring-post-check', {
+    every: 30 * 60_000,
+  }, {
+    name: 'recurring-post-process',
+  });
+
+  // Poll RSS feeds every hour
+  await rssImportQueue.upsertJobScheduler('rss-import-poll', {
+    every: 60 * 60_000,
+  }, {
+    name: 'rss-import-periodic',
   });
 
   logger.info('Recurring jobs scheduled');

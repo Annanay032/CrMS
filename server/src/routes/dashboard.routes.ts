@@ -14,6 +14,11 @@ router.get('/content-types', authenticate, dashboardController.getContentTypeSta
 // Audience insights
 router.get('/audience', authenticate, dashboardController.getAudienceInsights);
 
+// Hashtag analytics
+router.get('/hashtags', authenticate, dashboardController.getHashtagAnalytics);
+router.get('/hashtags/top', authenticate, dashboardController.getTopHashtags);
+router.post('/hashtags/refresh', authenticate, dashboardController.refreshHashtagAnalytics);
+
 // Reports CRUD
 router.get('/reports', authenticate, dashboardController.getReports);
 router.post('/reports', authenticate, dashboardController.createReport);

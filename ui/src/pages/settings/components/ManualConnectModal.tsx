@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Modal, Form, Input, Typography, message } from 'antd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faInstagram, faYoutube, faTiktok } from '@fortawesome/free-brands-svg-icons';
+import { faInstagram, faYoutube, faTiktok, faRedditAlien } from '@fortawesome/free-brands-svg-icons';
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { useManualConnectMutation } from '@/store/endpoints/accounts';
 
@@ -11,6 +11,7 @@ const PLATFORM_META: Record<string, { icon: IconDefinition; color: string; label
   INSTAGRAM: { icon: faInstagram, color: '#E4405F', label: 'Instagram', handlePlaceholder: '@yourusername' },
   YOUTUBE: { icon: faYoutube, color: '#FF0000', label: 'YouTube', handlePlaceholder: 'YourChannelName' },
   TIKTOK: { icon: faTiktok, color: '#000000', label: 'TikTok', handlePlaceholder: '@yourusername' },
+  REDDIT: { icon: faRedditAlien, color: '#FF4500', label: 'Reddit', handlePlaceholder: 'u/yourusername' },
 };
 
 interface ManualConnectModalProps {

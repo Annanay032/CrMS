@@ -1,6 +1,7 @@
 import type { Response } from 'express';
 import * as dashboardService from '../services/dashboard.service.js';
 import * as reportService from '../services/report.service.js';
+import * as hashtagService from '../services/hashtag-analytics.service.js';
 import { prisma } from '../config/index.js';
 import type { AuthRequest } from '../types/common.js';
 
@@ -134,4 +135,33 @@ async function getOrCreateProfile(userId: string) {
     update: {},
     create: { userId, niche: [], languages: ['en'] },
   });
+}
+
+/* ── Hashtag Analytics ───────────────────────────────────── */
+
+export async function getHashtagAnalytics(req: AuthRequest, res: Response) {
+  const profile = await getOrCreateProfile(req.user!.userId);
+  const platform = req.query.platform as string | undefined;
+  const sortBy = (req.query.sortBy as string) || 'totalImpressions';
+  const limit = Number(req.query.limit) || 50;
+
+  const data = await hashtagService.getHashtagAnalytics(profile.id, {
+    platform: platform as any,
+    sortBy: sortBy as any,
+    limit,
+  });
+  res.json({ success: true, data });
+}
+
+export async function getTopHashtags(req: AuthRequest, res: Response) {
+  const profile = await getOrCreateProfile(req.user!.userId);
+  const limit = Number(req.query.limit) || 10;
+  const data = await hashtagService.getTopHashtags(profile.id, limit);
+  res.json({ success: true, data });
+}
+
+export async function refreshHashtagAnalytics(req: AuthRequest, res: Response) {
+  const profile = await getOrCreateProfile(req.user!.userId);
+  const count = await hashtagService.aggregateHashtagAnalytics(profile.id);
+  res.json({ success: true, data: { hashtagsUpdated: count } });
 }

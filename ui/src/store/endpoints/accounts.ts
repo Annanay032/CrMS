@@ -1,9 +1,11 @@
 import { api } from '../api';
 import type { ApiResponse } from '@/types';
 
+export type SocialProvider = 'INSTAGRAM' | 'YOUTUBE' | 'TIKTOK' | 'TWITTER' | 'LINKEDIN' | 'THREADS' | 'BLUESKY' | 'FACEBOOK' | 'PINTEREST' | 'REDDIT';
+
 export interface ConnectedAccount {
   id: string;
-  provider: 'INSTAGRAM' | 'YOUTUBE' | 'TIKTOK';
+  provider: SocialProvider;
   providerAccountId: string;
   connected: boolean;
   connectedAt: string;
@@ -20,7 +22,7 @@ export interface ConnectedAccount {
 }
 
 export interface PlatformAvailability {
-  provider: 'INSTAGRAM' | 'YOUTUBE' | 'TIKTOK';
+  provider: SocialProvider;
   oauthConfigured: boolean;
   manualConnectAvailable: boolean;
 }

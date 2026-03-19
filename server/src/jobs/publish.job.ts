@@ -31,7 +31,7 @@ export async function publishScheduledPosts() {
         logger.warn(`No OAuth token for ${post.platform} — post ${post.id}`);
         await prisma.contentPost.update({
           where: { id: post.id },
-          data: { status: 'FAILED' },
+          data: { status: 'FAILED', lastError: `No OAuth token for ${post.platform}` },
         });
         continue;
       }
@@ -51,16 +51,44 @@ export async function publishScheduledPosts() {
           status: 'PUBLISHED',
           publishedAt: new Date(),
           externalPostId: result.externalPostId,
+          lastError: null,
         },
       });
 
       logger.info(`Published post ${post.id} to ${post.platform}: ${result.externalPostId}`);
     } catch (err) {
-      logger.error(`Failed to publish post ${post.id}`, err);
-      await prisma.contentPost.update({
-        where: { id: post.id },
-        data: { status: 'FAILED' },
-      });
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      const retryCount = post.retryCount + 1;
+      const maxRetries = post.maxRetries;
+
+      if (retryCount < maxRetries) {
+        // Exponential backoff: 2^retryCount minutes (2, 4, 8, ...)
+        const backoffMs = Math.pow(2, retryCount) * 60 * 1000;
+        const nextRetryAt = new Date(now.getTime() + backoffMs);
+
+        await prisma.contentPost.update({
+          where: { id: post.id },
+          data: {
+            retryCount,
+            lastError: errorMessage,
+            scheduledAt: nextRetryAt, // reschedule for retry
+          },
+        });
+
+        logger.warn(
+          `Publish failed for post ${post.id} (attempt ${retryCount}/${maxRetries}), retrying at ${nextRetryAt.toISOString()}`,
+        );
+      } else {
+        await prisma.contentPost.update({
+          where: { id: post.id },
+          data: {
+            status: 'FAILED',
+            retryCount,
+            lastError: errorMessage,
+          },
+        });
+        logger.error(`Failed to publish post ${post.id} after ${maxRetries} attempts: ${errorMessage}`);
+      }
     }
   }
 

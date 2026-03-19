@@ -19,6 +19,7 @@ export const PLATFORM_OPTIONS = [
   { value: 'BLUESKY', label: 'Bluesky' },
   { value: 'FACEBOOK', label: 'Facebook' },
   { value: 'PINTEREST', label: 'Pinterest' },
+  { value: 'REDDIT', label: 'Reddit' },
 ];
 
 export const POST_TYPE_OPTIONS = [

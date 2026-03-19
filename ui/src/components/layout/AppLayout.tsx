@@ -6,12 +6,16 @@ import { FloatingAiAssistant } from '@/components/ai';
 import { useAppSelector, useAppDispatch } from '@/hooks/store';
 import { setUser } from '@/store/auth.slice';
 import { useGetMeQuery } from '@/store/endpoints/auth';
+import { useSocket } from '@/hooks/useSocket';
 import styles from './AppLayout.module.scss';
 
 export function AppLayout() {
   const { isAuthenticated, user } = useAppSelector((s) => s.auth);
   const dispatch = useAppDispatch();
   const { data } = useGetMeQuery(undefined, { skip: !isAuthenticated || !!user });
+
+  // Establish WebSocket connection for real-time notifications
+  useSocket();
 
   useEffect(() => {
     if (data?.data) dispatch(setUser(data.data));

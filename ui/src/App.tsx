@@ -12,7 +12,11 @@ import { ListeningPage } from '@/pages/listening';
 import { CompetitivePage } from '@/pages/competitive';
 import { AiAssistantPage } from '@/pages/ai';
 import { SettingsPage } from '@/pages/settings';
+import { TeamSettingsPage } from '@/pages/settings';
+import { BioBuilderPage } from '@/pages/bio';
 import { CreatePage } from '@/pages/create';
+import { UsagePage } from '@/pages/usage';
+import { MediaLibraryPage } from '@/pages/media';
 
 export default function App() {
   return (
@@ -34,6 +38,10 @@ export default function App() {
         <Route path="/competitive" element={<CompetitivePage />} />
         <Route path="/ai" element={<AiAssistantPage />} />
         <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/settings/team" element={<TeamSettingsPage />} />
+        <Route path="/bio" element={<BioBuilderPage />} />
+        <Route path="/usage" element={<UsagePage />} />
+        <Route path="/media" element={<MediaLibraryPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>

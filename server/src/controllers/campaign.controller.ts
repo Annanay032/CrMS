@@ -40,6 +40,16 @@ export async function updateCampaignStatus(req: AuthRequest, res: Response) {
   res.json({ success: true, data: campaign });
 }
 
+export async function updateCampaignStage(req: AuthRequest, res: Response) {
+  const campaign = await campaignService.updateCampaignStage(req.params.id as string, req.body.stage);
+  res.json({ success: true, data: campaign });
+}
+
+export async function updateCampaign(req: AuthRequest, res: Response) {
+  const campaign = await campaignService.updateCampaign(req.params.id as string, req.body);
+  res.json({ success: true, data: campaign });
+}
+
 export async function respondToMatch(req: AuthRequest, res: Response) {
   const creatorProfile = await prisma.creatorProfile.findUnique({ where: { userId: req.user!.userId } });
   if (!creatorProfile) {
@@ -63,5 +73,55 @@ export async function getCreatorCampaigns(req: AuthRequest, res: Response) {
     success: true,
     data: matches,
     pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+  });
+}
+
+// ─── Deliverables ────────────────────────────────────────────
+
+export async function createDeliverable(req: AuthRequest, res: Response) {
+  const deliverable = await campaignService.createDeliverable(req.params.id as string, req.body);
+  res.status(201).json({ success: true, data: deliverable });
+}
+
+export async function updateDeliverable(req: AuthRequest, res: Response) {
+  const deliverable = await campaignService.updateDeliverable(req.params.deliverableId as string, req.body);
+  res.json({ success: true, data: deliverable });
+}
+
+export async function getDeliverables(req: AuthRequest, res: Response) {
+  const deliverables = await campaignService.getDeliverables(req.params.id as string);
+  res.json({ success: true, data: deliverables });
+}
+
+export async function deleteDeliverable(req: AuthRequest, res: Response) {
+  await campaignService.deleteDeliverable(req.params.deliverableId as string);
+  res.json({ success: true, message: 'Deliverable deleted' });
+}
+
+// ─── Reports ─────────────────────────────────────────────────
+
+export async function getCampaignReports(req: AuthRequest, res: Response) {
+  const reports = await campaignService.getCampaignReports(req.params.id as string);
+  res.json({ success: true, data: reports });
+}
+
+// ─── Creator Discovery ──────────────────────────────────────
+
+export async function discoverCreators(req: AuthRequest, res: Response) {
+  const filters = {
+    niche: req.query.niche as string | undefined,
+    platform: req.query.platform as string | undefined,
+    minFollowers: req.query.minFollowers ? Number(req.query.minFollowers) : undefined,
+    minEngagement: req.query.minEngagement ? Number(req.query.minEngagement) : undefined,
+    location: req.query.location as string | undefined,
+    language: req.query.language as string | undefined,
+    page: Number(req.query.page) || 1,
+    limit: Number(req.query.limit) || 20,
+  };
+  const { creators, total } = await campaignService.discoverCreators(filters);
+  res.json({
+    success: true,
+    data: creators,
+    pagination: { page: filters.page, limit: filters.limit, total, totalPages: Math.ceil(total / filters.limit) },
   });
 }

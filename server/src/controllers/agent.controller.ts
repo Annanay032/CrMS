@@ -104,3 +104,44 @@ export async function getAgentHistory(req: AuthRequest, res: Response) {
     pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
   });
 }
+
+/**
+ * Chat endpoint: server-side NLP routing → single or multi-agent pipeline.
+ */
+export async function chat(req: AuthRequest, res: Response) {
+  const { message } = req.body as { message: string };
+  const userId = req.user!.userId;
+
+  const { steps, input } = orchestrator.routeMessage(message);
+
+  if (steps.length === 1) {
+    const result = await orchestrator.run(steps[0].agentType as AgentType, userId, {
+      ...input,
+      ...(steps[0].action ? { action: steps[0].action } : {}),
+    });
+    res.json({
+      success: true,
+      data: {
+        mode: 'single',
+        agentType: steps[0].agentType,
+        output: result.output,
+        tokensUsed: result.tokensUsed,
+      },
+    });
+    return;
+  }
+
+  // Multi-step pipeline
+  const results = await orchestrator.runPipeline(userId, steps, input);
+  res.json({
+    success: true,
+    data: {
+      mode: 'pipeline',
+      steps: results.map((r, i) => ({
+        agentType: steps[i].agentType,
+        output: r.output,
+        tokensUsed: r.tokensUsed,
+      })),
+    },
+  });
+}

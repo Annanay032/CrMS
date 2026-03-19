@@ -11,6 +11,12 @@ import accountRoutes from './account.routes.js';
 import ideaRoutes from './idea.routes.js';
 import listeningRoutes from './listening.routes.js';
 import competitiveRoutes from './competitive.routes.js';
+import teamRoutes from './team.routes.js';
+import startpageRoutes from './startpage.routes.js';
+import notificationRoutes from './notification.routes.js';
+import usageRoutes from './usage.routes.js';
+import settingsRoutes from './settings.routes.js';
+import mediaRoutes from './media.routes.js';
 const router = Router();
 
 router.use('/auth', authRoutes);
@@ -25,5 +31,11 @@ router.use('/accounts', accountRoutes);
 router.use('/ideas', ideaRoutes);
 router.use('/listening', listeningRoutes);
 router.use('/competitive', competitiveRoutes);
+router.use('/teams', teamRoutes);
+router.use('/startpages', startpageRoutes);
+router.use('/notifications', notificationRoutes);
+router.use('/usage', usageRoutes);
+router.use('/settings', settingsRoutes);
+router.use('/media', mediaRoutes);
 
 export default router;

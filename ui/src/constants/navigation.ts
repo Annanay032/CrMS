@@ -14,6 +14,10 @@ import {
   faLightbulb,
   faEarListen,
   faBinoculars,
+  faUserGroup,
+  faLink,
+  faPhotoFilm,
+  faBolt,
 } from '@fortawesome/free-solid-svg-icons';
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import type { UserRole } from '@/types';
@@ -35,6 +39,10 @@ const creatorLinks: NavItem[] = [
   { to: '/trends', icon: faArrowTrendUp, label: 'Trends' },
   { to: '/listening', icon: faEarListen, label: 'Listening' },
   { to: '/competitive', icon: faBinoculars, label: 'Competitive' },
+  { to: '/bio', icon: faLink, label: 'Link-in-Bio' },
+  { to: '/media', icon: faPhotoFilm, label: 'Media Library' },
+  { to: '/usage', icon: faBolt, label: 'AI Usage' },
+  { to: '/settings/team', icon: faUserGroup, label: 'Team' },
   { to: '/ai', icon: faRobot, label: 'AI Assistant' },
 ];
 
@@ -43,6 +51,8 @@ const brandLinks: NavItem[] = [
   { to: '/campaigns', icon: faBullhorn, label: 'Campaigns' },
   { to: '/discover', icon: faMagnifyingGlass, label: 'Discover Creators' },
   { to: '/analytics', icon: faChartLine, label: 'Analytics' },
+  { to: '/media', icon: faPhotoFilm, label: 'Media Library' },
+  { to: '/usage', icon: faBolt, label: 'AI Usage' },
   { to: '/ai', icon: faRobot, label: 'AI Assistant' },
 ];
 

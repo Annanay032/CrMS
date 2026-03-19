@@ -4,15 +4,23 @@ import { STATUS_COLORS } from '../constants';
 
 const { Text } = Typography;
 
+const APPROVAL_BADGES: Record<string, { label: string; color: string }> = {
+  PENDING_REVIEW: { label: '⏳', color: '#f59e0b' },
+  CHANGES_REQUESTED: { label: '✏️', color: '#ef4444' },
+  APPROVED: { label: '✅', color: '#22c55e' },
+  REJECTED: { label: '❌', color: '#ef4444' },
+};
+
 interface CalendarGridProps {
   daysInMonth: number;
   firstDay: number;
   currentDay: number;
   isCurrentMonth: boolean;
   getPostsForDay: (day: number) => ContentPost[];
+  onPostClick?: (post: ContentPost) => void;
 }
 
-export function CalendarGrid({ daysInMonth, firstDay, currentDay, isCurrentMonth, getPostsForDay }: CalendarGridProps) {
+export function CalendarGrid({ daysInMonth, firstDay, currentDay, isCurrentMonth, getPostsForDay, onPostClick }: CalendarGridProps) {
   return (
     <>
       {Array.from({ length: firstDay }).map((_, i) => (
@@ -41,6 +49,7 @@ export function CalendarGrid({ daysInMonth, firstDay, currentDay, isCurrentMonth
               {dayPosts.slice(0, 3).map((p) => (
                 <div
                   key={p.id}
+                  onClick={() => onPostClick?.(p)}
                   style={{
                     borderRadius: 4,
                     padding: '2px 6px',
@@ -49,8 +58,15 @@ export function CalendarGrid({ daysInMonth, firstDay, currentDay, isCurrentMonth
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 3,
+                    cursor: 'pointer',
                   }}
                 >
+                  {p.approvalStatus && APPROVAL_BADGES[p.approvalStatus] && (
+                    <span style={{ fontSize: 10 }}>{APPROVAL_BADGES[p.approvalStatus].label}</span>
+                  )}
                   {p.platform.slice(0, 2)} · {p.caption?.slice(0, 20) || 'Untitled'}
                 </div>
               ))}

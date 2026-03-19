@@ -6,6 +6,7 @@ import { fetchAnalytics } from './analytics.job.js';
 import { scanTrends } from './trends.job.js';
 import { pollMentions, analyzeMentionBatch } from './listening.job.js';
 import { collectCompetitorData } from './competitive.job.js';
+import { processScheduledReports } from './report.job.js';
 const connection = { connection: redis as any };
 
 // ── Queues ──────────────────────────────────────────────────
@@ -15,6 +16,7 @@ export const analyticsQueue = new Queue('analytics', connection);
 export const trendsQueue = new Queue('trends', connection);
 export const listeningQueue = new Queue('listening', connection);
 export const competitiveQueue = new Queue('competitive', connection);
+export const reportQueue = new Queue('reports', connection);
 
 // ── Workers ─────────────────────────────────────────────────
 
@@ -48,14 +50,20 @@ export function startWorkers() {
     await collectCompetitorData();
   }, connection);
 
+  const reportWorker = new Worker('reports', async (job) => {
+    logger.info(`Report generation job ${job.id}`);
+    await processScheduledReports();
+  }, connection);
+
   publishWorker.on('failed', (job, err) => logger.error(`Publish job ${job?.id} failed`, err));
   analyticsWorker.on('failed', (job, err) => logger.error(`Analytics job ${job?.id} failed`, err));
   trendsWorker.on('failed', (job, err) => logger.error(`Trends job ${job?.id} failed`, err));
   listeningWorker.on('failed', (job, err) => logger.error(`Listening job ${job?.id} failed`, err));
   competitiveWorker.on('failed', (job, err) => logger.error(`Competitive job ${job?.id} failed`, err));
+  reportWorker.on('failed', (job, err) => logger.error(`Report job ${job?.id} failed`, err));
 
   logger.info('BullMQ workers started');
-  return { publishWorker, analyticsWorker, trendsWorker, listeningWorker, competitiveWorker };
+  return { publishWorker, analyticsWorker, trendsWorker, listeningWorker, competitiveWorker, reportWorker };
 }
 
 // ── Scheduled (repeating) jobs ──────────────────────────────
@@ -87,6 +95,13 @@ export async function scheduleRecurringJobs() {
     every: 24 * 60 * 60_000,
   }, {
     name: 'competitive-daily',
+  });
+
+  // Process scheduled reports every 6 hours
+  await reportQueue.upsertJobScheduler('report-process', {
+    every: 6 * 60 * 60_000,
+  }, {
+    name: 'report-scheduled',
   });
 
   logger.info('Recurring jobs scheduled');

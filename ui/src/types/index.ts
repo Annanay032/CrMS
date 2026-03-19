@@ -45,6 +45,9 @@ export interface PlatformStat {
 }
 
 export type CampaignStatus = 'DRAFT' | 'ACTIVE' | 'PAUSED' | 'COMPLETED' | 'CANCELLED';
+export type CampaignStage = 'BRIEF' | 'RECRUITING' | 'IN_PROGRESS' | 'REVIEW' | 'COMPLETED';
+export type DeliverableStatus = 'PENDING' | 'IN_PROGRESS' | 'SUBMITTED' | 'REVISION_REQUESTED' | 'APPROVED' | 'REJECTED';
+export type DeliverableType = 'POST' | 'STORY' | 'REEL' | 'VIDEO' | 'REVIEW' | 'UNBOXING' | 'TUTORIAL' | 'OTHER';
 
 export interface Campaign {
   id: string;
@@ -52,14 +55,50 @@ export interface Campaign {
   title: string;
   description?: string;
   budget?: number;
+  spent?: number;
   targetNiche: string[];
   targetPlatforms: string[];
   status: CampaignStatus;
+  stage?: CampaignStage;
+  timeline?: { milestones?: Array<{ name: string; date: string; completed: boolean }> };
+  kpis?: Array<{ metric: string; target: number; current: number }>;
+  briefUrl?: string;
   startDate?: string;
   endDate?: string;
   createdAt: string;
-  _count?: { matches: number };
+  _count?: { matches: number; deliverables: number };
   brandProfile?: { user: { name: string } };
+  deliverables?: CampaignDeliverable[];
+  reports?: CampaignReportItem[];
+}
+
+export interface CampaignDeliverable {
+  id: string;
+  campaignId: string;
+  creatorProfileId: string;
+  type: DeliverableType;
+  title: string;
+  description?: string;
+  platform?: string;
+  status: DeliverableStatus;
+  contentUrl?: string;
+  dueDate?: string;
+  submittedAt?: string;
+  approvedAt?: string;
+  feedback?: string;
+  payment?: number;
+  createdAt: string;
+  creatorProfile?: { user: { name: string; avatarUrl?: string } };
+}
+
+export interface CampaignReportItem {
+  id: string;
+  campaignId: string;
+  title: string;
+  metrics: Record<string, number>;
+  roi?: number;
+  summary?: string;
+  generatedAt: string;
 }
 
 export type ContentStatus = 'DRAFT' | 'REVIEW' | 'APPROVED' | 'SCHEDULED' | 'PUBLISHED' | 'FAILED';
@@ -79,6 +118,9 @@ export interface ContentPost {
   platformOverrides?: Record<string, { caption?: string; hashtags?: string[] }>;
   bulkGroupId?: string;
   ideaId?: string;
+  approvalStatus?: ApprovalStatus;
+  teamId?: string;
+  comments?: PostComment[];
 }
 
 // ─── Ideas & Tags ──────────────────────────────────────────
@@ -260,4 +302,226 @@ export interface CompetitorSnapshot {
   topHashtags: string[];
   avgLikes: number;
   avgComments: number;
+}
+
+// ─── Analytics & Reports ────────────────────────────────────
+
+export type ReportFormat = 'PDF' | 'CSV' | 'JSON';
+export type ReportStatus = 'DRAFT' | 'GENERATING' | 'READY' | 'FAILED' | 'SCHEDULED';
+
+export interface AnalyticsReport {
+  id: string;
+  userId: string;
+  creatorProfileId?: string;
+  title: string;
+  description?: string;
+  dateRangeStart: string;
+  dateRangeEnd: string;
+  metrics: string[];
+  platforms: string[];
+  format: ReportFormat;
+  status: ReportStatus;
+  fileUrl?: string;
+  schedule?: string;
+  lastGeneratedAt?: string;
+  generatedData?: Record<string, unknown>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AudienceInsight {
+  id: string;
+  creatorProfileId: string;
+  platform: string;
+  date: string;
+  demographics: Record<string, unknown>;
+  activeHours: Record<string, number>;
+  topCountries: Record<string, number>;
+  topCities: Record<string, number>;
+  interests: string[];
+}
+
+export interface ContentTypeBreakdown {
+  type: string;
+  count: number;
+  totalEngagement: number;
+  totalReach: number;
+  avgEngRate: number;
+}
+
+// ─── Teams & Collaboration ──────────────────────────────────
+
+export type TeamRole = 'OWNER' | 'ADMIN' | 'EDITOR' | 'CONTRIBUTOR' | 'VIEWER';
+export type ApprovalStatus = 'NONE' | 'PENDING_REVIEW' | 'CHANGES_REQUESTED' | 'APPROVED' | 'REJECTED';
+
+export interface Team {
+  id: string;
+  name: string;
+  ownerId: string;
+  avatarUrl?: string;
+  createdAt: string;
+  updatedAt: string;
+  members?: TeamMember[];
+  workflows?: ApprovalWorkflow[];
+  _count?: { members: number; posts: number; workflows: number };
+}
+
+export interface TeamMember {
+  id: string;
+  teamId: string;
+  userId: string;
+  role: TeamRole;
+  joinedAt: string;
+  user?: { id: string; name: string; email: string; avatarUrl?: string; role: string };
+}
+
+export interface ApprovalWorkflow {
+  id: string;
+  teamId: string;
+  name: string;
+  stages: Array<{ name: string; approverRoles: string[] }>;
+  isDefault: boolean;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PostComment {
+  id: string;
+  postId: string;
+  userId: string;
+  body: string;
+  isApproval: boolean;
+  approvalAction?: string;
+  createdAt: string;
+  user?: { id: string; name: string; avatarUrl?: string };
+}
+
+// ─── Start Page / Link-in-Bio ──────────────────────────────
+
+export interface StartPage {
+  id: string;
+  userId: string;
+  slug: string;
+  title: string;
+  bio?: string;
+  avatarUrl?: string;
+  theme: string;
+  blocks: unknown[];
+  customCSS?: string;
+  favicon?: string;
+  published: boolean;
+  seoTitle?: string;
+  seoDescription?: string;
+  createdAt: string;
+  updatedAt: string;
+  links?: StartPageLink[];
+  user?: { name: string; avatarUrl?: string };
+}
+
+export interface StartPageLink {
+  id: string;
+  pageId: string;
+  title: string;
+  url: string;
+  icon?: string;
+  thumbnail?: string;
+  sortOrder: number;
+  isActive: boolean;
+  clicks: number;
+  createdAt: string;
+}
+
+export interface StartPageAnalyticsSummary {
+  totalViews: number;
+  totalClicks: number;
+  ctr: number;
+  daily: Array<{ date: string; views: number; clicks: number }>;
+  topLinks: Array<{ id: string; title: string; clicks: number }>;
+}
+
+// ─── Notifications ──────────────────────────────────────────
+
+export type NotificationType = 'AGENT_COMPLETED' | 'AGENT_FAILED' | 'TREND_ALERT' | 'MENTION' | 'APPROVAL_REQUEST' | 'APPROVAL_RESOLVED' | 'CAMPAIGN_UPDATE' | 'COMMENT_SPIKE' | 'SYSTEM';
+
+export interface Notification {
+  id: string;
+  userId: string;
+  type: NotificationType;
+  title: string;
+  body: string;
+  read: boolean;
+  data?: Record<string, unknown>;
+  createdAt: string;
+}
+
+export interface NotificationsResponse {
+  items: Notification[];
+  total: number;
+  unreadCount: number;
+  page: number;
+  limit: number;
+}
+
+// ─── Chat / Pipeline ───────────────────────────────────────
+
+export interface ChatResponse {
+  mode: 'single' | 'pipeline';
+  agentType?: string;
+  output?: unknown;
+  tokensUsed?: number;
+  steps?: Array<{ agentType: string; output: unknown; tokensUsed?: number }>;
+}
+
+// ─── V2: Usage & Budgets ────────────────────────────────────
+
+export type UsageTier = 'FREE' | 'PRO' | 'ENTERPRISE';
+
+export interface UsageSummary {
+  tier: UsageTier;
+  dailyLimit: number;
+  usedToday: number;
+  remaining: number;
+  resetAt: string;
+  breakdown: Array<{ agentType: string; tokensUsed: number; calls: number }>;
+}
+
+export interface UsageHistoryEntry {
+  date: string;
+  tokens: number;
+  calls: number;
+}
+
+// ─── V2: User Settings ─────────────────────────────────────
+
+export interface UserSettings {
+  id: string;
+  userId: string;
+  listeningFrequency: number;
+  competitiveFrequency: number;
+  emailDigest: boolean;
+}
+
+// ─── V2: Media Library ──────────────────────────────────────
+
+export interface MediaFolder {
+  id: string;
+  userId: string;
+  name: string;
+  parentId?: string;
+  createdAt: string;
+  _count?: { assets: number; children: number };
+}
+
+export interface MediaAsset {
+  id: string;
+  userId: string;
+  filename: string;
+  mimeType: string;
+  size: number;
+  url: string;
+  thumbnailUrl?: string;
+  tags: string[];
+  folderId?: string;
+  createdAt: string;
 }

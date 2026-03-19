@@ -41,6 +41,16 @@ model User {
   agentTasks       AgentTask[]
   listeningQueries ListeningQuery[]
   competitors      Competitor[]
+  savedReplies     SavedReply[]
+  voiceProfile     UserVoiceProfile?
+  analyticsReports AnalyticsReport[]
+  ownedTeams       Team[]
+  teamMembers      TeamMember[]
+  postComments     PostComment[]
+  startPages       StartPage[]
+  notifications    Notification[]
+  usageBudget      UsageBudget?
+  userSettings     UserSettings?
 
   @@map("users")
 }
@@ -72,20 +82,28 @@ model CreatorProfile {
   location           String?
   languages          String[] @default(["en"])
   portfolioUrl       String?
-  availabilityStatus String   @default("available") // available | busy | unavailable
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  availabilityStatus  String   @default("available") // available | busy | unavailable
+  mediaKit            Json?    // { bio, rates, demographics, pastWork[] }
+  averageResponseTime Float?   // hours
+  reliabilityScore    Float?   // 0-1
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 
   user             User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
   platformStats    CreatorPlatformStats[]
   contentPosts     ContentPost[]
   campaignMatches  CampaignMatch[]
+  deliverables     CampaignDeliverable[]
   interactions     CommunityInteraction[]
   snapshots        CreatorAnalyticsSnapshot[]
   agencyLinks      AgencyCreator[]
   ideas            ContentIdea[]
   tags             ContentTag[]
   postingSchedules PostingSchedule[]
+  commentScores    CommentScore[]
+  analyticsReports AnalyticsReport[]
+  audienceInsights AudienceInsight[]
+  postComments     PostComment[]
 
   @@map("creator_profiles")
 }
@@ -255,7 +273,7 @@ model ContentTemplate {
 }
 
 model ContentPost {
-  id               String     @id @default(cuid())
+  id               String          @id @default(cuid())
   creatorProfileId String
   platform         Platform
   postType         PostType
@@ -264,21 +282,26 @@ model ContentPost {
   mediaUrls        String[]
   scheduledAt      DateTime?
   publishedAt      DateTime?
-  status           PostStatus @default(DRAFT)
+  status           PostStatus      @default(DRAFT)
   externalPostId   String?    // ID on the platform after publishing
   firstComment     String?    // Auto first-comment after publishing
   platformOverrides Json?     // { "INSTAGRAM": { caption, hashtags }, "TIKTOK": { caption } }
   bulkGroupId      String?    // Groups posts created from multi-platform compose
   ideaId           String?    // Link back to the idea this was created from
-  createdAt        DateTime   @default(now())
-  updatedAt        DateTime   @updatedAt
+  approvalStatus   ApprovalStatus  @default(NONE)
+  teamId           String?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
 
   creatorProfile CreatorProfile @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
   analytics      PostAnalytics?
+  team           Team?          @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  comments       PostComment[]
 
   @@index([creatorProfileId, status])
   @@index([scheduledAt])
   @@index([bulkGroupId])
+  @@index([teamId, approvalStatus])
   @@map("content_posts")
 }
 
@@ -299,19 +322,27 @@ model PostingSchedule {
 }
 
 model PostAnalytics {
-  id          String   @id @default(cuid())
-  postId      String   @unique
-  impressions Int      @default(0)
-  reach       Int      @default(0)
-  likes       Int      @default(0)
-  comments    Int      @default(0)
-  shares      Int      @default(0)
-  saves       Int      @default(0)
-  clicks      Int      @default(0)
-  fetchedAt   DateTime @default(now())
+  id                   String   @id @default(cuid())
+  postId               String   @unique
+  impressions          Int      @default(0)
+  reach                Int      @default(0)
+  likes                Int      @default(0)
+  comments             Int      @default(0)
+  shares               Int      @default(0)
+  saves                Int      @default(0)
+  clicks               Int      @default(0)
+  platform             Platform?
+  contentType          PostType?
+  audienceDemographics Json?    // { ageRanges, genders, topCountries, topCities }
+  boosted              Boolean  @default(false)
+  videoViews           Int      @default(0)
+  avgWatchTime         Float    @default(0) // seconds
+  profileVisits        Int      @default(0)
+  fetchedAt            DateTime @default(now())
 
   post ContentPost @relation(fields: [postId], references: [id], onDelete: Cascade)
 
+  @@index([platform])
   @@map("post_analytics")
 }
 
@@ -329,6 +360,65 @@ model CreatorAnalyticsSnapshot {
   @@map("creator_analytics_snapshots")
 }
 
+enum ReportFormat {
+  PDF
+  CSV
+  JSON
+}
+
+enum ReportStatus {
+  DRAFT
+  GENERATING
+  READY
+  FAILED
+  SCHEDULED
+}
+
+model AnalyticsReport {
+  id               String       @id @default(cuid())
+  userId           String
+  creatorProfileId String?
+  title            String
+  description      String?
+  dateRangeStart   DateTime
+  dateRangeEnd     DateTime
+  metrics          String[]     // e.g. ["impressions", "reach", "engagement", "followerGrowth"]
+  platforms        Platform[]   // filter by specific platforms or empty = all
+  format           ReportFormat @default(PDF)
+  status           ReportStatus @default(DRAFT)
+  fileUrl          String?      // generated report file path
+  schedule         String?      // cron expression for recurring reports
+  lastGeneratedAt  DateTime?
+  generatedData    Json?        // cached computed data for the report
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  creatorProfile CreatorProfile? @relation(fields: [creatorProfileId], references: [id], onDelete: SetNull)
+
+  @@index([userId, status])
+  @@map("analytics_reports")
+}
+
+model AudienceInsight {
+  id               String   @id @default(cuid())
+  creatorProfileId String
+  platform         Platform
+  date             DateTime @db.Date
+  demographics     Json     // { ageRanges: { "18-24": 30, ... }, genders: { "M": 55, ... } }
+  activeHours      Json     // { "0": 120, "1": 80, ... } — engagement per hour
+  topCountries     Json     // { "US": 40, "UK": 15, ... }
+  topCities        Json     // { "New York": 10, "London": 8, ... }
+  interests        String[] // e.g. ["fitness", "technology", "food"]
+  createdAt        DateTime @default(now())
+
+  creatorProfile CreatorProfile @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
+
+  @@unique([creatorProfileId, platform, date])
+  @@index([creatorProfileId])
+  @@map("audience_insights")
+}
+
 // ─── Campaigns & Matching ────────────────────────────────────
 
 enum CampaignStatus {
@@ -337,6 +427,34 @@ enum CampaignStatus {
   PAUSED
   COMPLETED
   CANCELLED
+}
+
+enum CampaignStage {
+  BRIEF
+  RECRUITING
+  IN_PROGRESS
+  REVIEW
+  COMPLETED
+}
+
+enum DeliverableStatus {
+  PENDING
+  IN_PROGRESS
+  SUBMITTED
+  REVISION_REQUESTED
+  APPROVED
+  REJECTED
+}
+
+enum DeliverableType {
+  POST
+  STORY
+  REEL
+  VIDEO
+  REVIEW
+  UNBOXING
+  TUTORIAL
+  OTHER
 }
 
 enum MatchStatus {
@@ -352,19 +470,27 @@ model Campaign {
   title           String
   description     String?
   budget          Float?
+  spent           Float          @default(0)
   targetNiche     String[]
   targetPlatforms Platform[]
   startDate       DateTime?
   endDate         DateTime?
   status          CampaignStatus @default(DRAFT)
+  stage           CampaignStage  @default(BRIEF)
+  timeline        Json?          // { milestones: [{ name, date, completed }] }
+  kpis            Json?          // [{ metric: "impressions", target: 100000, current: 0 }]
+  briefUrl        String?
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
 
-  brandProfile BrandProfile    @relation(fields: [brandProfileId], references: [id], onDelete: Cascade)
-  matches      CampaignMatch[]
-  criteria     MatchCriteria?
+  brandProfile  BrandProfile          @relation(fields: [brandProfileId], references: [id], onDelete: Cascade)
+  matches       CampaignMatch[]
+  criteria      MatchCriteria?
+  deliverables  CampaignDeliverable[]
+  reports       CampaignReport[]
 
   @@index([status])
+  @@index([stage])
   @@map("campaigns")
 }
 
@@ -401,6 +527,47 @@ model CampaignMatch {
   @@map("campaign_matches")
 }
 
+model CampaignDeliverable {
+  id               String            @id @default(cuid())
+  campaignId       String
+  creatorProfileId String
+  type             DeliverableType
+  title            String
+  description      String?
+  platform         Platform?
+  status           DeliverableStatus @default(PENDING)
+  contentUrl       String?
+  dueDate          DateTime?
+  submittedAt      DateTime?
+  approvedAt       DateTime?
+  feedback         String?
+  payment          Float?            @default(0)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  campaign       Campaign       @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  creatorProfile CreatorProfile @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
+
+  @@index([campaignId, status])
+  @@index([creatorProfileId])
+  @@map("campaign_deliverables")
+}
+
+model CampaignReport {
+  id          String   @id @default(cuid())
+  campaignId  String
+  title       String
+  metrics     Json     // { impressions, reach, engagement, clicks, conversions }
+  roi         Float?   // return on investment percentage
+  summary     String?  // AI-generated summary
+  generatedAt DateTime @default(now())
+
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@index([campaignId])
+  @@map("campaign_reports")
+}
+
 // ─── Community / Engagement ──────────────────────────────────
 
 enum InteractionType {
@@ -416,8 +583,20 @@ enum Sentiment {
   QUESTION
 }
 
+enum CaseStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+}
+
+enum MessagePriority {
+  HIGH
+  MEDIUM
+  LOW
+}
+
 model CommunityInteraction {
-  id               String          @id @default(cuid())
+  id               String           @id @default(cuid())
   creatorProfileId String
   platform         Platform
   interactionType  InteractionType
@@ -427,12 +606,63 @@ model CommunityInteraction {
   sentiment        Sentiment?
   aiSuggestion     String?
   respondedAt      DateTime?
-  createdAt        DateTime        @default(now())
+  isRead           Boolean          @default(false)
+  assignedTo       String?
+  caseStatus       CaseStatus       @default(OPEN)
+  priority         MessagePriority?
+  tags             String[]
+  createdAt        DateTime         @default(now())
 
   creatorProfile CreatorProfile @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
 
   @@index([creatorProfileId, interactionType])
+  @@index([creatorProfileId, caseStatus])
+  @@index([creatorProfileId, priority])
   @@map("community_interactions")
+}
+
+model SavedReply {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  body      String
+  tags      String[]
+  usageCount Int     @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("saved_replies")
+}
+
+model CommentScore {
+  id              String   @id @default(cuid())
+  creatorProfileId String
+  responseRate    Float    @default(0)
+  avgResponseTime Float    @default(0) // minutes
+  consistency     Float    @default(0)
+  period          String   // e.g. "2026-03" (monthly)
+  calculatedAt    DateTime @default(now())
+
+  creatorProfile CreatorProfile @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
+
+  @@unique([creatorProfileId, period])
+  @@map("comment_scores")
+}
+
+model UserVoiceProfile {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  tonePreferences String[] // e.g. ["friendly", "casual", "witty"]
+  exampleReplies  String[]
+  vocabulary      String[] // frequently used words/phrases
+  updatedAt       DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_voice_profiles")
 }
 
 // ─── Social Listening ────────────────────────────────────────
@@ -538,6 +768,224 @@ model CompetitorSnapshot {
   @@map("competitor_snapshots")
 }
 
+// ─── Teams & Collaboration ───────────────────────────────────
+
+enum TeamRole {
+  OWNER
+  ADMIN
+  EDITOR
+  CONTRIBUTOR
+  VIEWER
+}
+
+enum ApprovalStatus {
+  NONE
+  PENDING_REVIEW
+  CHANGES_REQUESTED
+  APPROVED
+  REJECTED
+}
+
+model Team {
+  id        String   @id @default(cuid())
+  name      String
+  ownerId   String
+  avatarUrl String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  owner    User              @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  members  TeamMember[]
+  workflows ApprovalWorkflow[]
+  posts    ContentPost[]
+
+  @@index([ownerId])
+  @@map("teams")
+}
+
+model TeamMember {
+  id        String   @id @default(cuid())
+  teamId    String
+  userId    String
+  role      TeamRole @default(CONTRIBUTOR)
+  joinedAt  DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, userId])
+  @@map("team_members")
+}
+
+model ApprovalWorkflow {
+  id           String   @id @default(cuid())
+  teamId       String
+  name         String
+  stages       Json     // [{ name: "Editor Review", approverRoles: ["EDITOR"] }, { name: "Admin Sign-off", approverRoles: ["ADMIN","OWNER"] }]
+  isDefault    Boolean  @default(false)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@index([teamId, isActive])
+  @@map("approval_workflows")
+}
+
+model PostComment {
+  id               String   @id @default(cuid())
+  postId           String
+  userId           String
+  creatorProfileId String?
+  body             String
+  isApproval       Boolean  @default(false) // true = approval action comment
+  approvalAction   String?  // "approve" | "request_changes" | "reject"
+  createdAt        DateTime @default(now())
+
+  post           ContentPost     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  creatorProfile CreatorProfile? @relation(fields: [creatorProfileId], references: [id], onDelete: SetNull)
+
+  @@index([postId, createdAt])
+  @@map("post_comments")
+}
+
+// ─── Link-in-Bio / Start Page ────────────────────────────────
+
+model StartPage {
+  id        String   @id @default(cuid())
+  userId    String
+  slug      String   @unique
+  title     String
+  bio       String?
+  avatarUrl String?
+  theme     String   @default("default")
+  blocks    Json     @default("[]")
+  customCSS String?
+  favicon   String?
+  published Boolean  @default(false)
+  seoTitle  String?
+  seoDescription String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  links     StartPageLink[]
+  analytics StartPageAnalytics[]
+
+  @@index([userId])
+  @@map("start_pages")
+}
+
+model StartPageLink {
+  id        String   @id @default(cuid())
+  pageId    String
+  title     String
+  url       String
+  icon      String?
+  thumbnail String?
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  clicks    Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  page StartPage @relation(fields: [pageId], references: [id], onDelete: Cascade)
+
+  @@index([pageId])
+  @@map("start_page_links")
+}
+
+model StartPageAnalytics {
+  id       String   @id @default(cuid())
+  pageId   String
+  date     DateTime @db.Date
+  views    Int      @default(0)
+  clicks   Int      @default(0)
+  topLinks Json     @default("[]")
+
+  page StartPage @relation(fields: [pageId], references: [id], onDelete: Cascade)
+
+  @@unique([pageId, date])
+  @@index([pageId, date])
+  @@map("start_page_analytics")
+}
+
+// ─── Notifications ───────────────────────────────────────────
+
+enum NotificationType {
+  AGENT_COMPLETED
+  AGENT_FAILED
+  TREND_ALERT
+  MENTION
+  APPROVAL_REQUEST
+  APPROVAL_RESOLVED
+  CAMPAIGN_UPDATE
+  COMMENT_SPIKE
+  SYSTEM
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  title     String
+  body      String?
+  read      Boolean          @default(false)
+  data      Json?
+  createdAt DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, read])
+  @@index([userId, createdAt])
+  @@map("notifications")
+}
+
+// ─── Workflow Templates & Runs ───────────────────────────────
+
+enum WorkflowStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+model WorkflowTemplate {
+  id               String   @id @default(cuid())
+  name             String
+  description      String?
+  steps            Json     // Array of { agentType, action, inputMapping }
+  triggerConditions Json?   // Optional auto-trigger rules
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  runs WorkflowRun[]
+
+  @@map("workflow_templates")
+}
+
+model WorkflowRun {
+  id             String         @id @default(cuid())
+  templateId     String
+  userId         String
+  status         WorkflowStatus @default(PENDING)
+  currentStep    Int            @default(0)
+  stepResults    Json           @default("[]")
+  error          String?
+  startedAt      DateTime       @default(now())
+  completedAt    DateTime?
+
+  template WorkflowTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  @@index([templateId])
+  @@index([userId, status])
+  @@map("workflow_runs")
+}
+
 // ─── AI Agent Logs ───────────────────────────────────────────
 
 enum AgentType {
@@ -578,4 +1026,104 @@ model AgentTask {
 
   @@index([agentType, status])
   @@map("agent_tasks")
+}
+
+// ─── V2: Usage Budgets & Cost Management ─────────────────────
+
+enum UsageTier {
+  FREE
+  PRO
+  ENTERPRISE
+}
+
+model UsageBudget {
+  id              String    @id @default(cuid())
+  userId          String    @unique
+  tier            UsageTier @default(FREE)
+  dailyTokenLimit Int       @default(50000)
+  tokensUsedToday Int       @default(0)
+  resetAt         DateTime  @default(now())
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("usage_budgets")
+}
+
+model AgentUsageLog {
+  id         String    @id @default(cuid())
+  userId     String
+  agentType  AgentType
+  model      String    @default("gpt-4")
+  tokensUsed Int
+  date       DateTime  @default(now())
+
+  @@index([userId, date])
+  @@index([userId, agentType])
+  @@map("agent_usage_logs")
+}
+
+// ─── V2: Platform Rate Limits ────────────────────────────────
+
+model PlatformRateLimit {
+  id                String   @id @default(cuid())
+  platform          String
+  endpoint          String
+  requestsRemaining Int      @default(100)
+  windowResetAt     DateTime
+  updatedAt         DateTime @updatedAt
+
+  @@unique([platform, endpoint])
+  @@map("platform_rate_limits")
+}
+
+model UserSettings {
+  id                    String    @id @default(cuid())
+  userId                String    @unique
+  listeningFrequency    Int       @default(1)  // polls per day
+  competitiveFrequency  Int       @default(1)
+  emailDigest           Boolean   @default(true)
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_settings")
+}
+
+// ─── V2: Media Library ───────────────────────────────────────
+
+model MediaFolder {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String
+  parentId  String?
+  createdAt DateTime @default(now())
+
+  parent   MediaFolder?  @relation("FolderTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children MediaFolder[] @relation("FolderTree")
+  assets   MediaAsset[]
+
+  @@index([userId])
+  @@map("media_folders")
+}
+
+model MediaAsset {
+  id           String   @id @default(cuid())
+  userId       String
+  filename     String
+  mimeType     String
+  size         Int
+  url          String
+  thumbnailUrl String?
+  tags         String[] @default([])
+  folderId     String?
+  createdAt    DateTime @default(now())
+
+  folder MediaFolder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([userId, folderId])
+  @@map("media_assets")
 }

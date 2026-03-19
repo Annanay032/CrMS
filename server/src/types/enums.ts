@@ -52,6 +52,34 @@ export enum CampaignStatus {
   CANCELLED = 'CANCELLED',
 }
 
+export enum CampaignStage {
+  BRIEF = 'BRIEF',
+  RECRUITING = 'RECRUITING',
+  IN_PROGRESS = 'IN_PROGRESS',
+  REVIEW = 'REVIEW',
+  COMPLETED = 'COMPLETED',
+}
+
+export enum DeliverableStatus {
+  PENDING = 'PENDING',
+  IN_PROGRESS = 'IN_PROGRESS',
+  SUBMITTED = 'SUBMITTED',
+  REVISION_REQUESTED = 'REVISION_REQUESTED',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED',
+}
+
+export enum DeliverableType {
+  POST = 'POST',
+  STORY = 'STORY',
+  REEL = 'REEL',
+  VIDEO = 'VIDEO',
+  REVIEW = 'REVIEW',
+  UNBOXING = 'UNBOXING',
+  TUTORIAL = 'TUTORIAL',
+  OTHER = 'OTHER',
+}
+
 export enum MatchStatus {
   PENDING = 'PENDING',
   ACCEPTED = 'ACCEPTED',
@@ -92,4 +120,20 @@ export enum OAuthProvider {
   INSTAGRAM = 'INSTAGRAM',
   YOUTUBE = 'YOUTUBE',
   TIKTOK = 'TIKTOK',
+}
+
+export enum TeamRole {
+  OWNER = 'OWNER',
+  ADMIN = 'ADMIN',
+  EDITOR = 'EDITOR',
+  CONTRIBUTOR = 'CONTRIBUTOR',
+  VIEWER = 'VIEWER',
+}
+
+export enum ApprovalStatus {
+  NONE = 'NONE',
+  PENDING_REVIEW = 'PENDING_REVIEW',
+  CHANGES_REQUESTED = 'CHANGES_REQUESTED',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED',
 }

@@ -6,6 +6,7 @@ import { useGetCalendarQuery } from '@/store/endpoints/content';
 import type { ContentPost } from '@/types';
 import { DAYS, STATUS_COLORS } from './constants';
 import { CalendarGrid } from './components/CalendarGrid';
+import { ApprovalDrawer } from './components/ApprovalDrawer';
 
 const { Title } = Typography;
 
@@ -13,6 +14,7 @@ export function CalendarPage() {
   const [date, setDate] = useState(new Date());
   const year = date.getFullYear();
   const month = date.getMonth() + 1;
+  const [selectedPost, setSelectedPost] = useState<ContentPost | null>(null);
 
   const { data } = useGetCalendarQuery({ month, year });
   const posts: ContentPost[] = data?.data ?? [];
@@ -61,6 +63,7 @@ export function CalendarPage() {
             currentDay={now.getDate()}
             isCurrentMonth={isCurrentMonth}
             getPostsForDay={getPostsForDay}
+            onPostClick={setSelectedPost}
           />
         </div>
 
@@ -70,6 +73,12 @@ export function CalendarPage() {
           ))}
         </div>
       </Card>
+
+      <ApprovalDrawer
+        post={selectedPost}
+        open={!!selectedPost}
+        onClose={() => setSelectedPost(null)}
+      />
     </div>
   );
 }

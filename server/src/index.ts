@@ -1,3 +1,4 @@
+import { createServer } from 'http';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -9,12 +10,15 @@ import { env } from './config/env.js';
 import { logger } from './config/logger.js';
 import { prisma } from './config/database.js';
 import { redis } from './config/redis.js';
+import { setupWebSocket } from './config/websocket.js';
 import { configurePassport } from './config/passport.js';
 import routes from './routes/index.js';
 import { errorHandler, notFound } from './middleware/error.js';
 import { startWorkers, scheduleRecurringJobs } from './jobs/index.js';
+import { wireOrchestratorEvents } from './services/notification.service.js';
 
 const app = express();
+const httpServer = createServer(app);
 
 // Security
 app.use(helmet());
@@ -65,7 +69,10 @@ async function start() {
     await redis.ping();
     logger.info('Redis connected');
 
-    app.listen(env.PORT, () => {
+    setupWebSocket(httpServer);
+    wireOrchestratorEvents();
+
+    httpServer.listen(env.PORT, () => {
       logger.info(`CrMS API running on port ${env.PORT} [${env.NODE_ENV}]`);
     });
 

@@ -45,6 +45,9 @@ const trendSchema = z.object({
 // Generic agent runner
 router.post('/run', authenticate, validate(runAgentSchema), agentController.runAgent);
 
+// Chat: server-side NLP routing with pipeline support
+router.post('/chat', authenticate, agentController.chat);
+
 // Specialized endpoints
 router.post('/content/generate', authenticate, validate(contentGenSchema), agentController.generateContent);
 router.post('/schedule/optimize', authenticate, validate(scheduleSchema), agentController.optimizeSchedule);

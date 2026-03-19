@@ -1,4 +1,4 @@
-export type Period = 'week' | 'month' | 'quarter';
+export type Period = 'week' | 'month' | 'quarter' | 'year';
 
 export interface MetricItem {
   name: string;
@@ -10,3 +10,13 @@ export interface PlatformBreakdown {
   followers: number;
   engagementRate: number;
 }
+
+export interface ContentTypeBreakdown {
+  type: string;
+  count: number;
+  totalEngagement: number;
+  totalReach: number;
+  avgEngRate: number;
+}
+
+export type AnalyticsTab = 'overview' | 'content' | 'audience' | 'reports';

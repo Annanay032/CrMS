@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Card, Empty, Row, Col, Typography, Spin, Tag, InputNumber, Button } from 'antd';
+import { Card, Empty, Row, Col, Typography, Spin, Tag, InputNumber, Button, Input, Select } from 'antd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons';
 import { useLazyDiscoverCreatorsQuery } from '@/store/endpoints/matching';
 import type { Creator } from './types';
 import { SearchFilters } from './components/SearchFilters';
 import { CreatorCard } from './components/CreatorCard';
+import { SORT_OPTIONS } from './constants';
 
 const { Title, Text } = Typography;
 
@@ -15,6 +16,10 @@ export function DiscoverPage() {
   const [platform, setPlatform] = useState('');
   const [minFollowers, setMinFollowers] = useState<number | undefined>();
   const [minEngagement, setMinEngagement] = useState<number | undefined>();
+  const [location, setLocation] = useState('');
+  const [language, setLanguage] = useState('');
+  const [minReliability, setMinReliability] = useState<number | undefined>();
+  const [sortBy, setSortBy] = useState('');
 
   const creators: Creator[] = (data?.data as unknown as Creator[]) ?? [];
   const total = (data as unknown as { pagination?: { total: number } })?.pagination?.total ?? creators.length;
@@ -24,7 +29,17 @@ export function DiscoverPage() {
     platform,
     minFollowers,
     minEngagement,
+    location: location || undefined,
+    language: language || undefined,
+    minReliability,
+    sortBy: sortBy || undefined,
   });
+
+  const clearAll = () => {
+    setNiche(''); setPlatform(''); setMinFollowers(undefined); setMinEngagement(undefined);
+    setLocation(''); setLanguage(''); setMinReliability(undefined); setSortBy('');
+    trigger({ niche: '', platform: '' });
+  };
 
   useEffect(() => { trigger({ niche: '', platform: '' }); }, []);
 
@@ -70,9 +85,38 @@ export function DiscoverPage() {
               step={0.1}
             />
           </div>
-          <Button onClick={() => { setNiche(''); setPlatform(''); setMinFollowers(undefined); setMinEngagement(undefined); trigger({ niche: '', platform: '' }); }}>
-            Clear Filters
-          </Button>
+          <div style={{ width: 160 }}>
+            <Text type="secondary" style={{ display: 'block', marginBottom: 4, fontSize: 12 }}>Location</Text>
+            <Input
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              placeholder="e.g. Los Angeles"
+            />
+          </div>
+          <div style={{ width: 140 }}>
+            <Text type="secondary" style={{ display: 'block', marginBottom: 4, fontSize: 12 }}>Language</Text>
+            <Input
+              value={language}
+              onChange={(e) => setLanguage(e.target.value)}
+              placeholder="e.g. English"
+            />
+          </div>
+          <div style={{ width: 140 }}>
+            <Text type="secondary" style={{ display: 'block', marginBottom: 4, fontSize: 12 }}>Min Reliability</Text>
+            <InputNumber
+              value={minReliability}
+              onChange={(v) => setMinReliability(v ?? undefined)}
+              placeholder="0-100"
+              style={{ width: '100%' }}
+              min={0}
+              max={100}
+            />
+          </div>
+          <div style={{ width: 160 }}>
+            <Text type="secondary" style={{ display: 'block', marginBottom: 4, fontSize: 12 }}>Sort By</Text>
+            <Select value={sortBy} onChange={setSortBy} style={{ width: '100%' }} options={[...SORT_OPTIONS]} />
+          </div>
+          <Button onClick={clearAll}>Clear Filters</Button>
         </div>
       </Card>
 

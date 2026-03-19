@@ -1,7 +1,7 @@
-import { Badge } from 'antd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBell, faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons';
+import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons';
 import { AiActivityIndicator } from '@/components/ai';
+import { NotificationCenter } from './NotificationCenter';
 import { useAppSelector } from '@/hooks/store';
 import { getInitials } from '@/utils/format';
 import styles from './TopBar.module.scss';
@@ -21,11 +21,7 @@ export function TopBar() {
 
         <div className={styles.topbar__divider} />
 
-        <Badge dot offset={[-2, 2]}>
-          <button style={{ padding: 8, color: '#94a3b8', cursor: 'pointer', background: 'none', border: 'none', fontSize: 16 }}>
-            <FontAwesomeIcon icon={faBell} />
-          </button>
-        </Badge>
+        <NotificationCenter />
 
         <div className={styles.topbar__divider} />
 

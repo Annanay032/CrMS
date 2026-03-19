@@ -89,11 +89,11 @@ export async function getDashboardStats(userId: string, role: string) {
   return null;
 }
 
-export async function getAnalyticsDashboard(creatorProfileId: string, period: 'week' | 'month' | 'quarter' = 'week') {
-  const daysBack = period === 'quarter' ? 90 : period === 'month' ? 30 : 7;
-  const since = new Date(Date.now() - daysBack * 24 * 60 * 60 * 1000);
+export async function getAnalyticsDashboard(creatorProfileId: string, period: 'week' | 'month' | 'quarter' | 'year' = 'week') {
+  const daysBack = period === 'year' ? 365 : period === 'quarter' ? 90 : period === 'month' ? 30 : 7;
+  const since = new Date(Date.now() - daysBack * 86_400_000);
 
-  const [posts, snapshots, platformStats] = await Promise.all([
+  const [posts, snapshots, platformStats, audienceInsights] = await Promise.all([
     prisma.contentPost.findMany({
       where: { creatorProfileId, status: 'PUBLISHED', publishedAt: { gte: since } },
       include: { analytics: true },
@@ -104,6 +104,11 @@ export async function getAnalyticsDashboard(creatorProfileId: string, period: 'w
       orderBy: { date: 'asc' },
     }),
     prisma.creatorPlatformStats.findMany({ where: { creatorProfileId } }),
+    prisma.audienceInsight.findMany({
+      where: { creatorProfileId, date: { gte: since } },
+      orderBy: { date: 'desc' },
+      take: 10,
+    }),
   ]);
 
   const postsCount = posts.length;
@@ -155,9 +160,36 @@ export async function getAnalyticsDashboard(creatorProfileId: string, period: 'w
       .map((p) => ({
         id: p.id,
         platform: p.platform,
+        postType: p.postType,
         caption: p.caption?.slice(0, 60),
         publishedAt: p.publishedAt,
         analytics: p.analytics,
       })),
+    contentTypeBreakdown: (() => {
+      const byType: Record<string, { count: number; totalEngagement: number; totalReach: number }> = {};
+      for (const p of posts) {
+        const a = p.analytics;
+        const eng = (a?.likes ?? 0) + (a?.comments ?? 0) + (a?.shares ?? 0);
+        if (!byType[p.postType]) byType[p.postType] = { count: 0, totalEngagement: 0, totalReach: 0 };
+        byType[p.postType].count++;
+        byType[p.postType].totalEngagement += eng;
+        byType[p.postType].totalReach += a?.reach ?? 0;
+      }
+      return Object.entries(byType).map(([type, data]) => ({
+        type,
+        count: data.count,
+        totalEngagement: data.totalEngagement,
+        totalReach: data.totalReach,
+        avgEngRate: data.totalReach > 0 ? Math.round((data.totalEngagement / data.totalReach) * 10000) / 100 : 0,
+      }));
+    })(),
+    audienceInsights: audienceInsights.map((a) => ({
+      platform: a.platform,
+      date: a.date.toISOString().split('T')[0],
+      demographics: a.demographics,
+      activeHours: a.activeHours,
+      topCountries: a.topCountries,
+      interests: a.interests,
+    })),
   };
 }

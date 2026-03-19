@@ -1,10 +1,10 @@
-import { Card, Row, Col, Tag, Button, Space, Typography } from 'antd';
+import { Card, Row, Col, Tag, Button, Space, Typography, Progress } from 'antd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEye, faDollarSign, faUsers, faCalendarDays } from '@fortawesome/free-solid-svg-icons';
+import { faEye, faDollarSign, faClipboardList, faCalendarDays } from '@fortawesome/free-solid-svg-icons';
 import dayjs from 'dayjs';
 import type { Campaign } from '@/types';
 import { formatCurrency } from '@/utils/format';
-import { STATUS_COLOR } from '../constants';
+import { STATUS_COLOR, STAGE_COLOR, STAGE_LABELS } from '../constants';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -14,6 +14,8 @@ interface CampaignCardProps {
 }
 
 export function CampaignCard({ campaign, onClick }: CampaignCardProps) {
+  const budgetPct = campaign.budget ? Math.min(100, Math.round(((campaign.spent ?? 0) / campaign.budget) * 100)) : 0;
+
   return (
     <Card
       hoverable
@@ -27,7 +29,10 @@ export function CampaignCard({ campaign, onClick }: CampaignCardProps) {
     >
       <Space direction="vertical" style={{ width: '100%' }} size="small">
         <Space style={{ justifyContent: 'space-between', width: '100%' }}>
-          <Tag color={STATUS_COLOR[campaign.status] ?? 'default'}>{campaign.status}</Tag>
+          <Space size={4}>
+            <Tag color={STATUS_COLOR[campaign.status] ?? 'default'}>{campaign.status}</Tag>
+            {campaign.stage && <Tag color={STAGE_COLOR[campaign.stage] ?? 'default'}>{STAGE_LABELS[campaign.stage] ?? campaign.stage}</Tag>}
+          </Space>
           <Text type="secondary" style={{ fontSize: 12 }}>
             {campaign.targetPlatforms?.join(', ')}
           </Text>
@@ -43,18 +48,17 @@ export function CampaignCard({ campaign, onClick }: CampaignCardProps) {
           <Col span={12}>
             <Space size="small">
               <FontAwesomeIcon icon={faDollarSign} style={{ color: '#52c41a' }} />
-              <Text strong>{formatCurrency(campaign.budget ?? 0)}</Text>
+              <Text strong>{formatCurrency(campaign.spent ?? 0)} / {formatCurrency(campaign.budget ?? 0)}</Text>
             </Space>
-            <br />
-            <Text type="secondary" style={{ fontSize: 11 }}>Budget</Text>
+            <Progress percent={budgetPct} size="small" showInfo={false} strokeColor={budgetPct > 90 ? '#ff4d4f' : '#52c41a'} />
           </Col>
           <Col span={12}>
             <Space size="small">
-              <FontAwesomeIcon icon={faUsers} style={{ color: '#1677ff' }} />
-              <Text strong>{campaign._count?.matches ?? '—'}</Text>
+              <FontAwesomeIcon icon={faClipboardList} style={{ color: '#1677ff' }} />
+              <Text strong>{campaign._count?.deliverables ?? 0} deliverables</Text>
             </Space>
             <br />
-            <Text type="secondary" style={{ fontSize: 11 }}>Matches</Text>
+            <Text type="secondary" style={{ fontSize: 11 }}>{campaign._count?.matches ?? 0} matches</Text>
           </Col>
         </Row>
 

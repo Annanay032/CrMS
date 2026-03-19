@@ -1,6 +1,6 @@
-import { Card, Row, Col, Typography } from 'antd';
+import { Row, Col, Typography } from 'antd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faRobot, faArrowRight } from '@fortawesome/free-solid-svg-icons';
+import { faArrowRight } from '@fortawesome/free-solid-svg-icons';
 
 const { Text, Paragraph } = Typography;
 
@@ -14,7 +14,7 @@ export function AiInsightsPanel({ insights }: AiInsightsPanelProps) {
   const recommendations = (insights.recommendations as string[]) ?? [];
 
   return (
-    <Card title={<><FontAwesomeIcon icon={faRobot} style={{ color: '#4f46e5', marginRight: 8 }} />AI Insights</>}>
+    <div>
       {summary && <Paragraph>{summary}</Paragraph>}
 
       <Row gutter={[12, 12]}>
@@ -37,6 +37,6 @@ export function AiInsightsPanel({ insights }: AiInsightsPanelProps) {
           </ul>
         </div>
       )}
-    </Card>
+    </div>
   );
 }

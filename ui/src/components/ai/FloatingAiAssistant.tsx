@@ -24,8 +24,7 @@ import {
   aiTaskCompleted,
   aiTaskFailed,
 } from '@/store/ai.slice';
-import { useRunAgentMutation } from '@/store/endpoints/agents';
-import { routeAgent } from '@/pages/ai/utils';
+import { useChatWithAgentMutation } from '@/store/endpoints/notifications';
 import type { Message } from '@/pages/ai/types';
 import styles from './FloatingAiAssistant.module.scss';
 
@@ -110,7 +109,7 @@ export function FloatingAiAssistant() {
     { role: 'ai', content: MINI_WELCOME },
   ]);
   const [input, setInput] = useState('');
-  const [runAgent, { isLoading }] = useRunAgentMutation();
+  const [chatWithAgent, { isLoading }] = useChatWithAgentMutation();
   const endRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -137,26 +136,37 @@ export function FloatingAiAssistant() {
     setMessages((prev) => [...prev, { role: 'user', content: userMessage }]);
 
     const taskId = `mini-${Date.now()}`;
-    const { agentType, input: agentInput } = routeAgent(userMessage);
-    const label = agentType.replace(/_/g, ' ').toLowerCase();
-
-    dispatch(aiTaskStarted({ id: taskId, label, agentType, startedAt: Date.now() }));
+    dispatch(aiTaskStarted({ id: taskId, label: 'AI Chat', agentType: 'CHAT', startedAt: Date.now() }));
 
     try {
-      const result = await runAgent({ agentType, input: agentInput }).unwrap();
-      const output = result.data;
-      const formatted = typeof output === 'string' ? output : JSON.stringify(output, null, 2);
+      const result = await chatWithAgent({ message: userMessage }).unwrap();
+      const chatData = result.data;
+
+      let formatted: string;
+      if (chatData?.mode === 'pipeline' && chatData.steps) {
+        formatted = chatData.steps
+          .map((s) => {
+            const agentLabel = s.agentType.replace(/_/g, ' ');
+            const out = typeof s.output === 'string' ? s.output : JSON.stringify(s.output, null, 2);
+            return `**${agentLabel}**\n${out}`;
+          })
+          .join('\n\n---\n\n');
+      } else {
+        const output = chatData?.output;
+        formatted = typeof output === 'string' ? output : JSON.stringify(output, null, 2);
+      }
+
       setMessages((prev) => [...prev, { role: 'ai', content: formatted }]);
-      dispatch(aiTaskCompleted({ id: taskId, label, agentType }));
+      dispatch(aiTaskCompleted({ id: taskId, label: 'AI Chat', agentType: 'CHAT' }));
     } catch (err: unknown) {
       const e = err as { data?: { error?: string }; message?: string };
       setMessages((prev) => [
         ...prev,
         { role: 'ai', content: `Sorry, something went wrong: ${e?.data?.error ?? e?.message ?? 'Unknown error'}` },
       ]);
-      dispatch(aiTaskFailed({ id: taskId, label, agentType }));
+      dispatch(aiTaskFailed({ id: taskId, label: 'AI Chat', agentType: 'CHAT' }));
     }
-  }, [isLoading, runAgent, dispatch]);
+  }, [isLoading, chatWithAgent, dispatch]);
 
   const handleSend = () => sendMessage(input);
 

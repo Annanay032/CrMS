@@ -27,4 +27,16 @@ router.post('/saved-replies/:id/use', ...auth, communityController.useSavedReply
 router.get('/voice-profile/me', ...auth, communityController.getVoiceProfile);
 router.put('/voice-profile', ...auth, communityController.upsertVoiceProfile);
 
+/* Threads */
+router.get('/threads', ...auth, communityController.getThreads);
+
+/* Inbox channels */
+router.get('/channels', ...auth, communityController.getChannels);
+router.post('/channels', ...auth, communityController.upsertChannel);
+router.delete('/channels/:type', ...auth, communityController.deleteChannel);
+
+/* Star / Unstar */
+router.post('/:id/star', ...auth, communityController.starInteraction);
+router.delete('/:id/star', ...auth, communityController.unstarInteraction);
+
 export default router;

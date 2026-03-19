@@ -48,6 +48,51 @@
     @include custom-scrollbar;
   }
 
+  &__group {
+    margin-bottom: $space-1;
+  }
+
+  &__groupLabel {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: $space-2 $space-3;
+    color: $color-slate-500;
+    font-size: 10px;
+    font-weight: $font-weight-semibold;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border-radius: $radius-md;
+    transition: color $transition-fast;
+    cursor: pointer;
+    background: none;
+    border: none;
+
+    &:hover {
+      color: $color-slate-300;
+    }
+  }
+
+  &__chevron {
+    font-size: 9px;
+    transition: transform $transition-fast;
+
+    &--collapsed {
+      transform: rotate(-90deg);
+    }
+  }
+
+  &__groupItems {
+    overflow: hidden;
+    max-height: 500px;
+    transition: max-height $transition-slow;
+
+    &--collapsed {
+      max-height: 0;
+    }
+  }
+
   &__divider {
     margin-top: $space-4;
     padding-top: $space-4;

@@ -1,0 +1,117 @@
+// ─── Auth & Users ────────────────────────────────────────────
+
+enum Role {
+  CREATOR
+  BRAND
+  AGENCY
+  ADMIN
+}
+
+enum OAuthProvider {
+  GOOGLE
+  INSTAGRAM
+  YOUTUBE
+  TIKTOK
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String?
+  name         String
+  avatarUrl    String?
+  role         Role
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  oauthAccounts    OAuthAccount[]
+  creatorProfile   CreatorProfile?
+  brandProfile     BrandProfile?
+  agencyProfile    AgencyProfile?
+  agentTasks       AgentTask[]
+  listeningQueries ListeningQuery[]
+  competitors      Competitor[]
+  savedReplies     SavedReply[]
+  voiceProfile     UserVoiceProfile?
+  analyticsReports AnalyticsReport[]
+  ownedTeams       Team[]
+  teamMembers      TeamMember[]
+  postComments     PostComment[]
+  startPages       StartPage[]
+  notifications    Notification[]
+  usageBudget      UsageBudget?
+  userSettings     UserSettings?
+
+  @@map("users")
+}
+
+model OAuthAccount {
+  id                String        @id @default(cuid())
+  userId            String
+  provider          OAuthProvider
+  providerAccountId String
+  accessToken       String // encrypted at rest via app layer
+  refreshToken      String? // encrypted at rest via app layer
+  expiresAt         DateTime?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("oauth_accounts")
+}
+
+model UserSettings {
+  id                    String    @id @default(cuid())
+  userId                String    @unique
+
+  // ── Data Refresh ──
+  listeningFrequency    Int       @default(1)  // polls per day
+  competitiveFrequency  Int       @default(1)
+
+  // ── Notifications ──
+  emailDigest           Boolean   @default(true)
+  pushNotifications     Boolean   @default(true)
+  notifyNewFollower     Boolean   @default(true)
+  notifyMention         Boolean   @default(true)
+  notifyCampaignUpdate  Boolean   @default(true)
+  notifyCommentReply    Boolean   @default(true)
+
+  // ── Publishing Defaults ──
+  defaultPlatform       String?                // e.g. "INSTAGRAM"
+  defaultPostType       String?                // e.g. "REEL"
+  defaultHashtags       String[]  @default([]) // auto-appended
+  autoSchedule          Boolean   @default(false)
+  timezone              String    @default("UTC")
+
+  // ── AI Preferences ──
+  aiTone                String    @default("friendly")
+  aiLanguage            String    @default("en")
+  aiAutoSuggest         Boolean   @default(true)
+
+  // ── Privacy & Security ──
+  profileVisibility     String    @default("public") // public | private | connections-only
+  showAnalytics         Boolean   @default(true)     // show analytics on public profile
+
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_settings")
+}
+
+model UserVoiceProfile {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  tonePreferences String[] // e.g. ["friendly", "casual", "witty"]
+  exampleReplies  String[]
+  vocabulary      String[] // frequently used words/phrases
+  updatedAt       DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_voice_profiles")
+}

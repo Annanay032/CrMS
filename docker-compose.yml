@@ -67,7 +67,7 @@ services:
     volumes:
       - ./server/src:/app/src
       - ./server/uploads:/app/uploads
-    command: sh -c "npx prisma db push --schema=src/prisma/schema.prisma && npx prisma generate --schema=src/prisma/schema.prisma && npx tsx src/prisma/seed.ts || true && npm run dev"
+    command: sh -c "npx prisma db push --schema=src/prisma/schema && npx prisma generate --schema=src/prisma/schema && npx tsx src/prisma/seed/index.ts || true && npm run dev"
 
   client:
     build:

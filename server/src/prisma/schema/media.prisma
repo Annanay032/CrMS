@@ -1,0 +1,35 @@
+// ─── Media Library ───────────────────────────────────────────
+
+model MediaFolder {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String
+  parentId  String?
+  createdAt DateTime @default(now())
+
+  parent   MediaFolder?  @relation("FolderTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children MediaFolder[] @relation("FolderTree")
+  assets   MediaAsset[]
+
+  @@index([userId])
+  @@map("media_folders")
+}
+
+model MediaAsset {
+  id           String   @id @default(cuid())
+  userId       String
+  filename     String
+  mimeType     String
+  size         Int
+  url          String
+  thumbnailUrl String?
+  tags         String[] @default([])
+  folderId     String?
+  createdAt    DateTime @default(now())
+
+  folder MediaFolder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([userId, folderId])
+  @@map("media_assets")
+}

@@ -1,0 +1,133 @@
+// ─── Content & Scheduling ────────────────────────────────────
+
+enum PostStatus {
+  IDEA
+  DRAFT
+  REVIEW
+  APPROVED
+  SCHEDULED
+  PUBLISHED
+  FAILED
+}
+
+enum PostType {
+  IMAGE
+  VIDEO
+  REEL
+  STORY
+  CAROUSEL
+  SHORT
+  THREAD
+}
+
+enum IdeaStatus {
+  SPARK
+  DEVELOPING
+  READY
+  ARCHIVED
+}
+
+model ContentIdea {
+  id               String     @id @default(cuid())
+  creatorProfileId String
+  title            String
+  body             String?
+  status           IdeaStatus @default(SPARK)
+  source           String?    // manual | ai | rss | trend
+  mediaUrls        String[]
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+
+  creatorProfile CreatorProfile @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
+  tags           ContentIdeaTag[]
+
+  @@index([creatorProfileId, status])
+  @@map("content_ideas")
+}
+
+model ContentTag {
+  id               String   @id @default(cuid())
+  creatorProfileId String
+  name             String
+  color            String   @default("#6366f1") // hex color
+  createdAt        DateTime @default(now())
+
+  creatorProfile CreatorProfile @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
+  ideas          ContentIdeaTag[]
+
+  @@unique([creatorProfileId, name])
+  @@map("content_tags")
+}
+
+model ContentIdeaTag {
+  ideaId String
+  tagId  String
+
+  idea ContentIdea @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  tag  ContentTag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([ideaId, tagId])
+  @@map("content_idea_tags")
+}
+
+model ContentTemplate {
+  id       String   @id @default(cuid())
+  name     String
+  body     String
+  platform Platform?
+  category String   // e.g. "tip", "how-to", "behind-the-scenes", "promotion"
+  isGlobal Boolean  @default(false) // true = system-provided, false = user-created
+  userId   String?  // null for global templates
+  createdAt DateTime @default(now())
+
+  @@map("content_templates")
+}
+
+model ContentPost {
+  id               String          @id @default(cuid())
+  creatorProfileId String
+  platform         Platform
+  postType         PostType
+  caption          String?
+  hashtags         String[]
+  mediaUrls        String[]
+  scheduledAt      DateTime?
+  publishedAt      DateTime?
+  status           PostStatus      @default(DRAFT)
+  externalPostId   String?    // ID on the platform after publishing
+  firstComment     String?    // Auto first-comment after publishing
+  platformOverrides Json?     // { "INSTAGRAM": { caption, hashtags }, "TIKTOK": { caption } }
+  bulkGroupId      String?    // Groups posts created from multi-platform compose
+  ideaId           String?    // Link back to the idea this was created from
+  approvalStatus   ApprovalStatus  @default(NONE)
+  teamId           String?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  creatorProfile CreatorProfile @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
+  analytics      PostAnalytics?
+  team           Team?          @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  comments       PostComment[]
+
+  @@index([creatorProfileId, status])
+  @@index([scheduledAt])
+  @@index([bulkGroupId])
+  @@index([teamId, approvalStatus])
+  @@map("content_posts")
+}
+
+model PostingSchedule {
+  id               String   @id @default(cuid())
+  creatorProfileId String
+  platform         Platform
+  dayOfWeek        Int      // 0=Sunday, 6=Saturday
+  timeSlot         String   // "HH:MM" 24h format
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  creatorProfile CreatorProfile @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
+
+  @@unique([creatorProfileId, platform, dayOfWeek, timeSlot])
+  @@map("posting_schedules")
+}

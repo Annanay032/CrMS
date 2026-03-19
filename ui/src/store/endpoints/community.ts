@@ -87,6 +87,41 @@ export const communityApi = api.injectEndpoints({
       query: (body) => ({ url: '/community/voice-profile', method: 'PUT', body }),
       invalidatesTags: ['Community'],
     }),
+
+    /* Threads */
+    getThreads: build.query<ApiResponse<unknown[]>, { page?: number; limit?: number }>({
+      query: (params) => {
+        const qs = new URLSearchParams();
+        if (params.page) qs.set('page', String(params.page));
+        if (params.limit) qs.set('limit', String(params.limit));
+        return `/community/threads?${qs}`;
+      },
+      providesTags: ['Community'],
+    }),
+
+    /* Inbox Channels */
+    getChannels: build.query<ApiResponse<unknown[]>, void>({
+      query: () => '/community/channels',
+      providesTags: ['Community'],
+    }),
+    upsertChannel: build.mutation<ApiResponse<unknown>, { type: string; label?: string; config?: unknown }>({
+      query: (body) => ({ url: '/community/channels', method: 'POST', body }),
+      invalidatesTags: ['Community'],
+    }),
+    deleteChannel: build.mutation<ApiResponse<void>, string>({
+      query: (type) => ({ url: `/community/channels/${type}`, method: 'DELETE' }),
+      invalidatesTags: ['Community'],
+    }),
+
+    /* Star / Unstar */
+    starInteraction: build.mutation<ApiResponse<Interaction>, string>({
+      query: (id) => ({ url: `/community/${id}/star`, method: 'POST' }),
+      invalidatesTags: ['Community'],
+    }),
+    unstarInteraction: build.mutation<ApiResponse<Interaction>, string>({
+      query: (id) => ({ url: `/community/${id}/star`, method: 'DELETE' }),
+      invalidatesTags: ['Community'],
+    }),
   }),
 });
 
@@ -106,4 +141,10 @@ export const {
   useUseSavedReplyMutation,
   useGetVoiceProfileQuery,
   useUpsertVoiceProfileMutation,
+  useGetThreadsQuery,
+  useGetChannelsQuery,
+  useUpsertChannelMutation,
+  useDeleteChannelMutation,
+  useStarInteractionMutation,
+  useUnstarInteractionMutation,
 } = communityApi;

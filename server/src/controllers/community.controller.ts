@@ -132,3 +132,46 @@ export async function upsertVoiceProfile(req: AuthRequest, res: Response) {
   const profile = await communityService.upsertVoiceProfile(req.user!.userId, { tonePreferences, vocabulary, exampleReplies });
   res.json({ success: true, data: profile });
 }
+
+/* ── Threads ───────────────────────────────────────────── */
+
+export async function getThreads(req: AuthRequest, res: Response) {
+  const creatorProfileId = await getCreatorProfileId(req.user!.userId);
+  const page = Number(req.query.page) || 1;
+  const limit = Number(req.query.limit) || 20;
+  const threads = await communityService.getThreads(creatorProfileId, page, limit);
+  res.json({ success: true, data: threads });
+}
+
+/* ── Inbox Channels ────────────────────────────────────── */
+
+export async function getChannels(req: AuthRequest, res: Response) {
+  const creatorProfileId = await getCreatorProfileId(req.user!.userId);
+  const channels = await communityService.getChannels(creatorProfileId);
+  res.json({ success: true, data: channels });
+}
+
+export async function upsertChannel(req: AuthRequest, res: Response) {
+  const creatorProfileId = await getCreatorProfileId(req.user!.userId);
+  const { type, label, config } = req.body as { type: string; label?: string; config?: unknown };
+  const channel = await communityService.upsertChannel(creatorProfileId, { type, label, config });
+  res.json({ success: true, data: channel });
+}
+
+export async function deleteChannel(req: AuthRequest, res: Response) {
+  const creatorProfileId = await getCreatorProfileId(req.user!.userId);
+  await communityService.deleteChannel(creatorProfileId, req.params.type as string);
+  res.json({ success: true, message: 'Channel disconnected' });
+}
+
+/* ── Star / Unstar ─────────────────────────────────────── */
+
+export async function starInteraction(req: AuthRequest, res: Response) {
+  const interaction = await communityService.starInteraction(req.params.id as string, true);
+  res.json({ success: true, data: interaction });
+}
+
+export async function unstarInteraction(req: AuthRequest, res: Response) {
+  const interaction = await communityService.starInteraction(req.params.id as string, false);
+  res.json({ success: true, data: interaction });
+}

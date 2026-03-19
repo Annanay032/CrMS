@@ -1,0 +1,42 @@
+// ─── AI Agent Logs ───────────────────────────────────────────
+
+enum AgentType {
+  CONTENT_GENERATION
+  PUBLISHING
+  SCHEDULING
+  MATCHING
+  ANALYTICS
+  ENGAGEMENT
+  TREND_DETECTION
+  LISTENING
+  COMPETITIVE
+  CAMPAIGN
+  COLLABORATION
+  LINK_IN_BIO
+  GROWTH
+}
+
+enum AgentTaskStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+model AgentTask {
+  id         String          @id @default(cuid())
+  agentType  AgentType
+  userId     String
+  input      Json
+  output     Json?
+  status     AgentTaskStatus @default(PENDING)
+  tokensUsed Int?
+  error      String?
+  createdAt  DateTime        @default(now())
+  completedAt DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([agentType, status])
+  @@map("agent_tasks")
+}

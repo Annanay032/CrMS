@@ -1,0 +1,49 @@
+// ─── Usage Budgets & Cost Management ─────────────────────────
+
+enum UsageTier {
+  FREE
+  PRO
+  ENTERPRISE
+}
+
+model UsageBudget {
+  id              String    @id @default(cuid())
+  userId          String    @unique
+  tier            UsageTier @default(FREE)
+  dailyTokenLimit Int       @default(50000)
+  tokensUsedToday Int       @default(0)
+  resetAt         DateTime  @default(now())
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("usage_budgets")
+}
+
+model AgentUsageLog {
+  id         String    @id @default(cuid())
+  userId     String
+  agentType  AgentType
+  model      String    @default("gpt-4")
+  tokensUsed Int
+  date       DateTime  @default(now())
+
+  @@index([userId, date])
+  @@index([userId, agentType])
+  @@map("agent_usage_logs")
+}
+
+// ─── Platform Rate Limits ────────────────────────────────────
+
+model PlatformRateLimit {
+  id                String   @id @default(cuid())
+  platform          String
+  endpoint          String
+  requestsRemaining Int      @default(100)
+  windowResetAt     DateTime
+  updatedAt         DateTime @updatedAt
+
+  @@unique([platform, endpoint])
+  @@map("platform_rate_limits")
+}

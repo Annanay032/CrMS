@@ -1,0 +1,39 @@
+// ─── Competitive Intelligence ────────────────────────────────
+
+model Competitor {
+  id        String     @id @default(cuid())
+  userId    String
+  name      String
+  handles   Json       // { "INSTAGRAM": "@handle", "TIKTOK": "@handle" }
+  platforms Platform[]
+  notes     String?
+  isActive  Boolean    @default(true)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  user      User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  snapshots CompetitorSnapshot[]
+
+  @@index([userId, isActive])
+  @@map("competitors")
+}
+
+model CompetitorSnapshot {
+  id              String   @id @default(cuid())
+  competitorId    String
+  date            DateTime @db.Date
+  platform        Platform
+  followers       Int      @default(0)
+  engagementRate  Float    @default(0)
+  postFrequency   Float    @default(0) // posts per week
+  topContentTypes String[] // e.g. ["REEL", "CAROUSEL"]
+  topHashtags     String[]
+  avgLikes        Int      @default(0)
+  avgComments     Int      @default(0)
+
+  competitor Competitor @relation(fields: [competitorId], references: [id], onDelete: Cascade)
+
+  @@unique([competitorId, date, platform])
+  @@index([competitorId, platform])
+  @@map("competitor_snapshots")
+}

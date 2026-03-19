@@ -1,0 +1,59 @@
+// ─── Creator ─────────────────────────────────────────────────
+
+model CreatorProfile {
+  id                 String   @id @default(cuid())
+  userId             String   @unique
+  bio                String?
+  niche              String[] // e.g. ["fitness", "lifestyle"]
+  location           String?
+  languages          String[] @default(["en"])
+  portfolioUrl       String?
+  availabilityStatus  String   @default("available") // available | busy | unavailable
+  mediaKit            Json?    // { bio, rates, demographics, pastWork[] }
+  averageResponseTime Float?   // hours
+  reliabilityScore    Float?   // 0-1
+  defaultCurrency     String   @default("INR")
+  paymentDetails      Json?    // { upi, bankAccount, paypal, etc. }
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  user             User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  platformStats    CreatorPlatformStats[]
+  contentPosts     ContentPost[]
+  campaignMatches  CampaignMatch[]
+  deliverables     CampaignDeliverable[]
+  interactions     CommunityInteraction[]
+  snapshots        CreatorAnalyticsSnapshot[]
+  agencyLinks      AgencyCreator[]
+  ideas            ContentIdea[]
+  tags             ContentTag[]
+  postingSchedules PostingSchedule[]
+  commentScores    CommentScore[]
+  analyticsReports AnalyticsReport[]
+  audienceInsights AudienceInsight[]
+  postComments     PostComment[]
+  revenueStreams   RevenueStream[]
+  invoices         Invoice[]
+  brandDeals       BrandDeal[]
+  inboxChannels    InboxChannel[]
+
+  @@map("creator_profiles")
+}
+
+model CreatorPlatformStats {
+  id               String   @id @default(cuid())
+  creatorProfileId String
+  platform         Platform
+  handle           String?
+  followers        Int      @default(0)
+  avgLikes         Int      @default(0)
+  avgComments      Int      @default(0)
+  avgViews         Int      @default(0)
+  engagementRate   Float    @default(0)
+  updatedAt        DateTime @updatedAt
+
+  creatorProfile CreatorProfile @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
+
+  @@unique([creatorProfileId, platform])
+  @@map("creator_platform_stats")
+}

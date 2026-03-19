@@ -1,0 +1,60 @@
+// ─── Link-in-Bio / Start Page ────────────────────────────────
+
+model StartPage {
+  id        String   @id @default(cuid())
+  userId    String
+  slug      String   @unique
+  title     String
+  bio       String?
+  avatarUrl String?
+  theme     String   @default("default")
+  blocks    Json     @default("[]")
+  customCSS String?
+  favicon   String?
+  published Boolean  @default(false)
+  seoTitle  String?
+  seoDescription String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  links     StartPageLink[]
+  analytics StartPageAnalytics[]
+
+  @@index([userId])
+  @@map("start_pages")
+}
+
+model StartPageLink {
+  id        String   @id @default(cuid())
+  pageId    String
+  title     String
+  url       String
+  icon      String?
+  thumbnail String?
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  clicks    Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  page StartPage @relation(fields: [pageId], references: [id], onDelete: Cascade)
+
+  @@index([pageId])
+  @@map("start_page_links")
+}
+
+model StartPageAnalytics {
+  id       String   @id @default(cuid())
+  pageId   String
+  date     DateTime @db.Date
+  views    Int      @default(0)
+  clicks   Int      @default(0)
+  topLinks Json     @default("[]")
+
+  page StartPage @relation(fields: [pageId], references: [id], onDelete: Cascade)
+
+  @@unique([pageId, date])
+  @@index([pageId, date])
+  @@map("start_page_analytics")
+}

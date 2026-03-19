@@ -7,7 +7,7 @@ RUN npm install
 
 COPY . .
 
-RUN npx prisma generate --schema=src/prisma/schema.prisma
+RUN npx prisma generate --schema=src/prisma/schema
 
 EXPOSE 3001
 

@@ -162,3 +162,67 @@ export async function upsertVoiceProfile(userId: string, data: {
     update: data,
   });
 }
+
+/* ── Threads ──────────────────────────────────────────── */
+
+export async function getThreads(creatorProfileId: string, page: number, limit: number) {
+  const { skip, take } = paginate(page, limit);
+
+  // Group interactions by threadId
+  const threads = await prisma.communityInteraction.findMany({
+    where: { creatorProfileId, threadId: { not: null } },
+    distinct: ['threadId'],
+    orderBy: { createdAt: 'desc' },
+    skip,
+    take,
+  });
+
+  // For each thread, get the latest message and count
+  const enriched = await Promise.all(
+    threads.map(async (t) => {
+      const [messages, count] = await Promise.all([
+        prisma.communityInteraction.findMany({
+          where: { creatorProfileId, threadId: t.threadId },
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+        }),
+        prisma.communityInteraction.count({
+          where: { creatorProfileId, threadId: t.threadId },
+        }),
+      ]);
+      return { threadId: t.threadId, latestMessage: messages[0], messageCount: count };
+    }),
+  );
+
+  return enriched;
+}
+
+/* ── Inbox Channels ───────────────────────────────────── */
+
+export async function getChannels(creatorProfileId: string) {
+  return prisma.inboxChannel.findMany({ where: { creatorProfileId }, orderBy: { createdAt: 'desc' } });
+}
+
+export async function upsertChannel(creatorProfileId: string, data: {
+  type: string;
+  label?: string;
+  config?: unknown;
+}) {
+  return prisma.inboxChannel.upsert({
+    where: { creatorProfileId_type: { creatorProfileId, type: data.type as any } },
+    create: { creatorProfileId, type: data.type as any, label: data.label, config: data.config as any },
+    update: { label: data.label, config: data.config as any, status: 'CONNECTED' as any },
+  });
+}
+
+export async function deleteChannel(creatorProfileId: string, type: string) {
+  return prisma.inboxChannel.delete({
+    where: { creatorProfileId_type: { creatorProfileId, type: type as any } },
+  });
+}
+
+/* ── Star / Unstar ────────────────────────────────────── */
+
+export async function starInteraction(id: string, star: boolean) {
+  return prisma.communityInteraction.update({ where: { id }, data: { isStarred: star } });
+}

@@ -1,0 +1,48 @@
+// ─── Brand ───────────────────────────────────────────────────
+
+model BrandProfile {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  companyName     String
+  industry        String?
+  website         String?
+  targetAudience  Json?    // { ageRange, interests, locations }
+  budgetRangeLow  Float?
+  budgetRangeHigh Float?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  campaigns Campaign[]
+
+  @@map("brand_profiles")
+}
+
+// ─── Agency ──────────────────────────────────────────────────
+
+model AgencyProfile {
+  id         String   @id @default(cuid())
+  userId     String   @unique
+  agencyName String
+  website    String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  creators AgencyCreator[]
+
+  @@map("agency_profiles")
+}
+
+model AgencyCreator {
+  id               String   @id @default(cuid())
+  agencyProfileId  String
+  creatorProfileId String
+  joinedAt         DateTime @default(now())
+
+  agencyProfile  AgencyProfile  @relation(fields: [agencyProfileId], references: [id], onDelete: Cascade)
+  creatorProfile CreatorProfile @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
+
+  @@unique([agencyProfileId, creatorProfileId])
+  @@map("agency_creators")
+}

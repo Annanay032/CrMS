@@ -55,6 +55,12 @@ router.post('/analytics/insights', authenticate, validate(analyticsSchema), agen
 router.post('/engagement/suggestions', authenticate, validate(engagementSchema), agentController.getEngagementSuggestions);
 router.post('/trends', authenticate, validate(trendSchema), agentController.getTrends);
 
+// Growth Copilot
+router.post('/growth/daily', authenticate, agentController.growthDaily);
+router.post('/growth/hooks', authenticate, agentController.growthHooks);
+router.post('/growth/predict', authenticate, agentController.growthPredict);
+router.post('/growth/weekly-plan', authenticate, agentController.growthWeeklyPlan);
+
 // Agent metadata
 router.get('/', authenticate, agentController.listAgents);
 router.get('/history', authenticate, agentController.getAgentHistory);

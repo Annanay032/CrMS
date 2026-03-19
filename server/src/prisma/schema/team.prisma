@@ -1,0 +1,83 @@
+// ─── Teams & Collaboration ───────────────────────────────────
+
+enum TeamRole {
+  OWNER
+  ADMIN
+  EDITOR
+  CONTRIBUTOR
+  VIEWER
+}
+
+enum ApprovalStatus {
+  NONE
+  PENDING_REVIEW
+  CHANGES_REQUESTED
+  APPROVED
+  REJECTED
+}
+
+model Team {
+  id        String   @id @default(cuid())
+  name      String
+  ownerId   String
+  avatarUrl String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  owner    User              @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  members  TeamMember[]
+  workflows ApprovalWorkflow[]
+  posts    ContentPost[]
+
+  @@index([ownerId])
+  @@map("teams")
+}
+
+model TeamMember {
+  id        String   @id @default(cuid())
+  teamId    String
+  userId    String
+  role      TeamRole @default(CONTRIBUTOR)
+  joinedAt  DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, userId])
+  @@map("team_members")
+}
+
+model ApprovalWorkflow {
+  id           String   @id @default(cuid())
+  teamId       String
+  name         String
+  stages       Json     // [{ name: "Editor Review", approverRoles: ["EDITOR"] }, { name: "Admin Sign-off", approverRoles: ["ADMIN","OWNER"] }]
+  isDefault    Boolean  @default(false)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@index([teamId, isActive])
+  @@map("approval_workflows")
+}
+
+model PostComment {
+  id               String   @id @default(cuid())
+  postId           String
+  userId           String
+  creatorProfileId String?
+  body             String
+  isApproval       Boolean  @default(false) // true = approval action comment
+  approvalAction   String?  // "approve" | "request_changes" | "reject"
+  createdAt        DateTime @default(now())
+
+  post           ContentPost     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  creatorProfile CreatorProfile? @relation(fields: [creatorProfileId], references: [id], onDelete: SetNull)
+
+  @@index([postId, createdAt])
+  @@map("post_comments")
+}

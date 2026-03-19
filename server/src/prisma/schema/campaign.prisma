@@ -1,0 +1,149 @@
+// ─── Campaigns & Matching ────────────────────────────────────
+
+enum CampaignStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  COMPLETED
+  CANCELLED
+}
+
+enum CampaignStage {
+  BRIEF
+  RECRUITING
+  IN_PROGRESS
+  REVIEW
+  COMPLETED
+}
+
+enum DeliverableStatus {
+  PENDING
+  IN_PROGRESS
+  SUBMITTED
+  REVISION_REQUESTED
+  APPROVED
+  REJECTED
+}
+
+enum DeliverableType {
+  POST
+  STORY
+  REEL
+  VIDEO
+  REVIEW
+  UNBOXING
+  TUTORIAL
+  OTHER
+}
+
+enum MatchStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  COMPLETED
+}
+
+model Campaign {
+  id              String         @id @default(cuid())
+  brandProfileId  String
+  title           String
+  description     String?
+  budget          Float?
+  spent           Float          @default(0)
+  targetNiche     String[]
+  targetPlatforms Platform[]
+  startDate       DateTime?
+  endDate         DateTime?
+  status          CampaignStatus @default(DRAFT)
+  stage           CampaignStage  @default(BRIEF)
+  timeline        Json?          // { milestones: [{ name, date, completed }] }
+  kpis            Json?          // [{ metric: "impressions", target: 100000, current: 0 }]
+  briefUrl        String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  brandProfile     BrandProfile          @relation(fields: [brandProfileId], references: [id], onDelete: Cascade)
+  matches          CampaignMatch[]
+  criteria         MatchCriteria?
+  deliverables     CampaignDeliverable[]
+  reports          CampaignReport[]
+  revenueStreams   RevenueStream[]
+
+  @@index([status])
+  @@index([stage])
+  @@map("campaigns")
+}
+
+model MatchCriteria {
+  id               String @id @default(cuid())
+  campaignId       String @unique
+  nicheWeight      Float  @default(0.3)
+  engagementWeight Float  @default(0.25)
+  followerWeight   Float  @default(0.15)
+  locationWeight   Float  @default(0.1)
+  budgetWeight     Float  @default(0.1)
+  languageWeight   Float  @default(0.1)
+
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@map("match_criteria")
+}
+
+model CampaignMatch {
+  id               String      @id @default(cuid())
+  campaignId       String
+  creatorProfileId String
+  matchScore       Float
+  scoreBreakdown   Json?       // { niche: 0.9, engagement: 0.8, ... }
+  status           MatchStatus @default(PENDING)
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  campaign       Campaign       @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  creatorProfile CreatorProfile @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
+
+  @@unique([campaignId, creatorProfileId])
+  @@index([matchScore(sort: Desc)])
+  @@map("campaign_matches")
+}
+
+model CampaignDeliverable {
+  id               String            @id @default(cuid())
+  campaignId       String
+  creatorProfileId String
+  type             DeliverableType
+  title            String
+  description      String?
+  platform         Platform?
+  status           DeliverableStatus @default(PENDING)
+  contentUrl       String?
+  dueDate          DateTime?
+  submittedAt      DateTime?
+  approvedAt       DateTime?
+  feedback         String?
+  payment          Float?            @default(0)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  campaign       Campaign       @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  creatorProfile CreatorProfile @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
+
+  @@index([campaignId, status])
+  @@index([creatorProfileId])
+  @@map("campaign_deliverables")
+}
+
+model CampaignReport {
+  id          String   @id @default(cuid())
+  campaignId  String
+  title       String
+  metrics     Json     // { impressions, reach, engagement, clicks, conversions }
+  roi         Float?   // return on investment percentage
+  summary     String?  // AI-generated summary
+  generatedAt DateTime @default(now())
+
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@index([campaignId])
+  @@map("campaign_reports")
+}

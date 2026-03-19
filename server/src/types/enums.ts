@@ -100,12 +100,16 @@ export enum AgentType {
   CAMPAIGN = 'CAMPAIGN',
   COLLABORATION = 'COLLABORATION',
   LINK_IN_BIO = 'LINK_IN_BIO',
+  GROWTH = 'GROWTH',
 }
 
 export enum InteractionType {
   COMMENT = 'COMMENT',
   DM = 'DM',
   MENTION = 'MENTION',
+  EMAIL = 'EMAIL',
+  WHATSAPP = 'WHATSAPP',
+  BRAND_INQUIRY = 'BRAND_INQUIRY',
 }
 
 export enum Sentiment {

@@ -1,0 +1,119 @@
+// ─── Community / Engagement ──────────────────────────────────
+
+enum InteractionType {
+  COMMENT
+  DM
+  MENTION
+  EMAIL
+  WHATSAPP
+  BRAND_INQUIRY
+}
+
+enum InboxChannelType {
+  INSTAGRAM_DM
+  WHATSAPP
+  EMAIL
+  BRAND_INQUIRY
+}
+
+enum ChannelStatus {
+  CONNECTED
+  DISCONNECTED
+  ERROR
+}
+
+enum Sentiment {
+  POSITIVE
+  NEGATIVE
+  NEUTRAL
+  QUESTION
+}
+
+enum CaseStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+}
+
+enum MessagePriority {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+model CommunityInteraction {
+  id               String           @id @default(cuid())
+  creatorProfileId String
+  platform         Platform
+  interactionType  InteractionType
+  externalId       String?
+  authorName       String?
+  content          String
+  sentiment        Sentiment?
+  aiSuggestion     String?
+  respondedAt      DateTime?
+  isRead           Boolean          @default(false)
+  assignedTo       String?
+  caseStatus       CaseStatus       @default(OPEN)
+  priority         MessagePriority?
+  tags             String[]
+  threadId         String?
+  channelMetadata  Json?
+  isStarred        Boolean          @default(false)
+  createdAt        DateTime         @default(now())
+
+  creatorProfile CreatorProfile @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
+
+  @@index([creatorProfileId, interactionType])
+  @@index([creatorProfileId, caseStatus])
+  @@index([creatorProfileId, priority])
+  @@map("community_interactions")
+}
+
+model SavedReply {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  body      String
+  tags      String[]
+  usageCount Int     @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("saved_replies")
+}
+
+model CommentScore {
+  id              String   @id @default(cuid())
+  creatorProfileId String
+  responseRate    Float    @default(0)
+  avgResponseTime Float    @default(0) // minutes
+  consistency     Float    @default(0)
+  period          String   // e.g. "2026-03" (monthly)
+  calculatedAt    DateTime @default(now())
+
+  creatorProfile CreatorProfile @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
+
+  @@unique([creatorProfileId, period])
+  @@map("comment_scores")
+}
+
+model InboxChannel {
+  id               String           @id @default(cuid())
+  creatorProfileId String
+  type             InboxChannelType
+  label            String?          // user‑friendly label
+  config           Json?            // encrypted IMAP creds, webhook URL, etc.
+  status           ChannelStatus    @default(CONNECTED)
+  lastSyncAt       DateTime?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  creatorProfile CreatorProfile @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
+
+  @@unique([creatorProfileId, type])
+  @@map("inbox_channels")
+}

@@ -1,0 +1,41 @@
+// ─── Workflow Templates & Runs ───────────────────────────────
+
+enum WorkflowStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+model WorkflowTemplate {
+  id               String   @id @default(cuid())
+  name             String
+  description      String?
+  steps            Json     // Array of { agentType, action, inputMapping }
+  triggerConditions Json?   // Optional auto-trigger rules
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  runs WorkflowRun[]
+
+  @@map("workflow_templates")
+}
+
+model WorkflowRun {
+  id             String         @id @default(cuid())
+  templateId     String
+  userId         String
+  status         WorkflowStatus @default(PENDING)
+  currentStep    Int            @default(0)
+  stepResults    Json           @default("[]")
+  error          String?
+  startedAt      DateTime       @default(now())
+  completedAt    DateTime?
+
+  template WorkflowTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  @@index([templateId])
+  @@index([userId, status])
+  @@map("workflow_runs")
+}

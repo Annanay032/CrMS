@@ -178,3 +178,68 @@ export async function chat(req: AuthRequest, res: Response) {
     },
   });
 }
+
+// ─── Growth Copilot endpoints ────────────────────────────────
+
+async function getCreatorProfileForGrowth(userId: string) {
+  return prisma.creatorProfile.findUnique({
+    where: { userId },
+    include: { platformStats: true },
+  });
+}
+
+export async function growthDaily(req: AuthRequest, res: Response) {
+  try {
+    const profile = await getCreatorProfileForGrowth(req.user!.userId);
+    if (!profile) { res.status(404).json({ success: false, error: 'Creator profile not found' }); return; }
+    const result = await orchestrator.run('GROWTH' as AgentType, req.user!.userId, {
+      action: 'daily',
+      creatorProfileId: profile.id,
+      niche: profile.niche,
+      platforms: profile.platformStats.map(ps => ps.platform),
+    });
+    res.json({ success: true, data: result.output });
+  } catch (err) {
+    if (!handleAiError(err, res)) throw err;
+  }
+}
+
+export async function growthHooks(req: AuthRequest, res: Response) {
+  try {
+    const result = await orchestrator.run('GROWTH' as AgentType, req.user!.userId, {
+      action: 'hooks',
+      ...req.body,
+    });
+    res.json({ success: true, data: result.output });
+  } catch (err) {
+    if (!handleAiError(err, res)) throw err;
+  }
+}
+
+export async function growthPredict(req: AuthRequest, res: Response) {
+  try {
+    const result = await orchestrator.run('GROWTH' as AgentType, req.user!.userId, {
+      action: 'predict',
+      ...req.body,
+    });
+    res.json({ success: true, data: result.output });
+  } catch (err) {
+    if (!handleAiError(err, res)) throw err;
+  }
+}
+
+export async function growthWeeklyPlan(req: AuthRequest, res: Response) {
+  try {
+    const profile = await getCreatorProfileForGrowth(req.user!.userId);
+    if (!profile) { res.status(404).json({ success: false, error: 'Creator profile not found' }); return; }
+    const result = await orchestrator.run('GROWTH' as AgentType, req.user!.userId, {
+      action: 'weekly_plan',
+      creatorProfileId: profile.id,
+      niche: profile.niche,
+      platforms: profile.platformStats.map(ps => ps.platform),
+    });
+    res.json({ success: true, data: result.output });
+  } catch (err) {
+    if (!handleAiError(err, res)) throw err;
+  }
+}

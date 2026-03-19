@@ -1,0 +1,93 @@
+// ─── Revenue OS ──────────────────────────────────────────────
+
+enum RevenueType {
+  BRAND_DEAL
+  YOUTUBE_ADSENSE
+  AFFILIATE
+  SPONSORSHIP
+  OTHER
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+enum DealStatus {
+  LEAD
+  NEGOTIATING
+  CONFIRMED
+  IN_PROGRESS
+  DELIVERED
+  PAID
+  CANCELLED
+}
+
+model RevenueStream {
+  id               String      @id @default(cuid())
+  creatorProfileId String
+  type             RevenueType
+  source           String      // e.g. "YouTube AdSense", brand name, affiliate network
+  amount           Float
+  currency         String      @default("INR")
+  period           String?     // e.g. "2026-06" for monthly tracking
+  campaignId       String?
+  notes            String?
+  receivedAt       DateTime?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  creatorProfile CreatorProfile @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
+  campaign       Campaign?      @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+
+  @@index([creatorProfileId, type])
+  @@index([creatorProfileId, period])
+  @@map("revenue_streams")
+}
+
+model Invoice {
+  id               String        @id @default(cuid())
+  creatorProfileId String
+  brandDealId      String?
+  invoiceNumber    String
+  amount           Float
+  currency         String        @default("INR")
+  status           InvoiceStatus @default(DRAFT)
+  issuedAt         DateTime?
+  dueDate          DateTime?
+  paidAt           DateTime?
+  notes            String?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  creatorProfile CreatorProfile @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
+  brandDeal      BrandDeal?     @relation(fields: [brandDealId], references: [id], onDelete: SetNull)
+
+  @@index([creatorProfileId, status])
+  @@map("invoices")
+}
+
+model BrandDeal {
+  id               String     @id @default(cuid())
+  creatorProfileId String
+  brandName        String
+  contactEmail     String?
+  dealValue        Float
+  currency         String     @default("INR")
+  deliverables     String[]   // e.g. ["1 Reel", "2 Stories"]
+  status           DealStatus @default(LEAD)
+  startDate        DateTime?
+  endDate          DateTime?
+  notes            String?
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+
+  creatorProfile CreatorProfile @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
+  invoices       Invoice[]
+
+  @@index([creatorProfileId, status])
+  @@map("brand_deals")
+}

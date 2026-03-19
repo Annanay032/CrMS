@@ -17,12 +17,16 @@ import { BioBuilderPage } from '@/pages/bio';
 import { CreatePage } from '@/pages/create';
 import { UsagePage } from '@/pages/usage';
 import { MediaLibraryPage } from '@/pages/media';
+import RevenuePage from '@/pages/revenue/RevenuePage';
+import GrowthCopilotPage from '@/pages/growth/GrowthCopilotPage';
+import { PricingPage } from '@/pages/pricing';
 
 export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/pricing" element={<PricingPage />} />
       <Route path="/auth/callback" element={<OAuthCallbackPage />} />
       <Route element={<AppLayout />}>
         <Route path="/dashboard" element={<DashboardPage />} />
@@ -42,6 +46,8 @@ export default function App() {
         <Route path="/bio" element={<BioBuilderPage />} />
         <Route path="/usage" element={<UsagePage />} />
         <Route path="/media" element={<MediaLibraryPage />} />
+        <Route path="/revenue" element={<RevenuePage />} />
+        <Route path="/growth" element={<GrowthCopilotPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>

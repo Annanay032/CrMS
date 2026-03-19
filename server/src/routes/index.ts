@@ -17,6 +17,8 @@ import notificationRoutes from './notification.routes.js';
 import usageRoutes from './usage.routes.js';
 import settingsRoutes from './settings.routes.js';
 import mediaRoutes from './media.routes.js';
+import revenueRoutes from './revenue.routes.js';
+import webhookRoutes from './webhook.routes.js';
 const router = Router();
 
 router.use('/auth', authRoutes);
@@ -37,5 +39,7 @@ router.use('/notifications', notificationRoutes);
 router.use('/usage', usageRoutes);
 router.use('/settings', settingsRoutes);
 router.use('/media', mediaRoutes);
+router.use('/revenue', revenueRoutes);
+router.use('/webhooks', webhookRoutes);
 
 export default router;

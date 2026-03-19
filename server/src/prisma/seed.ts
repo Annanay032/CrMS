@@ -3,6 +3,7 @@ import {
   Sentiment, CampaignStatus, MatchStatus, AgentType, AgentTaskStatus,
   IdeaStatus, MentionSentiment, NotificationType, DeliverableType,
   DeliverableStatus, TeamRole, WorkflowStatus, ReportFormat, ReportStatus,
+  RevenueType, InvoiceStatus, DealStatus, InboxChannelType, ChannelStatus, UsageTier,
 } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 
@@ -49,6 +50,10 @@ async function main() {
   await prisma.commentScore.deleteMany();
   await prisma.savedReply.deleteMany();
   await prisma.communityInteraction.deleteMany();
+  await prisma.invoice.deleteMany();
+  await prisma.brandDeal.deleteMany();
+  await prisma.revenueStream.deleteMany();
+  await prisma.inboxChannel.deleteMany();
   await prisma.campaignReport.deleteMany();
   await prisma.campaignDeliverable.deleteMany();
   await prisma.campaignMatch.deleteMany();
@@ -713,7 +718,7 @@ async function main() {
   console.log('Competitive intelligence seeded ✓');
 
   // ── Teams & Collaboration ─────────────────────────────────
-  const team = await prisma.team.create({
+  await prisma.team.create({
     data: {
       name: 'Jane\'s Content Team', ownerId: creator1.id,
       members: {
@@ -745,6 +750,60 @@ async function main() {
     ],
   });
   console.log('Teams & collaboration seeded ✓');
+
+  // ── Revenue OS ────────────────────────────────────────────
+  await prisma.revenueStream.createMany({
+    data: [
+      { creatorProfileId: cp1.id, type: RevenueType.SPONSORSHIP,     source: 'FitGear Co',        amount: 75000, currency: 'INR', period: '2026-06', receivedAt: daysAgo(10) },
+      { creatorProfileId: cp1.id, type: RevenueType.YOUTUBE_ADSENSE, source: 'YouTube AdSense',   amount: 18500, currency: 'INR', period: '2026-06', receivedAt: daysAgo(5) },
+      { creatorProfileId: cp1.id, type: RevenueType.AFFILIATE,       source: 'Amazon Associates',  amount: 9200,  currency: 'INR', period: '2026-06', receivedAt: daysAgo(2) },
+      { creatorProfileId: cp1.id, type: RevenueType.SPONSORSHIP,     source: 'Nova Electronics',   amount: 120000, currency: 'INR', period: '2026-05', receivedAt: daysAgo(35) },
+      { creatorProfileId: cp1.id, type: RevenueType.YOUTUBE_ADSENSE, source: 'YouTube AdSense',   amount: 16200, currency: 'INR', period: '2026-05', receivedAt: daysAgo(30) },
+    ],
+  });
+
+  const deal1 = await prisma.brandDeal.create({
+    data: {
+      creatorProfileId: cp1.id, brandName: 'FitGear Co', contactEmail: 'partnerships@fitgear.example.com',
+      dealValue: 75000, currency: 'INR', deliverables: ['1 Reel', '2 Stories', '1 Blog Post'],
+      status: DealStatus.PAID, startDate: daysAgo(30), endDate: daysAgo(5),
+    },
+  });
+  const deal2 = await prisma.brandDeal.create({
+    data: {
+      creatorProfileId: cp1.id, brandName: 'VitaBlend Nutrition', contactEmail: 'collab@vitablend.example.com',
+      dealValue: 50000, currency: 'INR', deliverables: ['1 YouTube Video', '3 Stories'],
+      status: DealStatus.IN_PROGRESS, startDate: daysAgo(7), endDate: futureDate(14),
+    },
+  });
+  await prisma.brandDeal.create({
+    data: {
+      creatorProfileId: cp1.id, brandName: 'ZenMat Yoga', contactEmail: 'hello@zenmat.example.com',
+      dealValue: 30000, currency: 'INR', deliverables: ['1 Reel', '1 Story'],
+      status: DealStatus.NEGOTIATING,
+    },
+  });
+
+  await prisma.invoice.createMany({
+    data: [
+      { creatorProfileId: cp1.id, brandDealId: deal1.id, invoiceNumber: 'INV-2026-001', amount: 75000, currency: 'INR', status: InvoiceStatus.PAID, issuedAt: daysAgo(20), dueDate: daysAgo(5), paidAt: daysAgo(3) },
+      { creatorProfileId: cp1.id, brandDealId: deal2.id, invoiceNumber: 'INV-2026-002', amount: 25000, currency: 'INR', status: InvoiceStatus.SENT, issuedAt: daysAgo(2), dueDate: futureDate(28), notes: '50% advance for VitaBlend deal' },
+      { creatorProfileId: cp1.id, invoiceNumber: 'INV-2026-003', amount: 25000, currency: 'INR', status: InvoiceStatus.DRAFT, notes: 'Remaining 50% for VitaBlend — send on delivery' },
+    ],
+  });
+  console.log('Revenue OS seeded ✓');
+
+  // ── Inbox Channels ────────────────────────────────────────
+  await prisma.inboxChannel.createMany({
+    data: [
+      { creatorProfileId: cp1.id, type: InboxChannelType.INSTAGRAM_DM, label: 'Instagram DMs',     status: ChannelStatus.CONNECTED, lastSyncAt: daysAgo(0) },
+      { creatorProfileId: cp1.id, type: InboxChannelType.EMAIL,        label: 'jane@crms.local',   status: ChannelStatus.CONNECTED, lastSyncAt: daysAgo(0) },
+      { creatorProfileId: cp1.id, type: InboxChannelType.WHATSAPP,     label: 'WhatsApp Business', status: ChannelStatus.DISCONNECTED },
+      { creatorProfileId: cp2.id, type: InboxChannelType.INSTAGRAM_DM, label: 'Instagram DMs',     status: ChannelStatus.CONNECTED, lastSyncAt: daysAgo(1) },
+      { creatorProfileId: cp2.id, type: InboxChannelType.EMAIL,        label: 'alex@crms.local',   status: ChannelStatus.CONNECTED, lastSyncAt: daysAgo(0) },
+    ],
+  });
+  console.log('Inbox channels seeded ✓');
 
   // ── Start Pages (Link-in-Bio) ─────────────────────────────
   const startPage = await prisma.startPage.create({
@@ -828,12 +887,23 @@ async function main() {
   console.log('Agent tasks seeded ✓');
 
   // ── Usage Budgets & Logs ──────────────────────────────────
+  const tierMap: Record<string, { tier: UsageTier; limit: number }> = {
+    [admin.id]:     { tier: UsageTier.ENTERPRISE, limit: 1_000_000 },
+    [creator1.id]:  { tier: UsageTier.PRO,        limit: 200_000 },
+    [creator2.id]:  { tier: UsageTier.FREE,       limit: 50_000 },
+    [creator3.id]:  { tier: UsageTier.FREE,       limit: 50_000 },
+    [testUser.id]:  { tier: UsageTier.FREE,       limit: 50_000 },
+    [brand1.id]:    { tier: UsageTier.PRO,        limit: 200_000 },
+    [brand2.id]:    { tier: UsageTier.FREE,       limit: 50_000 },
+    [agencyUser.id]:{ tier: UsageTier.ENTERPRISE, limit: 1_000_000 },
+  };
   const allUsers = [creator1, creator2, creator3, testUser, brand1, brand2, agencyUser, admin];
   for (const u of allUsers) {
+    const t = tierMap[u.id] ?? { tier: UsageTier.FREE, limit: 50_000 };
     await prisma.usageBudget.upsert({
       where: { userId: u.id },
       update: {},
-      create: { userId: u.id, tier: u.role === Role.ADMIN ? 'ENTERPRISE' : 'FREE', dailyTokenLimit: u.role === Role.ADMIN ? 1000000 : 50000, tokensUsedToday: 0 },
+      create: { userId: u.id, tier: t.tier, dailyTokenLimit: t.limit, tokensUsedToday: 0 },
     });
   }
 

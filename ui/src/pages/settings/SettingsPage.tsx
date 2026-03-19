@@ -8,6 +8,7 @@ import { ProfileForm } from './components/ProfileForm';
 import { ConnectedAccounts } from './components/ConnectedAccounts';
 import { CreatorProfileForm } from './components/CreatorProfileForm';
 import { BrandProfileForm } from './components/BrandProfileForm';
+import { PlanCard } from './components/PlanCard';
 import { useGetUserSettingsQuery, useUpdateUserSettingsMutation } from '@/store/endpoints/settings';
 
 const { Text, Title } = Typography;
@@ -62,6 +63,7 @@ export function SettingsPage() {
       {user?.role === 'CREATOR' && <CreatorProfileForm />}
       {user?.role === 'BRAND' && <BrandProfileForm />}
       <ConnectedAccounts />
+      <PlanCard />
       <PublishingDefaults />
       <NotificationSettings />
       <AIPreferences />

@@ -2,18 +2,18 @@
 
 ## Platform Overview
 
-**CrMS (Creator Management System)** is an influencer/creator marketing platform that connects social media creators (Instagram, YouTube, TikTok) with brands for campaign collaborations. It features content management, scheduling, analytics, community engagement, AI-powered matching, and 6 specialized GPT-4 agents.
+**CrMS (Creator Management System)** is an influencer/creator marketing platform that connects social media creators (Instagram, YouTube, TikTok) with brands for campaign collaborations. It features content management, scheduling, analytics, community engagement, AI-powered matching, revenue tracking, a Growth Copilot, unified inbox, and 13 specialized GPT-4 agents.
 
 ### Tech Stack
 
 | Layer | Stack |
 |---|---|
-| Backend | Node.js, Express 5, TypeScript, Prisma 6.5, BullMQ, ioredis, OpenAI SDK |
-| Frontend | React 19, Vite 8, TypeScript, TailwindCSS 4, React Router 7, TanStack Query, Zustand, Recharts |
+| Backend | Node.js, Express 5, TypeScript, Prisma 6, BullMQ, ioredis, OpenAI SDK |
+| Frontend | React 19, Vite 8, TypeScript, Ant Design 6, React Router 7, Redux Toolkit (RTK Query), Recharts, SCSS Modules |
 | Database | PostgreSQL 16 |
 | Cache/Queue | Redis 7 |
-| AI | OpenAI GPT-4 (6 specialized agents) |
-| Auth | JWT (access + refresh), bcrypt |
+| AI | OpenAI GPT-4 (13 specialized agents with orchestrator, pipelines & NLP routing) |
+| Auth | JWT (access + refresh), bcrypt, Passport.js, Google OAuth |
 | Containerization | Docker Compose (4 services) |
 
 ---

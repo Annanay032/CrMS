@@ -11,8 +11,8 @@ AI-powered platform for managing creators, brands, campaigns, and community enga
 | Frontend    | React 19, TypeScript, Vite 8, Tailwind CSS 4, Redux Toolkit (RTK Query), Ant Design 6, React Router 7, Recharts, SCSS Modules |
 | Backend     | Node.js, TypeScript, Express 5, Prisma 6 ORM, Zod validation |
 | Database    | PostgreSQL 16, Redis 7 |
-| AI          | OpenAI GPT-4 (12 specialized agents with orchestrator, pipelines & NLP routing) |
-| Job Queue   | BullMQ (publishing, analytics, trends, social listening, competitive intel, reports) |
+| AI          | OpenAI GPT-4 (13 specialized agents with orchestrator, pipelines & NLP routing) |
+| Job Queue   | BullMQ (publishing, analytics, trends, social listening, competitive intel, reports, growth, inbox, token refresh) |
 | Real-Time   | Socket.IO (WebSocket notifications & live agent activity) |
 | Auth        | JWT (access + refresh tokens via Redis), bcrypt, Passport.js, Google OAuth |
 | Infra       | Docker Compose, npm workspaces monorepo |
@@ -195,14 +195,14 @@ CrMS/
 │       │   ├── error.ts            #   Global error handler + 404
 │       │   └── index.ts
 │       │
-│       ├── routes/                 # API route definitions (18 modules)
+│       ├── routes/                 # API route definitions (20 modules)
 │       │   ├── auth.routes.ts      #   Register, login, refresh, logout, Google OAuth
 │       │   ├── user.routes.ts      #   Profile management (creator/brand/agency)
 │       │   ├── content.routes.ts   #   CRUD posts + calendar + filter by status
 │       │   ├── campaign.routes.ts  #   Campaigns, matches, deliverables, reports
-│       │   ├── agent.routes.ts     #   AI agent endpoints (run, chat, generate, insights)
+│       │   ├── agent.routes.ts     #   AI agent endpoints (run, chat, generate, insights, growth)
 │       │   ├── matching.routes.ts  #   Find creators, match results, discover directory
-│       │   ├── community.routes.ts #   Interactions, saved replies, voice profiles
+│       │   ├── community.routes.ts #   Interactions, saved replies, voice profiles, threads, channels
 │       │   ├── dashboard.routes.ts #   Stats, analytics, audience, reports
 │       │   ├── account.routes.ts   #   Connected social accounts (OAuth connect/disconnect)
 │       │   ├── idea.routes.ts      #   Content ideas, tags, templates
@@ -214,6 +214,8 @@ CrMS/
 │       │   ├── usage.routes.ts     #   AI token budget & usage stats
 │       │   ├── settings.routes.ts  #   User preferences & polling settings
 │       │   ├── media.routes.ts     #   Media library (folders + asset uploads)
+│       │   ├── revenue.routes.ts   #   Revenue streams, brand deals, invoices, post ROI
+│       │   ├── webhook.routes.ts   #   WhatsApp webhook verification & message ingestion
 │       │   └── index.ts            #   Mounts all route groups under /api
 │       │
 │       ├── controllers/            # Request handlers
@@ -232,13 +234,17 @@ CrMS/
 │       │   ├── user.service.ts     #   Profile management (creator/brand/agency)
 │       │   ├── content.service.ts  #   Post CRUD, calendar, scheduling
 │       │   ├── campaign.service.ts #   Campaign lifecycle + creator matching
-│       │   ├── community.service.ts#   Interactions, saved replies, voice profiles
+│       │   ├── community.service.ts#   Interactions, saved replies, voice profiles, threads, channels
 │       │   ├── dashboard.service.ts#   Dashboard stats, analytics, reports
 │       │   ├── account.service.ts  #   Social account connections
-│       │   ├── platform.service.ts #   Instagram/YouTube/TikTok API abstraction
+│       │   ├── platform.service.ts #   Instagram/YouTube/TikTok API abstraction (real endpoints)
+│       │   ├── revenue.service.ts  #   Revenue streams, brand deals, invoices, post ROI
+│       │   ├── trends-data.service.ts # Real trend data (Google Trends, YouTube, TikTok, Instagram)
+│       │   ├── email-inbox.service.ts # IMAP email polling → CommunityInteraction
+│       │   ├── whatsapp-inbox.service.ts # WhatsApp Cloud API → CommunityInteraction
 │       │   └── index.ts
 │       │
-│       ├── agents/                 # AI Agent system (12 agents)
+│       ├── agents/                 # AI Agent system (13 agents)
 │       │   ├── base.ts             #   BaseAgent abstract class (execute → run)
 │       │   ├── content.agent.ts    #   Content generation (captions, hashtags, ideas)
 │       │   ├── scheduling.agent.ts #   Optimal posting time recommendations
@@ -246,6 +252,7 @@ CrMS/
 │       │   ├── engagement.agent.ts #   Community reply suggestions
 │       │   ├── trends.agent.ts     #   Trending content detection
 │       │   ├── matching.agent.ts   #   Brand-creator matching with AI re-ranking
+│       │   ├── growth.agent.ts     #   Daily recommendations, hooks, virality, weekly plan
 │       │   └── orchestrator.ts     #   Agent registry, pipelines, NLP routing
 │       │
 │       ├── matching/               # Multi-factor matching algorithm
@@ -256,10 +263,13 @@ CrMS/
 │       │   ├── index.ts            #   Queue definitions, workers, recurring schedules
 │       │   ├── publish.job.ts      #   Auto-publish scheduled posts
 │       │   ├── analytics.job.ts    #   Fetch post analytics + creator snapshots
-│       │   └── trends.job.ts       #   Periodic trend scanning
+│       │   ├── trends.job.ts       #   Periodic trend scanning
+│       │   ├── growth.job.ts       #   Daily AI growth recommendations for creators
+│       │   ├── inbox.job.ts        #   IMAP email inbox polling
+│       │   └── token-refresh.job.ts#   OAuth token refresh for connected accounts
 │       │
 │       ├── prisma/
-│       │   ├── schema.prisma       #   Database schema (45+ models)
+│       │   ├── schema/             #   Multi-file Prisma schema (12+ files)
 │       │   ├── seed.ts             #   Sample data seeder
 │       │   └── migrations/         #   Database migration history
 │       │
@@ -275,7 +285,7 @@ CrMS/
     ├── index.html
     └── src/
         ├── main.tsx                # App entry (Redux Provider + BrowserRouter)
-        ├── App.tsx                 # Route definitions (20+ pages)
+        ├── App.tsx                 # Route definitions (25+ pages)
         │
         ├── store/                  # Redux Toolkit state management
         │   ├── index.ts            #   Store configuration
@@ -299,7 +309,9 @@ CrMS/
         │       ├── notifications.ts
         │       ├── usage.ts
         │       ├── settings.ts
-        │       └── media.ts
+        │       ├── media.ts
+        │       ├── revenue.ts      #   Revenue streams, deals, invoices, post ROI
+        │       └── growth.ts       #   Growth Copilot (daily, hooks, predict, plan)
         │
         ├── hooks/
         │   └── store.ts            #   Typed useAppSelector / useAppDispatch
@@ -314,15 +326,21 @@ CrMS/
         │   │   └── AiInsightCard.tsx
         │   └── layout/             # Application layout
         │       ├── AppLayout.tsx    #   Auth-protected layout wrapper
-        │       ├── Sidebar.tsx      #   Role-based navigation
+        │       ├── Sidebar.tsx      #   Collapsible grouped navigation with tier badges
         │       ├── TopBar.tsx       #   Header with notifications
         │       └── NotificationCenter.tsx
+        │
+        ├── constants/
+        │   ├── navigation.ts       #   Grouped nav items per role (NavGroup[])
+        │   └── features.ts         #   Tier config, feature gates & plan comparison
         │
         ├── pages/
         │   ├── auth/
         │   │   ├── LoginPage.tsx
         │   │   ├── RegisterPage.tsx
         │   │   └── OAuthCallbackPage.tsx
+        │   ├── pricing/
+        │   │   └── PricingPage.tsx       # Public tier comparison (no auth)
         │   ├── dashboard/
         │   │   └── DashboardPage.tsx
         │   ├── content/
@@ -346,6 +364,10 @@ CrMS/
         │   │   └── CompetitivePage.tsx   # Competitor tracking
         │   ├── bio/
         │   │   └── BioBuilderPage.tsx    # Link-in-bio page editor
+        │   ├── revenue/
+        │   │   └── RevenuePage.tsx       # Revenue dashboard (streams, deals, invoices, ROI)
+        │   ├── growth/
+        │   │   └── GrowthCopilotPage.tsx # Daily recommendations, hooks, virality, plan
         │   ├── ai/
         │   │   └── AiAssistantPage.tsx
         │   ├── media/
@@ -353,8 +375,10 @@ CrMS/
         │   ├── usage/
         │   │   └── UsagePage.tsx         # AI token budget
         │   └── settings/
-        │       ├── SettingsPage.tsx
-        │       └── TeamSettingsPage.tsx
+        │       ├── SettingsPage.tsx      # Profile, accounts, plan card, preferences
+        │       ├── TeamSettingsPage.tsx
+        │       └── components/
+        │           └── PlanCard.tsx      # Current plan & upgrade CTA
         │
         └── styles/
             ├── main.scss               # Global styles
@@ -424,6 +448,10 @@ All routes are prefixed with `/api`.
 | POST | `/agents/analytics/insights` | Yes | Get analytics insights |
 | POST | `/agents/engagement/suggestions` | Yes | Get reply suggestions |
 | POST | `/agents/trends` | Yes | Detect trending content |
+| POST | `/agents/growth/daily` | Yes | Get daily growth recommendation |
+| POST | `/agents/growth/hooks` | Yes | Generate viral hooks |
+| POST | `/agents/growth/predict` | Yes | Predict virality of content |
+| POST | `/agents/growth/weekly-plan` | Yes | Generate weekly growth plan |
 | GET | `/agents/` | Yes | List available agents |
 | GET | `/agents/history` | Yes | Agent task history |
 
@@ -540,14 +568,39 @@ All routes are prefixed with `/api`.
 |--------|------|------|-------------|
 | PATCH | `/notifications/read-all` | Yes | Mark all notifications as read |
 | GET | `/usage/` | Yes | Get AI token budget & usage stats |
+| PATCH | `/usage/tier` | Yes | Update subscription tier |
 | PATCH | `/settings/` | Yes | Update user preferences |
 | POST | `/media/assets` | Yes | Upload media asset (file upload) |
+
+### Revenue (`/revenue`)
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET | `/revenue/summary` | Creator | Revenue summary (totals, pipeline, outstanding) |
+| GET | `/revenue/post-roi` | Creator | Per-post revenue & ROI data |
+| GET | `/revenue/streams` | Creator | List revenue streams |
+| POST | `/revenue/streams` | Creator | Create revenue stream |
+| PUT | `/revenue/streams/:id` | Creator | Update revenue stream |
+| DELETE | `/revenue/streams/:id` | Creator | Delete revenue stream |
+| GET | `/revenue/deals` | Creator | List brand deals |
+| POST | `/revenue/deals` | Creator | Create brand deal |
+| PUT | `/revenue/deals/:id` | Creator | Update brand deal |
+| DELETE | `/revenue/deals/:id` | Creator | Delete brand deal |
+| GET | `/revenue/invoices` | Creator | List invoices |
+| POST | `/revenue/invoices` | Creator | Create invoice |
+| PUT | `/revenue/invoices/:id` | Creator | Update invoice |
+| DELETE | `/revenue/invoices/:id` | Creator | Delete invoice |
+
+### Webhooks (`/webhooks`)
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET | `/webhooks/whatsapp` | No | WhatsApp webhook verification (challenge) |
+| POST | `/webhooks/whatsapp` | No | WhatsApp incoming message ingestion |
 
 ---
 
 ## AI Agents
 
-The platform includes 12 specialized AI agents powered by OpenAI, coordinated by an orchestrator with pipeline execution and NLP routing:
+The platform includes 13 specialized AI agents powered by OpenAI, coordinated by an orchestrator with pipeline execution and NLP routing:
 
 | Agent | Type Key | What It Does |
 |-------|----------|-------------|
@@ -563,11 +616,12 @@ The platform includes 12 specialized AI agents powered by OpenAI, coordinated by
 | Collaboration | `COLLABORATION` | Manages team workflows, approvals, and content review processes |
 | Campaign | `CAMPAIGN` | Assists with campaign briefs, deliverable tracking, and ROI analysis |
 | Link-in-Bio | `LINK_IN_BIO` | Helps build and optimize Start Page (link-in-bio) layouts |
+| Growth | `GROWTH` | Daily recommendations, viral hooks, virality prediction, weekly growth plans grounded in real trend data |
 
 ### Orchestrator Features
 
-- **Agent Registry**: All 12 agents registered and dispatched by type
-- **Multi-Step Pipelines**: Chain agents together (e.g., Analytics → Content Generation, Trend Detection → Content Generation)
+- **Agent Registry**: All 13 agents registered and dispatched by type
+- **Multi-Step Pipelines**: Chain agents together (e.g., Analytics → Content Generation, Trend Detection → Growth)
 - **NLP Routing**: Natural language messages automatically routed to the appropriate agent or pipeline via `routeMessage`
 - **Budget Gating**: Token usage checked against tier-based budgets before execution
 - **Event-Driven**: Emits events for real-time WebSocket notifications on task completion
@@ -637,6 +691,12 @@ All agents log their tasks (input, output, tokens used) to the `AgentTask` table
 | `UserSettings` | Notification and polling frequency preferences |
 | `MediaFolder` | Organizational folders for uploaded assets |
 | `MediaAsset` | Image/video metadata and URLs |
+| **Revenue & Monetization** | |
+| `RevenueStream` | Recurring/one-time income sources (sponsorships, ads, merch, etc.) |
+| `BrandDeal` | Brand deal CRM with status tracking (PROSPECT → NEGOTIATING → ACTIVE → COMPLETED) |
+| `Invoice` | Invoices tied to brand deals (DRAFT → SENT → PAID/OVERDUE) |
+| **Unified Inbox** | |
+| `InboxChannel` | Connected inbox channels (Instagram DM, WhatsApp, Email, Brand Inquiry) |
 
 ---
 
@@ -644,7 +704,7 @@ All agents log their tasks (input, output, tokens used) to the `AgentTask` table
 
 | Role | Capabilities |
 |------|-------------|
-| **Creator** | Manage content & ideas, view calendar/analytics, engage community, access AI agents, respond to campaign matches, build Link-in-Bio pages, manage media library |
+| **Creator** | Manage content & ideas, view calendar/analytics, engage community, access AI agents, respond to campaign matches, build Link-in-Bio pages, manage media library, track revenue & brand deals, use Growth Copilot |
 | **Brand** | Create campaigns, define matching criteria, discover creators, trigger matching algorithm, view match results, manage deliverables |
 | **Agency** | Manage multiple creators, view aggregated analytics |
 | **Admin** | Full access — manage users, view all data, system configuration |
@@ -661,6 +721,48 @@ All agents log their tasks (input, output, tokens used) to the `AgentTask` table
 | `listening` | Every 15 minutes | Polls social platforms for brand mentions and keyword matches |
 | `competitive` | Daily | Collects competitor metrics and activity for benchmarking |
 | `reports` | Every 6 hours | Processes scheduled analytics report generation |
+| `growth-daily` | Daily (8 AM) | Generates AI-powered daily growth recommendations for all active creators |
+| `inbox-email-poll` | Every 5 minutes | Polls connected IMAP email accounts, imports messages as interactions |
+| `token-refresh` | Daily | Refreshes OAuth tokens expiring within 7 days (Google, Instagram, TikTok) |
+
+---
+
+## Subscription Tiers
+
+The platform uses a soft-wall pricing model with three tiers. All features remain navigable on every tier — gated items show upgrade badges in the sidebar but are not hard-blocked.
+
+| Feature | Free | Pro (₹1,499/mo) | Enterprise (₹4,999/mo) |
+|---------|------|------------------|------------------------|
+| AI tokens per day | 50k | 200k | 1M |
+| Team members | 2 | 10 | Unlimited |
+| Post creation | 5/day | Unlimited | Unlimited |
+| Media storage | 500 MB | 10 GB | 100 GB |
+| Revenue tracking | — | ✓ | ✓ |
+| Brand deal CRM | — | ✓ | ✓ |
+| Link-in-Bio builder | — | ✓ | ✓ |
+| Trend detection | — | ✓ | ✓ |
+| Social listening | — | ✓ | ✓ |
+| Growth Copilot | — | ✓ | ✓ |
+| Competitive intel | — | — | ✓ |
+| Approval workflows | — | ✓ | ✓ |
+| Dedicated support | — | — | ✓ |
+
+Tier is stored on the `UsageBudget` model (`FREE`, `PRO`, `ENTERPRISE`) and returned with the user session. The existing `updateTier` mutation on the Usage page handles tier changes for demo purposes (no Stripe integration yet).
+
+A public `/pricing` page is accessible without authentication and displays a full feature comparison matrix.
+
+---
+
+## Sidebar Navigation
+
+The sidebar uses collapsible category groups (not a flat link list). Groups are role-specific:
+
+**Creator:** Home, Content, Monetization, Intelligence, AI & Growth, Communication, Account
+**Brand:** Home, Campaigns, Intelligence, Tools, Account
+**Agency:** Home, Management, Intelligence, Account
+**Admin:** Home, Administration, Intelligence, Account
+
+Single-item groups (e.g., Home, Communication) render inline without a header. Collapsed state is persisted in `localStorage`. Nav items requiring a higher tier than the user's current plan show a colored PRO/ENT badge.
 
 ---
 

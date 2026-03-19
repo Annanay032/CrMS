@@ -18,62 +18,177 @@ import {
   faLink,
   faPhotoFilm,
   faBolt,
+  faIndianRupeeSign,
+  faSeedling,
 } from '@fortawesome/free-solid-svg-icons';
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
-import type { UserRole } from '@/types';
+import type { UserRole, UsageTier } from '@/types';
 
 export interface NavItem {
   to: string;
   icon: IconDefinition;
   label: string;
+  /** Minimum tier required — shown as badge on lower tiers (soft wall, not blocked) */
+  minTier?: UsageTier;
 }
 
-const creatorLinks: NavItem[] = [
-  { to: '/dashboard', icon: faGauge, label: 'Dashboard' },
-  { to: '/create', icon: faLightbulb, label: 'Create' },
-  { to: '/calendar', icon: faCalendarDays, label: 'Content Calendar' },
-  { to: '/content/new', icon: faPenToSquare, label: 'Create Post' },
-  { to: '/analytics', icon: faChartLine, label: 'Analytics' },
-  { to: '/campaigns/my', icon: faBullhorn, label: 'My Campaigns' },
-  { to: '/community', icon: faComments, label: 'Community' },
-  { to: '/trends', icon: faArrowTrendUp, label: 'Trends' },
-  { to: '/listening', icon: faEarListen, label: 'Listening' },
-  { to: '/competitive', icon: faBinoculars, label: 'Competitive' },
-  { to: '/bio', icon: faLink, label: 'Link-in-Bio' },
-  { to: '/media', icon: faPhotoFilm, label: 'Media Library' },
-  { to: '/usage', icon: faBolt, label: 'AI Usage' },
-  { to: '/settings/team', icon: faUserGroup, label: 'Team' },
-  { to: '/ai', icon: faRobot, label: 'AI Assistant' },
+export interface NavGroup {
+  label: string;
+  items: NavItem[];
+}
+
+// ─── Creator ────────────────────────────────────────────────
+
+const creatorGroups: NavGroup[] = [
+  {
+    label: 'Home',
+    items: [
+      { to: '/dashboard', icon: faGauge, label: 'Dashboard' },
+    ],
+  },
+  {
+    label: 'Content',
+    items: [
+      { to: '/create', icon: faLightbulb, label: 'Ideas' },
+      { to: '/calendar', icon: faCalendarDays, label: 'Calendar' },
+      { to: '/content/new', icon: faPenToSquare, label: 'Create Post' },
+      { to: '/media', icon: faPhotoFilm, label: 'Media Library' },
+    ],
+  },
+  {
+    label: 'Monetization',
+    items: [
+      { to: '/revenue', icon: faIndianRupeeSign, label: 'Revenue', minTier: 'PRO' },
+      { to: '/campaigns/my', icon: faBullhorn, label: 'My Campaigns' },
+      { to: '/bio', icon: faLink, label: 'Link-in-Bio', minTier: 'PRO' },
+    ],
+  },
+  {
+    label: 'Intelligence',
+    items: [
+      { to: '/analytics', icon: faChartLine, label: 'Analytics' },
+      { to: '/trends', icon: faArrowTrendUp, label: 'Trends', minTier: 'PRO' },
+      { to: '/listening', icon: faEarListen, label: 'Listening', minTier: 'PRO' },
+      { to: '/competitive', icon: faBinoculars, label: 'Competitive', minTier: 'ENTERPRISE' },
+    ],
+  },
+  {
+    label: 'AI & Growth',
+    items: [
+      { to: '/ai', icon: faRobot, label: 'AI Assistant' },
+      { to: '/growth', icon: faSeedling, label: 'Growth Copilot', minTier: 'PRO' },
+      { to: '/usage', icon: faBolt, label: 'AI Usage' },
+    ],
+  },
+  {
+    label: 'Communication',
+    items: [
+      { to: '/community', icon: faComments, label: 'Inbox' },
+    ],
+  },
+  {
+    label: 'Account',
+    items: [
+      { to: '/settings/team', icon: faUserGroup, label: 'Team' },
+      { to: '/settings', icon: faGear, label: 'Settings' },
+    ],
+  },
 ];
 
-const brandLinks: NavItem[] = [
-  { to: '/dashboard', icon: faGauge, label: 'Dashboard' },
-  { to: '/campaigns', icon: faBullhorn, label: 'Campaigns' },
-  { to: '/discover', icon: faMagnifyingGlass, label: 'Discover Creators' },
-  { to: '/analytics', icon: faChartLine, label: 'Analytics' },
-  { to: '/media', icon: faPhotoFilm, label: 'Media Library' },
-  { to: '/usage', icon: faBolt, label: 'AI Usage' },
-  { to: '/ai', icon: faRobot, label: 'AI Assistant' },
+// ─── Brand ──────────────────────────────────────────────────
+
+const brandGroups: NavGroup[] = [
+  {
+    label: 'Home',
+    items: [{ to: '/dashboard', icon: faGauge, label: 'Dashboard' }],
+  },
+  {
+    label: 'Campaigns',
+    items: [
+      { to: '/campaigns', icon: faBullhorn, label: 'Campaigns' },
+      { to: '/discover', icon: faMagnifyingGlass, label: 'Discover Creators' },
+    ],
+  },
+  {
+    label: 'Intelligence',
+    items: [{ to: '/analytics', icon: faChartLine, label: 'Analytics' }],
+  },
+  {
+    label: 'Tools',
+    items: [
+      { to: '/media', icon: faPhotoFilm, label: 'Media Library' },
+      { to: '/ai', icon: faRobot, label: 'AI Assistant' },
+      { to: '/usage', icon: faBolt, label: 'AI Usage' },
+    ],
+  },
+  {
+    label: 'Account',
+    items: [{ to: '/settings', icon: faGear, label: 'Settings' }],
+  },
 ];
 
-const agencyLinks: NavItem[] = [
-  { to: '/dashboard', icon: faGauge, label: 'Dashboard' },
-  { to: '/creators', icon: faUsers, label: 'My Creators' },
-  { to: '/campaigns', icon: faBullhorn, label: 'Campaigns' },
-  { to: '/analytics', icon: faChartLine, label: 'Analytics' },
+// ─── Agency ─────────────────────────────────────────────────
+
+const agencyGroups: NavGroup[] = [
+  {
+    label: 'Home',
+    items: [{ to: '/dashboard', icon: faGauge, label: 'Dashboard' }],
+  },
+  {
+    label: 'Management',
+    items: [
+      { to: '/creators', icon: faUsers, label: 'My Creators' },
+      { to: '/campaigns', icon: faBullhorn, label: 'Campaigns' },
+    ],
+  },
+  {
+    label: 'Intelligence',
+    items: [{ to: '/analytics', icon: faChartLine, label: 'Analytics' }],
+  },
+  {
+    label: 'Account',
+    items: [{ to: '/settings', icon: faGear, label: 'Settings' }],
+  },
 ];
 
-const adminLinks: NavItem[] = [
-  { to: '/dashboard', icon: faGauge, label: 'Dashboard' },
-  { to: '/admin/users', icon: faUsers, label: 'Users' },
-  { to: '/admin/agents', icon: faRobot, label: 'Agent Logs' },
-  { to: '/analytics', icon: faChartLine, label: 'Analytics' },
-  { to: '/admin/system', icon: faShieldHalved, label: 'System' },
+// ─── Admin ──────────────────────────────────────────────────
+
+const adminGroups: NavGroup[] = [
+  {
+    label: 'Home',
+    items: [{ to: '/dashboard', icon: faGauge, label: 'Dashboard' }],
+  },
+  {
+    label: 'Administration',
+    items: [
+      { to: '/admin/users', icon: faUsers, label: 'Users' },
+      { to: '/admin/agents', icon: faRobot, label: 'Agent Logs' },
+      { to: '/admin/system', icon: faShieldHalved, label: 'System' },
+    ],
+  },
+  {
+    label: 'Intelligence',
+    items: [{ to: '/analytics', icon: faChartLine, label: 'Analytics' }],
+  },
+  {
+    label: 'Account',
+    items: [{ to: '/settings', icon: faGear, label: 'Settings' }],
+  },
 ];
 
+// ─── Exports ────────────────────────────────────────────────
+
+export const NAV_GROUPS: Record<UserRole, NavGroup[]> = {
+  CREATOR: creatorGroups,
+  BRAND: brandGroups,
+  AGENCY: agencyGroups,
+  ADMIN: adminGroups,
+};
+
+/** @deprecated Use NAV_GROUPS for grouped navigation */
 export const NAV_LINKS: Record<UserRole, NavItem[]> = {
-  CREATOR: creatorLinks,
-  BRAND: brandLinks,
-  AGENCY: agencyLinks,
-  ADMIN: adminLinks,
+  CREATOR: creatorGroups.flatMap((g) => g.items),
+  BRAND: brandGroups.flatMap((g) => g.items),
+  AGENCY: agencyGroups.flatMap((g) => g.items),
+  ADMIN: adminGroups.flatMap((g) => g.items),
 };

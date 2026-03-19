@@ -7,6 +7,9 @@ import { scanTrends } from './trends.job.js';
 import { pollMentions, analyzeMentionBatch } from './listening.job.js';
 import { collectCompetitorData } from './competitive.job.js';
 import { processScheduledReports } from './report.job.js';
+import { runDailyGrowthRecommendations } from './growth.job.js';
+import { pollEmailInboxes } from './inbox.job.js';
+import { refreshExpiringTokens } from './token-refresh.job.js';
 const connection = { connection: redis as any };
 
 // ── Queues ──────────────────────────────────────────────────
@@ -17,6 +20,9 @@ export const trendsQueue = new Queue('trends', connection);
 export const listeningQueue = new Queue('listening', connection);
 export const competitiveQueue = new Queue('competitive', connection);
 export const reportQueue = new Queue('reports', connection);
+export const growthQueue = new Queue('growth-daily', connection);
+export const inboxEmailQueue = new Queue('inbox-email-poll', connection);
+export const tokenRefreshQueue = new Queue('token-refresh', connection);
 
 // ── Workers ─────────────────────────────────────────────────
 
@@ -62,8 +68,27 @@ export function startWorkers() {
   competitiveWorker.on('failed', (job, err) => logger.error(`Competitive job ${job?.id} failed`, err));
   reportWorker.on('failed', (job, err) => logger.error(`Report job ${job?.id} failed`, err));
 
+  const growthWorker = new Worker('growth-daily', async (job) => {
+    logger.info(`Growth daily recommendation job ${job.id}`);
+    await runDailyGrowthRecommendations();
+  }, connection);
+
+  const inboxEmailWorker = new Worker('inbox-email-poll', async (job) => {
+    logger.info(`Inbox email poll job ${job.id}`);
+    await pollEmailInboxes();
+  }, connection);
+
+  const tokenRefreshWorker = new Worker('token-refresh', async (job) => {
+    logger.info(`Token refresh job ${job.id}`);
+    await refreshExpiringTokens();
+  }, connection);
+
+  growthWorker.on('failed', (job, err) => logger.error(`Growth job ${job?.id} failed`, err));
+  inboxEmailWorker.on('failed', (job, err) => logger.error(`Inbox email job ${job?.id} failed`, err));
+  tokenRefreshWorker.on('failed', (job, err) => logger.error(`Token refresh job ${job?.id} failed`, err));
+
   logger.info('BullMQ workers started');
-  return { publishWorker, analyticsWorker, trendsWorker, listeningWorker, competitiveWorker, reportWorker };
+  return { publishWorker, analyticsWorker, trendsWorker, listeningWorker, competitiveWorker, reportWorker, growthWorker, inboxEmailWorker, tokenRefreshWorker };
 }
 
 // ── Scheduled (repeating) jobs ──────────────────────────────
@@ -102,6 +127,27 @@ export async function scheduleRecurringJobs() {
     every: 6 * 60 * 60_000,
   }, {
     name: 'report-scheduled',
+  });
+
+  // Daily growth recommendations at 6 AM IST (00:30 UTC)
+  await growthQueue.upsertJobScheduler('growth-daily', {
+    every: 24 * 60 * 60_000,
+  }, {
+    name: 'growth-daily-recs',
+  });
+
+  // Poll email inboxes every 5 minutes
+  await inboxEmailQueue.upsertJobScheduler('inbox-email-poll', {
+    every: 5 * 60_000,
+  }, {
+    name: 'inbox-email-periodic',
+  });
+
+  // Refresh expiring OAuth tokens daily
+  await tokenRefreshQueue.upsertJobScheduler('token-refresh', {
+    every: 24 * 60 * 60_000,
+  }, {
+    name: 'token-refresh-daily',
   });
 
   logger.info('Recurring jobs scheduled');

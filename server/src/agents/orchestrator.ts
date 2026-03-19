@@ -13,6 +13,7 @@ import { CompetitiveIntelligenceAgent } from './competitive.agent.js';
 import { CollaborationAgent } from './collaboration.agent.js';
 import { CampaignAgent } from './campaign.agent.js';
 import { LinkInBioAgent } from './linkinbio.agent.js';
+import { GrowthAgent } from './growth.agent.js';
 import { prisma } from '../config/index.js';
 import { logger } from '../config/logger.js';
 import { checkBudget, recordUsage, getModelForAgent } from '../services/usage.service.js';
@@ -48,6 +49,7 @@ const agents: Record<string, BaseAgent> = {
   COLLABORATION: new CollaborationAgent(),
   CAMPAIGN: new CampaignAgent(),
   LINK_IN_BIO: new LinkInBioAgent(),
+  GROWTH: new GrowthAgent(),
 };
 
 export class AgentOrchestrator extends EventEmitter {
@@ -238,6 +240,18 @@ export class AgentOrchestrator extends EventEmitter {
       };
     }
 
+    // Growth pipeline: Trends → Growth → Content
+    if (lower.includes('growth') && (lower.includes('plan') || lower.includes('strategy') || lower.includes('recommend'))) {
+      return {
+        steps: [
+          { agentType: 'TREND_DETECTION' },
+          { agentType: 'GROWTH', action: 'weekly_plan', inputMapping: { trends: 'trendData' } },
+          { agentType: 'CONTENT_GENERATION', inputMapping: { days: 'context' } },
+        ],
+        input: { niche: ['general'], platforms: ['INSTAGRAM', 'YOUTUBE', 'TIKTOK'], topic: message },
+      };
+    }
+
     if (lower.includes('campaign') && (lower.includes('find') || lower.includes('match') || lower.includes('creator'))) {
       return {
         steps: [
@@ -295,6 +309,12 @@ export class AgentOrchestrator extends EventEmitter {
       return {
         steps: [{ agentType: 'LINK_IN_BIO', action: 'generate_page' }],
         input: {},
+      };
+    }
+    if (lower.includes('grow') || lower.includes('hook') || lower.includes('viral') && lower.includes('predict')) {
+      return {
+        steps: [{ agentType: 'GROWTH' }],
+        input: { niche: ['general'], platforms: ['INSTAGRAM'] },
       };
     }
 

@@ -144,6 +144,33 @@ export class InstagramService implements IPlatformService {
       return { externalPostId: `ig_${Date.now()}`, url: '' };
     }
   }
+
+  async getRecentMedia(accessToken: string, limit = 25) {
+    try {
+      const res = await fetch(
+        `${this.baseUrl}/me/media?fields=id,caption,media_type,media_url,thumbnail_url,timestamp,permalink&limit=${limit}&access_token=${accessToken}`,
+      );
+      if (!res.ok) return [];
+      const json = (await res.json()) as { data?: Array<{ id: string; caption?: string; media_type: string; media_url?: string; thumbnail_url?: string; timestamp: string; permalink: string }> };
+      return json.data ?? [];
+    } catch {
+      return [];
+    }
+  }
+
+  async getDMConversations(accessToken: string, igUserId: string) {
+    try {
+      // Instagram Messaging API (requires approved app with instagram_manage_messages scope)
+      const res = await fetch(
+        `https://graph.facebook.com/v21.0/${igUserId}/conversations?platform=instagram&fields=id,participants,messages{id,message,from,created_time}&access_token=${accessToken}`,
+      );
+      if (!res.ok) return [];
+      const json = (await res.json()) as { data?: unknown[] };
+      return json.data ?? [];
+    } catch {
+      return [];
+    }
+  }
 }
 
 // ─── YouTube Data API v3 ────────────────────────────────────
@@ -240,6 +267,34 @@ export class YouTubeService implements IPlatformService {
     logger.info('YouTube publish: video upload requires dedicated upload flow');
     return { externalPostId: `yt_${Date.now()}`, url: '' };
   }
+
+  async getTrendingVideos(accessToken: string, regionCode = 'IN', maxResults = 20) {
+    try {
+      const res = await fetch(
+        `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&chart=mostPopular&regionCode=${regionCode}&maxResults=${maxResults}`,
+        { headers: { Authorization: `Bearer ${accessToken}` } },
+      );
+      if (!res.ok) return [];
+      const json = (await res.json()) as { items?: Array<{ id: string; snippet?: Record<string, unknown>; statistics?: Record<string, unknown> }> };
+      return json.items ?? [];
+    } catch {
+      return [];
+    }
+  }
+
+  async getChannelRevenue(accessToken: string, startDate: string, endDate: string) {
+    try {
+      // YouTube Analytics API — requires youtube.readonly + yt-analytics.readonly scopes
+      const res = await fetch(
+        `https://youtubeanalytics.googleapis.com/v2/reports?ids=channel==MINE&startDate=${startDate}&endDate=${endDate}&metrics=estimatedRevenue,estimatedAdRevenue,grossRevenue&dimensions=day`,
+        { headers: { Authorization: `Bearer ${accessToken}` } },
+      );
+      if (!res.ok) return { rows: [], columnHeaders: [] };
+      return (await res.json()) as { rows: unknown[]; columnHeaders: unknown[] };
+    } catch {
+      return { rows: [], columnHeaders: [] };
+    }
+  }
 }
 
 // ─── TikTok Content Posting API v2 ─────────────────────────
@@ -324,6 +379,21 @@ export class TikTokService implements IPlatformService {
     // TikTok content posting uses the Content Posting API which requires video upload
     logger.info('TikTok publish: video upload requires dedicated upload flow');
     return { externalPostId: `tt_${Date.now()}`, url: '' };
+  }
+
+  async getTrendingHashtags(accessToken: string, count = 20) {
+    try {
+      const res = await fetch('https://open.tiktokapis.com/v2/research/hashtag/trending/', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ count }),
+      });
+      if (!res.ok) return [];
+      const json = (await res.json()) as { data?: { hashtags?: Array<{ hashtag_name: string; video_count: number; view_count: number }> } };
+      return json.data?.hashtags ?? [];
+    } catch {
+      return [];
+    }
   }
 }
 

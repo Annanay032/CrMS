@@ -12,6 +12,7 @@ export interface User {
   role: UserRole;
   isActive: boolean;
   createdAt: string;
+  tier?: UsageTier;
   creatorProfile?: CreatorProfile;
   brandProfile?: BrandProfile;
 }

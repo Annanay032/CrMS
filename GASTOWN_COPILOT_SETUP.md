@@ -10,7 +10,7 @@ Installed tools:
 
 Configured workspace:
 - Gas Town root: ~/gt
-- Rig for this repo: snowbird_securesigning
+- Rig for this repo: CrMS
 - Crew member: annanay
 - Default Gas Town agent: copilot
 
@@ -18,7 +18,7 @@ Configured workspace:
 
 1. Move to your crew workspace
 
-    cd ~/gt/snowbird_securesigning/crew/annanay
+    cd ~/gt/CrMS/crew/annanay
 
 2. Check config
 

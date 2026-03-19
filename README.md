@@ -1,6 +1,6 @@
 # CrMS — Creator Management System
 
-AI-powered platform for managing creators, brands, campaigns, and community engagement across Instagram, YouTube, and TikTok. Inspired by [Buffer](https://buffer.com).
+AI-powered platform for managing creators, brands, campaigns, and community engagement across Instagram, YouTube, TikTok, Twitter/X, LinkedIn, Threads, Bluesky, Facebook, Pinterest, and Reddit. Inspired by [Buffer](https://buffer.com).
 
 ---
 
@@ -195,7 +195,7 @@ CrMS/
 │       │   ├── error.ts            #   Global error handler + 404
 │       │   └── index.ts
 │       │
-│       ├── routes/                 # API route definitions (20 modules)
+│       ├── routes/                 # API route definitions (24 modules)
 │       │   ├── auth.routes.ts      #   Register, login, refresh, logout, Google OAuth
 │       │   ├── user.routes.ts      #   Profile management (creator/brand/agency)
 │       │   ├── content.routes.ts   #   CRUD posts + calendar + filter by status
@@ -216,9 +216,12 @@ CrMS/
 │       │   ├── media.routes.ts     #   Media library (folders + asset uploads)
 │       │   ├── revenue.routes.ts   #   Revenue streams, brand deals, invoices, post ROI
 │       │   ├── webhook.routes.ts   #   WhatsApp webhook verification & message ingestion
+│       │   ├── studio.routes.ts    #   AI Studio (compose, rewrite, image gen, intelligence, video)
+│       │   ├── rss.routes.ts       #   RSS feed management (import content ideas)
+│       │   ├── public-api.routes.ts #  Public API (API key auth, external post/analytics access)
 │       │   └── index.ts            #   Mounts all route groups under /api
 │       │
-│       ├── controllers/            # Request handlers
+│       ├── controllers/            # Request handlers (19 modules)
 │       │   ├── auth.controller.ts
 │       │   ├── user.controller.ts
 │       │   ├── content.controller.ts
@@ -227,9 +230,20 @@ CrMS/
 │       │   ├── matching.controller.ts
 │       │   ├── community.controller.ts
 │       │   ├── dashboard.controller.ts
-│       │   └── account.controller.ts
+│       │   ├── account.controller.ts
+│       │   ├── idea.controller.ts
+│       │   ├── listening.controller.ts
+│       │   ├── competitive.controller.ts
+│       │   ├── team.controller.ts
+│       │   ├── startpage.controller.ts
+│       │   ├── notification.controller.ts
+│       │   ├── usage.controller.ts
+│       │   ├── settings.controller.ts
+│       │   ├── media.controller.ts
+│       │   ├── revenue.controller.ts
+│       │   └── studio.controller.ts #   AI Studio endpoints (compose, rewrite, image gen, etc.)
 │       │
-│       ├── services/               # Business logic
+│       ├── services/               # Business logic (27 modules)
 │       │   ├── auth.service.ts     #   Register, login, JWT + refresh token rotation
 │       │   ├── user.service.ts     #   Profile management (creator/brand/agency)
 │       │   ├── content.service.ts  #   Post CRUD, calendar, scheduling
@@ -242,9 +256,23 @@ CrMS/
 │       │   ├── trends-data.service.ts # Real trend data (Google Trends, YouTube, TikTok, Instagram)
 │       │   ├── email-inbox.service.ts # IMAP email polling → CommunityInteraction
 │       │   ├── whatsapp-inbox.service.ts # WhatsApp Cloud API → CommunityInteraction
+│       │   ├── idea.service.ts     #   Content ideas, tags, template management
+│       │   ├── listening.service.ts #  Social listening queries + mention tracking
+│       │   ├── competitive.service.ts # Competitor monitoring + benchmarks
+│       │   ├── team.service.ts     #   Teams, members, approval workflows
+│       │   ├── startpage.service.ts #  Link-in-bio page CRUD + analytics
+│       │   ├── notification.service.ts # In-app notification delivery
+│       │   ├── usage.service.ts    #   AI token budget tracking + tier management
+│       │   ├── settings.service.ts #   User preferences + polling settings
+│       │   ├── media.service.ts    #   Media library CRUD (folders + assets)
+│       │   ├── media-processing.service.ts # Image/video processing pipeline
+│       │   ├── report.service.ts   #   Analytics report generation
+│       │   ├── rss.service.ts      #   RSS feed management + import
+│       │   ├── hashtag-analytics.service.ts # Hashtag performance tracking
+│       │   ├── integration-hub.service.ts # Third-party integration management
 │       │   └── index.ts
 │       │
-│       ├── agents/                 # AI Agent system (13 agents)
+│       ├── agents/                 # AI Agent system (14 agents + orchestrator)
 │       │   ├── base.ts             #   BaseAgent abstract class (execute → run)
 │       │   ├── content.agent.ts    #   Content generation (captions, hashtags, ideas)
 │       │   ├── scheduling.agent.ts #   Optimal posting time recommendations
@@ -253,6 +281,12 @@ CrMS/
 │       │   ├── trends.agent.ts     #   Trending content detection
 │       │   ├── matching.agent.ts   #   Brand-creator matching with AI re-ranking
 │       │   ├── growth.agent.ts     #   Daily recommendations, hooks, virality, weekly plan
+│       │   ├── publishing.agent.ts #   Multi-platform publishing + formatting
+│       │   ├── listening.agent.ts  #   Social listening, sentiment, signal detection
+│       │   ├── competitive.agent.ts #  Competitor analysis, battle cards, gap reports
+│       │   ├── campaign.agent.ts   #   Campaign strategy, briefs, ROI analysis
+│       │   ├── collaboration.agent.ts # Team workflows, approvals, partnership vetting
+│       │   ├── linkinbio.agent.ts  #   Start Page layout optimization + A/B suggestions
 │       │   └── orchestrator.ts     #   Agent registry, pipelines, NLP routing
 │       │
 │       ├── matching/               # Multi-factor matching algorithm
@@ -266,12 +300,28 @@ CrMS/
 │       │   ├── trends.job.ts       #   Periodic trend scanning
 │       │   ├── growth.job.ts       #   Daily AI growth recommendations for creators
 │       │   ├── inbox.job.ts        #   IMAP email inbox polling
+│       │   ├── listening.job.ts    #   Social listening mention polling
+│       │   ├── competitive.job.ts  #   Competitor metrics collection
+│       │   ├── report.job.ts       #   Scheduled analytics report generation
+│       │   ├── recurring-post.job.ts #  Clone + schedule recurring posts
+│       │   ├── rss-import.job.ts   #   RSS feed sync → content ideas
 │       │   └── token-refresh.job.ts#   OAuth token refresh for connected accounts
 │       │
 │       ├── prisma/
-│       │   ├── schema/             #   Multi-file Prisma schema (12+ files)
-│       │   ├── seed.ts             #   Sample data seeder
-│       │   └── migrations/         #   Database migration history
+│       │   ├── schema/             #   Multi-file Prisma schema (19 files)
+│       │   │   ├── base.prisma, user.prisma, creator.prisma, brand-agency.prisma
+│       │   │   ├── content.prisma, campaign.prisma, community.prisma
+│       │   │   ├── analytics.prisma, competitive.prisma, listening.prisma
+│       │   │   ├── team.prisma, startpage.prisma, media.prisma
+│       │   │   ├── revenue.prisma, usage.prisma, workflow.prisma
+│       │   │   ├── notification.prisma, agent.prisma
+│       │   │   └── migrations/
+│       │   ├── seed.ts             #   Sample data seeder (orchestrator)
+│       │   └── seed/               #   Modular seed files
+│       │       ├── users.ts, content.ts, campaigns.ts, community.ts
+│       │       ├── platform.ts, revenue.ts, collaboration.ts
+│       │       ├── intelligence.ts, context.ts
+│       │       └── index.ts
 │       │
 │       └── utils/
 │           ├── crypto.ts           #   AES-256-GCM encrypt/decrypt for OAuth tokens
@@ -292,7 +342,7 @@ CrMS/
         │   ├── api.ts              #   RTK Query base API
         │   ├── auth.slice.ts       #   Auth state slice
         │   ├── ai.slice.ts         #   AI activity state slice
-        │   └── endpoints/          #   RTK Query endpoint modules
+        │   └── endpoints/          #   RTK Query endpoint modules (20)
         │       ├── auth.ts
         │       ├── content.ts
         │       ├── dashboard.ts
@@ -311,7 +361,8 @@ CrMS/
         │       ├── settings.ts
         │       ├── media.ts
         │       ├── revenue.ts      #   Revenue streams, deals, invoices, post ROI
-        │       └── growth.ts       #   Growth Copilot (daily, hooks, predict, plan)
+        │       ├── growth.ts       #   Growth Copilot (daily, hooks, predict, plan)
+        │       └── studio.ts       #   AI Studio (compose, rewrite, image gen, intelligence)
         │
         ├── hooks/
         │   └── store.ts            #   Typed useAppSelector / useAppDispatch
@@ -323,7 +374,16 @@ CrMS/
         │   ├── common/             # Shared UI components
         │   │   ├── PageHeader.tsx
         │   │   ├── StatCard.tsx
-        │   │   └── AiInsightCard.tsx
+        │   │   ├── AiInsightCard.tsx
+        │   │   └── GlobalSearch.tsx  #   Command-palette style search
+        │   ├── content/            # Content editing components
+        │   │   ├── MediaCropper.tsx  #   Image crop modal per platform
+        │   │   ├── RichTextEditor.tsx #  Rich text editing with formatting
+        │   │   ├── ThreadComposer.tsx #  Multi-post thread builder
+        │   │   ├── ThumbnailPicker.tsx # Video thumbnail selector
+        │   │   ├── CalendarNoteModal.tsx
+        │   │   ├── IdeasSidePanel.tsx
+        │   │   └── TemplateDrawer.tsx
         │   └── layout/             # Application layout
         │       ├── AppLayout.tsx    #   Auth-protected layout wrapper
         │       ├── Sidebar.tsx      #   Collapsible grouped navigation with tier badges
@@ -374,6 +434,27 @@ CrMS/
         │   │   └── MediaLibraryPage.tsx  # Asset management
         │   ├── usage/
         │   │   └── UsagePage.tsx         # AI token budget
+        │   ├── studio/                  # ── AI Content Studio ──
+        │   │   ├── StudioLayout.tsx      #   Sidebar + tab-based Studio shell
+        │   │   ├── StudioCompose.tsx     #   Re-export → compose/ module
+        │   │   ├── StudioMediaLab.tsx    #   Media library browser + editor
+        │   │   ├── StudioTemplates.tsx   #   Caption/post template manager
+        │   │   ├── StudioAiCopilot.tsx   #   Full-screen AI chat interface
+        │   │   ├── StudioVideoLab.tsx    #   Video editing tools + clip creation
+        │   │   ├── StudioVideoAnalysis.tsx # Video performance deep-dive
+        │   │   └── compose/             #   Modular compose editor (15 files)
+        │   │       ├── StudioComposeView.tsx # Slim orchestrator — tabbed layout
+        │   │       ├── useComposeForm.ts #   Custom hook: all state + mutations
+        │   │       ├── types.ts          #   Shared types, schema, constants
+        │   │       ├── ComposeToolbar.tsx #   Platform/postType selects + AI actions
+        │   │       ├── MediaZone.tsx      #   Post-type dispatcher
+        │   │       ├── ImageUploader.tsx, CarouselUploader.tsx
+        │   │       ├── VideoUploader.tsx, StoryUploader.tsx
+        │   │       ├── ThreadEditor.tsx   #   Multi-post thread chain editor
+        │   │       ├── ChatPanel.tsx      #   AI copilot chat panel
+        │   │       ├── IntelPanel.tsx     #   Intelligence (score, hashtags, tips)
+        │   │       ├── SettingsPanel.tsx  #   Schedule, recurring, platform overrides
+        │   │       └── compose.module.scss
         │   └── settings/
         │       ├── SettingsPage.tsx      # Profile, accounts, plan card, preferences
         │       ├── TeamSettingsPage.tsx
@@ -596,31 +677,63 @@ All routes are prefixed with `/api`.
 | GET | `/webhooks/whatsapp` | No | WhatsApp webhook verification (challenge) |
 | POST | `/webhooks/whatsapp` | No | WhatsApp incoming message ingestion |
 
+### AI Studio (`/studio`)
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| POST | `/studio/compose` | Yes | AI-assisted post composition from a topic/idea |
+| POST | `/studio/rewrite` | Yes | Rewrite/optimize existing caption |
+| POST | `/studio/image/generate` | Yes | Generate image via DALL-E |
+| POST | `/studio/media/suggest` | Yes | Get AI media suggestions for post |
+| GET | `/studio/integrations` | Yes | List available Studio integrations |
+| POST | `/studio/intelligence` | Yes | Content intelligence (score, best times, hashtags, tips) |
+| POST | `/studio/video/analyze` | Yes | Analyze video performance + retention |
+| POST | `/studio/video/clip` | Yes | Create short clip from longer video |
+
+### RSS Feeds (`/rss`)
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET | `/rss/` | Creator | List subscribed RSS feeds |
+| POST | `/rss/` | Creator | Subscribe to an RSS feed |
+| DELETE | `/rss/:id` | Creator | Unsubscribe from a feed |
+| PATCH | `/rss/:id/toggle` | Creator | Enable/disable auto-import |
+
+### Public API (`/public`)
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| POST | `/public/keys` | JWT | Create an API key (with scopes) |
+| GET | `/public/keys` | JWT | List user's API keys |
+| DELETE | `/public/keys/:id` | JWT | Revoke an API key |
+| GET | `/public/posts` | API Key | List posts (external access) |
+| POST | `/public/posts` | API Key | Create post (external access) |
+| GET | `/public/posts/:id` | API Key | Get post details |
+| GET | `/public/analytics` | API Key | Get analytics data |
+
 ---
 
 ## AI Agents
 
-The platform includes 13 specialized AI agents powered by OpenAI, coordinated by an orchestrator with pipeline execution and NLP routing:
+The platform includes 14 specialized AI agents plus a Studio agent, powered by OpenAI and coordinated by an orchestrator with pipeline execution and NLP routing:
 
 | Agent | Type Key | What It Does |
 |-------|----------|-------------|
 | Content Generation | `CONTENT_GENERATION` | Generates captions, hashtags, and content ideas per platform |
-| Publishing | `PUBLISHING` | Manages post publishing workflows and platform-specific formatting |
+| Publishing | `PUBLISHING` | Manages post publishing workflows, multi-platform formatting + adaptation |
 | Scheduling | `SCHEDULING` | Analyzes past performance to recommend optimal posting times |
 | Matching | `MATCHING` | Scores and ranks creator-brand matches using multi-factor algorithm + AI |
 | Analytics | `ANALYTICS` | Summarizes engagement data with insights and recommendations |
 | Engagement | `ENGAGEMENT` | Suggests replies to comments/DMs with tone matching via voice profiles |
 | Trend Detection | `TREND_DETECTION` | Identifies trending topics by niche and platform |
 | Social Listening | `LISTENING` | Monitors brand mentions, keywords, and sentiment across platforms |
-| Competitive Intel | `COMPETITIVE` | Tracks competitor performance and generates benchmark reports |
-| Collaboration | `COLLABORATION` | Manages team workflows, approvals, and content review processes |
+| Competitive Intel | `COMPETITIVE` | Tracks competitor performance, battle cards, gap analysis |
+| Collaboration | `COLLABORATION` | Team workflows, approvals, partnership vetting |
 | Campaign | `CAMPAIGN` | Assists with campaign briefs, deliverable tracking, and ROI analysis |
-| Link-in-Bio | `LINK_IN_BIO` | Helps build and optimize Start Page (link-in-bio) layouts |
+| Link-in-Bio | `LINK_IN_BIO` | Start Page layout optimization, A/B testing suggestions |
 | Growth | `GROWTH` | Daily recommendations, viral hooks, virality prediction, weekly growth plans grounded in real trend data |
+| **Studio** | *(via `/studio` routes)* | AI-assisted compose from topic, caption rewrite, DALL-E image gen, media suggestions, content intelligence (score, best times, hashtags, audience tips), video analysis + clip creation |
 
 ### Orchestrator Features
 
-- **Agent Registry**: All 13 agents registered and dispatched by type
+- **Agent Registry**: All 14 agents + Studio agent registered and dispatched by type
 - **Multi-Step Pipelines**: Chain agents together (e.g., Analytics → Content Generation, Trend Detection → Growth)
 - **NLP Routing**: Natural language messages automatically routed to the appropriate agent or pipeline via `routeMessage`
 - **Budget Gating**: Token usage checked against tier-based budgets before execution
@@ -723,6 +836,8 @@ All agents log their tasks (input, output, tokens used) to the `AgentTask` table
 | `reports` | Every 6 hours | Processes scheduled analytics report generation |
 | `growth-daily` | Daily (8 AM) | Generates AI-powered daily growth recommendations for all active creators |
 | `inbox-email-poll` | Every 5 minutes | Polls connected IMAP email accounts, imports messages as interactions |
+| `recurring-post` | Every 60 seconds | Clones and schedules next occurrence of recurring posts |
+| `rss-import` | Every 30 minutes | Syncs subscribed RSS feeds, imports new items as content ideas |
 | `token-refresh` | Daily | Refreshes OAuth tokens expiring within 7 days (Google, Instagram, TikTok) |
 
 ---

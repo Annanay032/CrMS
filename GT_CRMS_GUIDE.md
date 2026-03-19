@@ -2,7 +2,7 @@
 
 ## Platform Overview
 
-**CrMS (Creator Management System)** is an influencer/creator marketing platform that connects social media creators (Instagram, YouTube, TikTok) with brands for campaign collaborations. It features content management, scheduling, analytics, community engagement, AI-powered matching, revenue tracking, a Growth Copilot, unified inbox, and 13 specialized GPT-4 agents.
+**CrMS (Creator Management System)** is an influencer/creator marketing platform that connects social media creators (Instagram, YouTube, TikTok, Twitter/X, LinkedIn, Threads, Bluesky, Facebook, Pinterest, Reddit) with brands for campaign collaborations. It features an AI Content Studio, content management, scheduling, analytics, community engagement, AI-powered matching, revenue tracking, a Growth Copilot, unified inbox, public API, RSS feed import, and 14 specialized GPT-4 agents plus a Studio agent.
 
 ### Tech Stack
 
@@ -12,7 +12,7 @@
 | Frontend | React 19, Vite 8, TypeScript, Ant Design 6, React Router 7, Redux Toolkit (RTK Query), Recharts, SCSS Modules |
 | Database | PostgreSQL 16 |
 | Cache/Queue | Redis 7 |
-| AI | OpenAI GPT-4 (13 specialized agents with orchestrator, pipelines & NLP routing) |
+| AI | OpenAI GPT-4 (14 specialized agents + Studio agent, with orchestrator, pipelines & NLP routing) |
 | Auth | JWT (access + refresh), bcrypt, Passport.js, Google OAuth |
 | Containerization | Docker Compose (4 services) |
 
@@ -191,27 +191,43 @@ gt warrant                   # Manage stuck agents
 ┌──────────────────────────────────────────────────────────────┐
 │                         CrMS Platform                        │
 ├──────────────────────────────────────────────────────────────┤
-│  UI (React 19 + Vite 8)                                     │
-│  ├── Auth (Login/Register)                                   │
+│  UI (React 19 + Vite 8 + SCSS Modules)                       │
+│  ├── Auth (Login/Register/OAuth)                              │
 │  ├── Dashboard                                               │
-│  ├── Content Calendar + Post Creator                         │
+│  ├── Content Calendar + Post Creator                          │
+│  ├── AI Studio (Compose, Media Lab, Video Lab, AI Copilot,    │
+│  │   Templates, Video Analysis) ─ modular compose/ module     │
 │  ├── Campaign Management                                     │
 │  ├── Creator Discovery                                       │
 │  ├── Analytics + Trends                                      │
-│  ├── Community Engagement                                    │
+│  ├── Community Engagement (Unified Inbox)                     │
+│  ├── Social Listening + Competitive Intel                     │
+│  ├── Revenue (Streams, Brand Deals, Invoices, ROI)             │
+│  ├── Growth Copilot                                          │
+│  ├── Link-in-Bio Builder                                     │
+│  ├── Media Library                                           │
 │  ├── AI Assistant                                            │
-│  └── Settings                                                │
+│  ├── Pricing (public)                                        │
+│  └── Settings (Profile, Teams, Usage)                         │
 ├──────────────────────────────────────────────────────────────┤
 │  API Server (Express 5 + TypeScript)                         │
-│  ├── Routes: auth, users, content, campaigns, matching, AI   │
-│  ├── Services: auth, user, content, campaign, matching       │
-│  ├── AI Agents (6): content, schedule, match, analytics,     │
-│  │   engagement, trends                                      │
-│  ├── Background Jobs: publish, analytics, trends             │
-│  └── Middleware: auth JWT, validation, error, rate-limit     │
+│  ├── Routes (24): auth, users, content, campaigns, matching, │
+│  │   agents, community, dashboard, accounts, ideas,          │
+│  │   listening, competitive, teams, startpages, notifications,│
+│  │   usage, settings, media, revenue, webhooks, studio, rss,  │
+│  │   public-api                                              │
+│  ├── Services (27): full business logic layer                  │
+│  ├── AI Agents (14 + Studio): content, scheduling, analytics, │
+│  │   engagement, trends, matching, growth, publishing,        │
+│  │   listening, competitive, campaign, collaboration,         │
+│  │   linkinbio + Studio (compose/rewrite/image/intel/video)   │
+│  ├── Background Jobs (12): publish, analytics, trends,        │
+│  │   listening, competitive, reports, growth, inbox, rss,     │
+│  │   recurring-post, token-refresh                            │
+│  └── Middleware: auth JWT, validation, error, rate-limit       │
 ├──────────────────────────────────────────────────────────────┤
 │  Data Layer                                                  │
-│  ├── PostgreSQL 16 (Prisma ORM, 15 models)                  │
+│  ├── PostgreSQL 16 (Prisma ORM, 19 schema files, 40+ models) │
 │  └── Redis 7 (sessions, queues, cache)                       │
 └──────────────────────────────────────────────────────────────┘
 ```
@@ -236,75 +252,29 @@ gt forget <memory-id>                        # remove outdated ones
 
 | # | Gap | Priority | Area |
 |---|---|---|---|
-| 1 | UI pages are skeletal — need polished, production-quality designs | **CRITICAL** | UI |
-| 2 | No reusable UI component library (buttons, cards, modals, forms, tables) | **CRITICAL** | UI |
-| 3 | No consistent design system (colors, spacing, typography, shadows) | **HIGH** | UI |
-| 4 | Platform services are stubs (Instagram, YouTube, TikTok) | HIGH | Server |
-| 5 | OAuth flows not wired (Passport installed but unused) | HIGH | Server |
-| 6 | No file upload handling (multer not configured) | MEDIUM | Server |
-| 7 | No WebSocket/real-time (notifications, community) | MEDIUM | Both |
-| 8 | No admin dashboard UI | MEDIUM | UI |
-| 9 | No email/notification service | MEDIUM | Server |
-| 10 | Trend detection has no real data source | MEDIUM | Server |
-| 11 | Seed data incomplete | LOW | Server |
-| 12 | Agency features minimal (models exist, no routes/UI) | LOW | Both |
-| 13 | No payment/billing system | LOW | Server |
-| 14 | dotenv not loaded in entry point | LOW | Server |
+| 1 | Platform services are stubs (Instagram, YouTube, TikTok OAuth publish) | HIGH | Server |
+| 2 | OAuth flows not fully wired (Passport installed, Google works, social pending) | HIGH | Server |
+| 3 | No payment/billing system (Stripe integration) | MEDIUM | Server |
+| 4 | Agency features minimal (models exist, limited routes/UI) | LOW | Both |
+| 5 | Admin dashboard UI is basic | LOW | UI |
 
 ### Multi-Agent Improvement Workflows
 
-#### Sprint 1: Design System + Core UI
+> **Note:** Sprints 1-4 (design system, core UI pages, page builds, server integrations) are **complete**. The following are remaining improvement areas:
+
+#### Next Sprint: Platform API Integration + Production Hardening
 
 ```bash
 cd ~/gt/CrMS/crew/annanay
 
-# Build reusable component library first
-gt sling "Create a reusable UI component library in ui/src/components/common/: Button (variants: primary, secondary, outline, ghost, danger; sizes: sm, md, lg), Card (with header, body, footer slots), Modal (with overlay, close button, sizes), Input (with label, error, helper text), Select, Textarea, Badge (status colors), Avatar, Spinner, EmptyState, Tooltip. Use TailwindCSS 4, export all from index.ts. Every component must accept className prop for overrides." --agent claude
+# Wire real social platform APIs
+gt sling "Implement Instagram Graph API publish + analytics in platform.service.ts. Wire YouTube Data API v3 for uploads and analytics. Implement TikTok Content Posting API. All behind the existing ConnectedAccount OAuth tokens." --agent claude
 
-# Design tokens and layout system
-gt sling "Create design system in ui/src/styles/: design-tokens.css with CSS variables for colors (brand, neutral, success, warning, error), spacing scale, font sizes, border radius, shadows, transitions. Create AppLayout component with responsive sidebar navigation (collapsible), top header bar with user avatar+dropdown, breadcrumbs, and main content area. Create PageHeader component with title, description, and action buttons slot. All using TailwindCSS 4." --agent copilot
+# Payment/billing integration
+gt sling "Integrate Stripe Checkout for PRO/ENTERPRISE tier upgrades. Add webhook handler for subscription events. Update UsageBudget model on successful payment. Wire to the existing PricingPage and PlanCard components." --agent copilot
 
-# Fix server foundation
-gt sling "Fix dotenv loading in server/src/index.ts, complete seed.ts with realistic demo data for all 15 Prisma models: 5 creators with platform stats, 3 brands with campaigns, sample content posts across statuses, campaign matches with score breakdowns, community interactions." --agent gemini
-```
-
-#### Sprint 2: Page Builds (UI-Heavy)
-
-```bash
-# Dashboard — the hero page
-gt sling "Build polished Dashboard page using reusable components: stat cards grid (total followers, engagement rate, posts this month, active campaigns), Recharts line chart for follower growth, bar chart for engagement by platform, recent posts list with status badges, upcoming scheduled posts, top performing content cards. Responsive grid layout, loading skeletons, empty states." --agent claude
-
-# Content management pages
-gt sling "Build polished Content Calendar page: monthly calendar grid with posts shown as colored dots/cards by platform, click to view post detail in a slide-over panel. Build Create/Edit Post form: platform selector with preview mockup (IG post, YT thumbnail, TT video), rich caption editor with character count, hashtag suggestions, media upload dropzone, schedule date picker, draft/publish actions. Use react-hook-form + zod." --agent copilot
-
-# Campaign & Discovery pages
-gt sling "Build polished Campaigns page: campaign list with status filters (tabs: active, draft, completed), campaign cards showing budget, niche tags, matched creators count, progress bar. Campaign detail page with matched creators table (score, breakdown radar chart, accept/reject). Build Discover page: creator search with filters sidebar (niche, platform, follower range, engagement rate, location), creator cards grid with avatar, stats, niche tags, view profile action." --agent gemini
-```
-
-#### Sprint 3: Remaining Pages + Server Features
-
-```bash
-# Analytics + Trends pages
-gt sling "Build polished Analytics page: date range selector, KPI cards row (impressions, reach, engagement, clicks), Recharts area chart for metrics over time, platform breakdown pie chart, top posts table with thumbnails and metrics, growth rate indicator. Build Trends page: trending topics cards with relevance score bars, trending audio/hashtags lists, content opportunity suggestions with urgency badges." --agent claude
-
-# Community + AI Assistant pages
-gt sling "Build polished Community page: interaction feed (comments, DMs, mentions) with sentiment color coding, AI reply suggestions shown as expandable cards with one-click copy, filter by platform/type/sentiment, unread count badges. Build AI Assistant page: chat-like interface with prompt input, agent type selector dropdown, response cards with markdown rendering, history sidebar." --agent copilot
-
-# Server integrations
-gt sling "Wire up Passport Google OAuth strategy with callback routes. Implement Instagram Graph API integration in platform.service.ts (publish post, get analytics, get comments). Add multer middleware for media uploads with file validation and size limits. Add Socket.io for real-time notifications on new matches, comments, and campaign updates." --agent gemini
-```
-
-#### Sprint 4: Polish + Advanced Features
-
-```bash
-# Settings + Auth pages polish
-gt sling "Build polished Settings page: tabbed layout (Profile, Connected Accounts, Notifications, Security). Profile tab with avatar upload, bio editor, niche tag selector. Connected Accounts tab showing OAuth status per platform with connect/disconnect buttons. Polish Login/Register pages with split layout (form left, hero image right), social login buttons, form validation feedback." --agent claude
-
-# Admin + Agency
-gt sling "Build admin dashboard: user management data table with search/sort/pagination, campaign oversight with status pipeline view, platform health status cards, agent task audit log with filters. Build agency management pages: managed creators table, add/remove creators, aggregate analytics across managed creators." --agent copilot
-
-# Remaining server features
-gt sling "Implement YouTube Data API v3 and TikTok API integrations in platform.service.ts. Add Nodemailer with email templates for: welcome, campaign invitation, match notification, weekly digest. Wire trend detection to real platform trending APIs where available." --agent gemini
+# Agency features expansion
+gt sling "Build agency dashboard: managed creators table with aggregated analytics, bulk content scheduling, cross-creator performance reports. Extend existing AgencyProfile and AgencyCreator models." --agent gemini
 ```
 
 ### Monitoring Your Agents
@@ -372,6 +342,11 @@ gt mayor stop
 | CampaignMatch | score, status, scoreBreakdown (JSON), aiReasoning |
 | CommunityInteraction | platform, type, content, sentiment, aiReplySuggestion |
 | AgentTask | agentType, input, output, tokensUsed, status |
+| StartPage | slug, title, links, theme |
+| RevenueStream | type, amount, recurring |
+| BrandDeal | brand, status (PROSPECT→NEGOTIATING→ACTIVE→COMPLETED), value |
+| Invoice | status (DRAFT→SENT→PAID/OVERDUE), amount |
+| ApiKey | name, scopes, hashedKey |
 
 ## API Endpoints Quick Reference
 
@@ -383,6 +358,9 @@ gt mayor stop
 | Campaigns | `/api/campaigns` | CRUD campaigns, my matches, accept/reject match |
 | Matching | `/api/matching` | find-creators, get matches, discover creators |
 | AI Agents | `/api/agents` | run agent, generate content, optimize schedule, insights, trends |
+| Studio | `/api/studio` | compose, rewrite, image/generate, media/suggest, intelligence, video/analyze, video/clip |
+| RSS | `/api/rss` | list feeds, subscribe, unsubscribe, toggle auto-import |
+| Public API | `/api/public` | API key management, external post/analytics access |
 
 ## Security Reminders
 

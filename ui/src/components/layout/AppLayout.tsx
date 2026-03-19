@@ -4,7 +4,7 @@ import { Sidebar } from './Sidebar';
 import { TopBar } from './TopBar';
 import { FloatingAiAssistant } from '@/components/ai';
 import { useAppSelector, useAppDispatch } from '@/hooks/store';
-import { setUser } from '@/store/auth.slice';
+import { setUser, logout } from '@/store/auth.slice';
 import { useGetMeQuery } from '@/store/endpoints/auth';
 import { useSocket } from '@/hooks/useSocket';
 import styles from './AppLayout.module.scss';
@@ -12,14 +12,15 @@ import styles from './AppLayout.module.scss';
 export function AppLayout() {
   const { isAuthenticated, user } = useAppSelector((s) => s.auth);
   const dispatch = useAppDispatch();
-  const { data } = useGetMeQuery(undefined, { skip: !isAuthenticated || !!user });
+  const { data, isError } = useGetMeQuery(undefined, { skip: !isAuthenticated || !!user });
 
   // Establish WebSocket connection for real-time notifications
   useSocket();
 
   useEffect(() => {
     if (data?.data) dispatch(setUser(data.data));
-  }, [data, dispatch]);
+    if (isError) dispatch(logout());
+  }, [data, isError, dispatch]);
 
   if (!isAuthenticated) return <Navigate to="/login" replace />;
 

@@ -1,4 +1,5 @@
 import { createServer } from 'http';
+import path from 'path';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -28,7 +29,7 @@ app.use(cors({
 }));
 app.use(rateLimit({
   windowMs: 15 * 60 * 1000,
-  limit: 200,
+  limit: env.NODE_ENV === 'development' ? 1000 : 200,
   standardHeaders: 'draft-7',
   legacyHeaders: false,
   message: { success: false, error: 'Too many requests, please try again later' },
@@ -47,6 +48,9 @@ if (env.NODE_ENV !== 'test') {
 // Passport
 configurePassport();
 app.use(passport.initialize());
+
+// Serve uploaded files
+app.use('/uploads', express.static(path.resolve(env.UPLOAD_DIR)));
 
 // Health check
 app.get('/health', (_req, res) => {

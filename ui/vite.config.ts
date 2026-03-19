@@ -20,6 +20,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': process.env.PROXY_API_TARGET || 'http://localhost:3001',
+      '/uploads': process.env.PROXY_API_TARGET || 'http://localhost:3001',
     },
   },
 })

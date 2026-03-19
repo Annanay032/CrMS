@@ -30,7 +30,7 @@ export default function App() {
         <Route path="/calendar" element={<CalendarPage />} />
         <Route path="/content/new" element={<CreatePostPage />} />
         <Route path="/analytics" element={<AnalyticsPage />} />
-        <Route path="/campaigns" element={<CampaignsPage />} />
+        <Route path="/campaigns/my" element={<CampaignsPage />} />
         <Route path="/discover" element={<DiscoverPage />} />
         <Route path="/community" element={<CommunityPage />} />
         <Route path="/trends" element={<TrendsPage />} />

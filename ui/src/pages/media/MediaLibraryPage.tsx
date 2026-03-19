@@ -23,6 +23,28 @@ import {
 import type { MediaFolder, MediaAsset } from '@/types';
 
 const { Text } = Typography;
+
+/** Inline component for asset thumbnail with broken-image fallback */
+function AssetPreview({ asset }: { asset: MediaAsset }) {
+  const [broken, setBroken] = useState(false);
+
+  if (asset.mimeType.startsWith('image/') && !broken) {
+    return (
+      <img
+        src={asset.thumbnailUrl || asset.url}
+        alt={asset.filename}
+        style={{ height: 120, objectFit: 'cover', width: '100%' }}
+        onError={() => setBroken(true)}
+      />
+    );
+  }
+
+  return (
+    <div style={{ height: 120, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f5f5f5' }}>
+      <FontAwesomeIcon icon={iconForMime(asset.mimeType)} style={{ fontSize: 32, color: '#94a3b8' }} />
+    </div>
+  );
+}
 const { Search } = Input;
 
 function formatSize(bytes: number): string {
@@ -149,13 +171,7 @@ export function MediaLibraryPage() {
               key={a.id}
               hoverable
               size="small"
-              cover={
-                a.mimeType.startsWith('image/')
-                  ? <img src={a.url} alt={a.filename} style={{ height: 120, objectFit: 'cover' }} />
-                  : <div style={{ height: 120, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f5f5f5' }}>
-                      <FontAwesomeIcon icon={iconForMime(a.mimeType)} style={{ fontSize: 32, color: '#94a3b8' }} />
-                    </div>
-              }
+              cover={<AssetPreview asset={a} />}
               actions={[
                 <Button type="text" size="small" danger onClick={() => deleteAsset(a.id)} key="del">
                   <FontAwesomeIcon icon={faTrash} />

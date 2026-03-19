@@ -4,57 +4,95 @@ import { prisma } from '../config/index.js';
 import type { AuthRequest } from '../types/common.js';
 import type { AgentType } from '../types/enums.js';
 
+/** Return true if the error was handled (response sent). */
+function handleAiError(err: unknown, res: Response): boolean {
+  const message = err instanceof Error ? err.message : String(err);
+  if (message.includes('API key') || message.includes('authentication') || message.includes('401')) {
+    res.status(503).json({ success: false, error: 'AI service is not configured. Please set a valid OPENAI_API_KEY.' });
+    return true;
+  }
+  if (message.includes('quota') || message.includes('exceeded') || message.includes('billing') || message.includes('429')) {
+    res.status(503).json({ success: false, error: 'AI service quota exceeded. Please check your OpenAI plan and billing details.' });
+    return true;
+  }
+  if (message.includes('does not exist') || message.includes('model')) {
+    res.status(503).json({ success: false, error: `AI model error: ${message}` });
+    return true;
+  }
+  return false;
+}
+
 export async function runAgent(req: AuthRequest, res: Response) {
-  const { agentType, input } = req.body as { agentType: AgentType; input: Record<string, unknown> };
-  const result = await orchestrator.run(agentType, req.user!.userId, input);
-  res.json({ success: true, data: result.output });
+  try {
+    const { agentType, input } = req.body as { agentType: AgentType; input: Record<string, unknown> };
+    const result = await orchestrator.run(agentType, req.user!.userId, input);
+    res.json({ success: true, data: result.output });
+  } catch (err) {
+    if (!handleAiError(err, res)) throw err;
+  }
 }
 
 export async function generateContent(req: AuthRequest, res: Response) {
-  const result = await orchestrator.run('CONTENT_GENERATION' as AgentType, req.user!.userId, req.body);
-  res.json({ success: true, data: result.output });
+  try {
+    const result = await orchestrator.run('CONTENT_GENERATION' as AgentType, req.user!.userId, req.body);
+    res.json({ success: true, data: result.output });
+  } catch (err) {
+    if (!handleAiError(err, res)) throw err;
+  }
 }
 
 export async function optimizeSchedule(req: AuthRequest, res: Response) {
-  const creatorProfile = await prisma.creatorProfile.findUnique({ where: { userId: req.user!.userId } });
-  if (!creatorProfile) {
-    res.status(404).json({ success: false, error: 'Creator profile not found' });
-    return;
+  try {
+    const creatorProfile = await prisma.creatorProfile.findUnique({ where: { userId: req.user!.userId } });
+    if (!creatorProfile) {
+      res.status(404).json({ success: false, error: 'Creator profile not found' });
+      return;
+    }
+    const result = await orchestrator.run(
+      'SCHEDULING' as AgentType,
+      req.user!.userId,
+      { ...req.body, creatorProfileId: creatorProfile.id },
+    );
+    res.json({ success: true, data: result.output });
+  } catch (err) {
+    if (!handleAiError(err, res)) throw err;
   }
-  const result = await orchestrator.run(
-    'SCHEDULING' as AgentType,
-    req.user!.userId,
-    { ...req.body, creatorProfileId: creatorProfile.id },
-  );
-  res.json({ success: true, data: result.output });
 }
 
 export async function getAnalyticsInsights(req: AuthRequest, res: Response) {
-  const creatorProfile = await prisma.creatorProfile.findUnique({ where: { userId: req.user!.userId } });
-  if (!creatorProfile) {
-    res.status(404).json({ success: false, error: 'Creator profile not found' });
-    return;
+  try {
+    const creatorProfile = await prisma.creatorProfile.findUnique({ where: { userId: req.user!.userId } });
+    if (!creatorProfile) {
+      res.status(404).json({ success: false, error: 'Creator profile not found' });
+      return;
+    }
+    const result = await orchestrator.run(
+      'ANALYTICS' as AgentType,
+      req.user!.userId,
+      { ...req.body, creatorProfileId: creatorProfile.id },
+    );
+    res.json({ success: true, data: result.output });
+  } catch (err) {
+    if (!handleAiError(err, res)) throw err;
   }
-  const result = await orchestrator.run(
-    'ANALYTICS' as AgentType,
-    req.user!.userId,
-    { ...req.body, creatorProfileId: creatorProfile.id },
-  );
-  res.json({ success: true, data: result.output });
 }
 
 export async function getEngagementSuggestions(req: AuthRequest, res: Response) {
-  const creatorProfile = await prisma.creatorProfile.findUnique({ where: { userId: req.user!.userId } });
-  if (!creatorProfile) {
-    res.status(404).json({ success: false, error: 'Creator profile not found' });
-    return;
+  try {
+    const creatorProfile = await prisma.creatorProfile.findUnique({ where: { userId: req.user!.userId } });
+    if (!creatorProfile) {
+      res.status(404).json({ success: false, error: 'Creator profile not found' });
+      return;
+    }
+    const result = await orchestrator.run(
+      'ENGAGEMENT' as AgentType,
+      req.user!.userId,
+      { ...req.body, creatorProfileId: creatorProfile.id },
+    );
+    res.json({ success: true, data: result.output });
+  } catch (err) {
+    if (!handleAiError(err, res)) throw err;
   }
-  const result = await orchestrator.run(
-    'ENGAGEMENT' as AgentType,
-    req.user!.userId,
-    { ...req.body, creatorProfileId: creatorProfile.id },
-  );
-  res.json({ success: true, data: result.output });
 }
 
 export async function getTrends(req: AuthRequest, res: Response) {
@@ -66,12 +104,7 @@ export async function getTrends(req: AuthRequest, res: Response) {
     );
     res.json({ success: true, data: result.output });
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Unknown error';
-    if (message.includes('API key') || message.includes('authentication') || message.includes('401')) {
-      res.status(503).json({ success: false, error: 'AI service is not configured. Please set a valid OPENAI_API_KEY.' });
-      return;
-    }
-    throw err;
+    if (!handleAiError(err, res)) throw err;
   }
 }
 

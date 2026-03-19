@@ -37,10 +37,10 @@ export function VoiceProfileDrawer({ open, onClose }: VoiceProfileDrawerProps) {
       {profile && !isLoading ? (
         <div style={{ marginBottom: 24 }}>
           <Descriptions column={1} size="small" bordered>
-            <Descriptions.Item label="Tone">{profile.tonePreferences.map((t) => <Tag key={t}>{t}</Tag>)}</Descriptions.Item>
+            <Descriptions.Item label="Tone">{(profile.tonePreferences ?? []).map((t) => <Tag key={t}>{t}</Tag>)}</Descriptions.Item>
             <Descriptions.Item label="Formality">{profile.formalityLevel}/10</Descriptions.Item>
-            <Descriptions.Item label="Vocabulary">{profile.vocabulary.slice(0, 10).map((v) => <Tag key={v}>{v}</Tag>)}</Descriptions.Item>
-            {profile.personalityTraits.length > 0 && (
+            <Descriptions.Item label="Vocabulary">{(profile.vocabulary ?? []).slice(0, 10).map((v) => <Tag key={v}>{v}</Tag>)}</Descriptions.Item>
+            {(profile.personalityTraits ?? []).length > 0 && (
               <Descriptions.Item label="Personality">{profile.personalityTraits.map((t) => <Tag key={t}>{t}</Tag>)}</Descriptions.Item>
             )}
           </Descriptions>
@@ -53,11 +53,11 @@ export function VoiceProfileDrawer({ open, onClose }: VoiceProfileDrawerProps) {
         form={form}
         layout="vertical"
         initialValues={profile ? {
-          tonePreferences: profile.tonePreferences.join(', '),
-          vocabulary: profile.vocabulary.join(', '),
+          tonePreferences: (profile.tonePreferences ?? []).join(', '),
+          vocabulary: (profile.vocabulary ?? []).join(', '),
           formalityLevel: profile.formalityLevel,
-          personalityTraits: profile.personalityTraits.join(', '),
-          sampleReplies: profile.sampleReplies.join('\n---\n'),
+          personalityTraits: (profile.personalityTraits ?? []).join(', '),
+          sampleReplies: (profile.sampleReplies ?? []).join('\n---\n'),
         } : { formalityLevel: 5 }}
       >
         <Form.Item name="tonePreferences" label="Tone Preferences (comma-separated)" rules={[{ required: true }]}>

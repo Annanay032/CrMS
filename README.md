@@ -17,6 +17,7 @@ AI-powered platform for managing creators, brands, campaigns, and community enga
 | Auth        | JWT (access + refresh tokens via Redis), bcrypt, Passport.js, Google OAuth |
 | Payments    | Stripe (USD), Razorpay (INR), webhook-verified subscriptions |
 | Push        | Web Push (VAPID / web-push) for notification-based posting |
+| Storage     | Local disk (default) or S3-compatible (Cloudflare R2, AWS S3, MinIO) |
 | Infra       | Docker Compose, npm workspaces monorepo |
 
 ---
@@ -155,6 +156,41 @@ See [.env.example](.env.example) for the full list. Key variables:
 | `VAPID_PUBLIC_KEY` | VAPID public key for web push notifications | *(optional)* |
 | `VAPID_PRIVATE_KEY` | VAPID private key for web push notifications | *(optional)* |
 | `VAPID_CONTACT_EMAIL` | Contact email for VAPID | *(optional)* |
+| `S3_ENDPOINT` | S3-compatible storage endpoint (R2, S3, MinIO) | *(optional)* |
+| `S3_ACCESS_KEY_ID` | S3 access key ID | *(optional)* |
+| `S3_SECRET_ACCESS_KEY` | S3 secret access key | *(optional)* |
+| `S3_BUCKET` | S3 bucket name | *(optional)* |
+| `S3_REGION` | S3 region | `auto` |
+| `S3_PUBLIC_URL` | Public URL prefix for serving uploaded files | *(optional)* |
+
+### File Storage
+
+By default, uploaded files are stored locally in `./uploads`. For production or when platform APIs need public URLs (e.g., Instagram requires publicly accessible image URLs), configure S3-compatible cloud storage.
+
+**Recommended free options:**
+
+| Provider | Free Tier | S3-Compatible | Notes |
+|----------|-----------|:---:|-------|
+| **Cloudflare R2** | 10 GB storage, 10M reads/mo, **zero egress** | Yes | Best free option — no egress fees |
+| **Backblaze B2** | 10 GB storage, 1 GB/day egress | Yes | Good S3-compatible alternative |
+| **Supabase Storage** | 1 GB storage | Yes | Includes auth & DB too |
+| **MinIO** | Self-hosted, unlimited | Yes | Run alongside Docker services |
+
+**Cloudflare R2 setup:**
+
+```bash
+# 1. Create an R2 bucket in the Cloudflare dashboard
+# 2. Generate an API token: R2 → Manage R2 API Tokens → Create API Token
+# 3. Add to your .env:
+S3_ENDPOINT=https://<account_id>.r2.cloudflarestorage.com
+S3_ACCESS_KEY_ID=<your-access-key>
+S3_SECRET_ACCESS_KEY=<your-secret-key>
+S3_BUCKET=crms-uploads
+S3_REGION=auto
+S3_PUBLIC_URL=https://your-r2-domain.com   # Enable public access or custom domain in R2 settings
+```
+
+When S3 vars are not set, the system uses local disk storage (works fine for development).
 
 ---
 
@@ -966,6 +1002,7 @@ Single-item groups (e.g., Home, Communication) render inline without a header. C
 - Helmet security headers are enabled by default
 - Configure `UPLOAD_DIR` and `MAX_FILE_SIZE` for media library storage
 - Consider code-splitting for the frontend bundle (currently ~2.2 MB)
+CRMS_ADMIN_2026
 
 ---
 

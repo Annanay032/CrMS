@@ -34,7 +34,12 @@ function getPlatformConfig(provider: string): PlatformOAuthConfig | null {
         clientId: env.YOUTUBE_CLIENT_ID,
         clientSecret: env.YOUTUBE_CLIENT_SECRET,
         callbackUrl: env.YOUTUBE_CALLBACK_URL,
-        scopes: ['https://www.googleapis.com/auth/youtube.readonly', 'https://www.googleapis.com/auth/yt-analytics.readonly'],
+        scopes: [
+          'https://www.googleapis.com/auth/youtube.upload',
+          'https://www.googleapis.com/auth/youtube.readonly',
+          'https://www.googleapis.com/auth/youtube.force-ssl',
+          'https://www.googleapis.com/auth/yt-analytics.readonly',
+        ],
       };
     case 'TIKTOK':
       if (!env.TIKTOK_CLIENT_KEY || !env.TIKTOK_CLIENT_SECRET || !env.TIKTOK_CALLBACK_URL) return null;
@@ -134,7 +139,16 @@ export async function getConnectedAccounts(userId: string) {
     include: { platformStats: true },
   });
 
-  return accounts
+  // Get distinct platforms from the user's content posts
+  const contentPlatforms = creatorProfile
+    ? await prisma.contentPost.findMany({
+        where: { creatorProfileId: creatorProfile.id },
+        select: { platform: true },
+        distinct: ['platform'],
+      })
+    : [];
+
+  const oauthAccounts = accounts
     .filter((a) => a.provider !== 'GOOGLE') // Google is auth, not a social platform connection
     .map((account) => {
       const stats = creatorProfile?.platformStats?.find(
@@ -161,6 +175,38 @@ export async function getConnectedAccounts(userId: string) {
           : null,
       };
     });
+
+  // Add content-only platforms (platforms with posts but no OAuth connection)
+  const oauthProviders = new Set(oauthAccounts.map((a) => a.provider));
+  for (const cp of contentPlatforms) {
+    if (!oauthProviders.has(cp.platform)) {
+      const stats = creatorProfile?.platformStats?.find(
+        (s) => s.platform === cp.platform,
+      );
+      oauthAccounts.push({
+        id: `content-${cp.platform.toLowerCase()}`,
+        provider: cp.platform,
+        providerAccountId: '',
+        connected: true,
+        connectedAt: new Date(),
+        expiresAt: null,
+        isExpired: false,
+        paused: false,
+        stats: stats
+          ? {
+              handle: stats.handle,
+              followers: stats.followers,
+              engagementRate: stats.engagementRate,
+              avgLikes: stats.avgLikes,
+              avgComments: stats.avgComments,
+              avgViews: stats.avgViews,
+            }
+          : null,
+      });
+    }
+  }
+
+  return oauthAccounts;
 }
 
 // ─── Check which platforms are available for OAuth ──────────

@@ -7,10 +7,20 @@ export async function publishScheduledPosts() {
   const now = new Date();
   const window = new Date(now.getTime() + 2 * 60 * 1000);
 
+  // Fetch SCHEDULED posts in the time window + any PUBLISHED posts waiting for upload
   const posts = await prisma.contentPost.findMany({
     where: {
-      status: 'SCHEDULED',
-      scheduledAt: { lte: window, gte: new Date(now.getTime() - 5 * 60 * 1000) },
+      OR: [
+        {
+          status: 'SCHEDULED',
+          scheduledAt: { lte: window, gte: new Date(now.getTime() - 5 * 60 * 1000) },
+        },
+        {
+          status: 'PUBLISHED',
+          publishedAt: null, // Not yet actually published — instant upload request
+          externalPostId: null,
+        },
+      ],
     },
     include: {
       creatorProfile: {

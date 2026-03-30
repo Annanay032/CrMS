@@ -1,11 +1,5 @@
-import type { ImageUploader } from './ImageUploader';
-import type { VideoFileInfo } from './types';
-import { ImageUploader as ImageUp } from './ImageUploader';
-import { CarouselUploader } from './CarouselUploader';
-import { VideoUploader } from './VideoUploader';
-import { StoryUploader } from './StoryUploader';
-import { ThreadEditor } from './ThreadEditor';
-import type { ThreadEntry } from './types';
+import { ImageUploader, VideoUploader, CarouselUploader, StoryUploader, ThreadEditor } from '../uploaders';
+import type { VideoFileInfo, ThreadEntry } from '../types';
 
 interface Props {
   postType: string;
@@ -33,7 +27,7 @@ export function MediaZone({
 }: Props) {
   switch (postType) {
     case 'IMAGE':
-      return <ImageUp mediaUrls={mediaUrls} onSetMediaUrls={onSetMediaUrls} onCrop={onCrop} />;
+      return <ImageUploader mediaUrls={mediaUrls} onSetMediaUrls={onSetMediaUrls} onCrop={onCrop} />;
     case 'CAROUSEL':
       return <CarouselUploader mediaUrls={mediaUrls} onSetMediaUrls={onSetMediaUrls} onCrop={onCrop} />;
     case 'VIDEO':

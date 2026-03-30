@@ -1,8 +1,10 @@
-import { Typography, Upload, Button, Tag, message } from 'antd';
+import { useState } from 'react';
+import { Typography, Upload, Button, Tag, Spin, message } from 'antd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faMobileScreenButton, faTrash } from '@fortawesome/free-solid-svg-icons';
-import type { VideoFileInfo } from './types';
-import styles from './compose.module.scss';
+import { uploadFileToServer } from '../helpers';
+import type { VideoFileInfo } from '../types';
+import styles from '../styles/compose.module.scss';
 
 const { Text } = Typography;
 
@@ -15,6 +17,7 @@ interface Props {
 
 export function StoryUploader({ mediaUrls, videoFile, onSetMediaUrls, onSetVideoFile }: Props) {
   const hasMedia = mediaUrls.length > 0 || !!videoFile;
+  const [uploading, setUploading] = useState(false);
 
   return (
     <div className={styles.media_zone}>
@@ -47,29 +50,32 @@ export function StoryUploader({ mediaUrls, videoFile, onSetMediaUrls, onSetVideo
         <Upload.Dragger
           accept="image/*,video/*"
           showUploadList={false}
-          beforeUpload={(file) => {
+          disabled={uploading}
+          beforeUpload={async (file) => {
+            setUploading(true);
+            const serverUrl = await uploadFileToServer(file);
+            setUploading(false);
+            if (!serverUrl) { message.error('Upload failed'); return false; }
+
             if (file.type.startsWith('video/')) {
-              const url = URL.createObjectURL(file);
+              const previewUrl = URL.createObjectURL(file);
               const vid = document.createElement('video');
               vid.preload = 'metadata';
               vid.onloadedmetadata = () => {
                 if (vid.duration > 60) message.warning('Stories should be under 60 seconds');
-                onSetVideoFile({ url, name: file.name, size: file.size, duration: vid.duration });
-                URL.revokeObjectURL(vid.src);
+                onSetVideoFile({ url: previewUrl, serverUrl, name: file.name, size: file.size, duration: vid.duration });
               };
-              vid.src = url;
+              vid.src = previewUrl;
             } else {
-              const reader = new FileReader();
-              reader.onload = () => onSetMediaUrls([reader.result as string]);
-              reader.readAsDataURL(file);
+              onSetMediaUrls([serverUrl]);
             }
             return false;
           }}
           className={styles.uploader}
         >
           <div className={styles.uploader_body}>
-            <FontAwesomeIcon icon={faMobileScreenButton} className={styles.uploader_icon} style={{ color: '#e11d9e' }} />
-            <Text strong className={styles.uploader_title}>Drop an image or video for your Story</Text>
+            {uploading ? <Spin size="large" /> : <FontAwesomeIcon icon={faMobileScreenButton} className={styles.uploader_icon} style={{ color: '#e11d9e' }} />}
+            <Text strong className={styles.uploader_title}>{uploading ? 'Uploading...' : 'Drop an image or video for your Story'}</Text>
             <Text type="secondary" className={styles.uploader_hint}>9:16 vertical • 1080×1920 • image or video up to 60s</Text>
           </div>
         </Upload.Dragger>

@@ -356,6 +356,152 @@
     }
   }
 
+  // ── SSO Button Grid ──
+  &__sso_grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  &__sso_btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: $space-2;
+    height: 44px;
+    border-radius: $radius-lg;
+    border: 1.5px solid $color-slate-200;
+    background: $color-white;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    color: $color-slate-700;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    cursor: pointer;
+
+    svg {
+      flex-shrink: 0;
+    }
+
+    &:hover {
+      background: $color-slate-50;
+      border-color: $color-slate-300;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    &:active {
+      transform: scale(0.99);
+    }
+  }
+
+  // ── Form extras row ──
+  &__form_extras {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+  }
+
+  &__forgot_link {
+    background: none;
+    border: none;
+    color: $color-primary-600;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    cursor: pointer;
+    padding: 0;
+
+    &:hover {
+      color: $color-primary-700;
+      text-decoration: underline;
+    }
+  }
+
+  // ── Password Strength ──
+  &__pw_strength {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    margin: -10px 0 16px;
+
+    :global(.ant-progress) {
+      flex: 1;
+    }
+
+    span {
+      font-size: 11px;
+      font-weight: $font-weight-semibold;
+      min-width: 40px;
+    }
+  }
+
+  &__pw_success { color: #22c55e; }
+  &__pw_active { color: #f59e0b; }
+  &__pw_exception { color: #ef4444; }
+
+  // ── Step Navigation ──
+  &__steps {
+    margin-top: 8px;
+  }
+
+  &__step_nav {
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+    margin-top: 4px;
+
+    > :last-child {
+      margin-left: auto;
+    }
+  }
+
+  // ── Role Badge ──
+  &__role_badge {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    font-size: 9px;
+    font-weight: $font-weight-bold;
+    color: $color-primary-600;
+    background: rgba($color-primary-100, 0.8);
+    padding: 2px 6px;
+    border-radius: $radius-full;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+
+  // ── Confirm Card ──
+  &__confirm_card {
+    background: $color-slate-50;
+    border: 1px solid $color-slate-200;
+    border-radius: $radius-lg;
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  &__confirm_row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: $font-size-sm;
+  }
+
+  &__confirm_label {
+    color: $color-slate-400;
+    font-weight: $font-weight-medium;
+  }
+
+  &__confirm_role {
+    background: rgba($color-primary-500, 0.08);
+    color: $color-primary-600;
+    padding: 2px 10px;
+    border-radius: $radius-full;
+    font-weight: $font-weight-semibold;
+    font-size: $font-size-xs;
+  }
+
   // ── Divider ──
   &__divider {
     position: relative;
@@ -408,7 +554,7 @@
   // ── Role Card Grid ──
   &__role_grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 10px;
   }
 

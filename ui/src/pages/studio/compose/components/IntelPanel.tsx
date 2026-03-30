@@ -1,8 +1,8 @@
 import { Typography, Tag, Progress, Spin } from 'antd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBrain, faChartSimple, faClock, faHashtag, faLightbulb, faUsers } from '@fortawesome/free-solid-svg-icons';
-import type { IntelData } from './types';
-import styles from './compose.module.scss';
+import type { IntelData } from '../types';
+import styles from '../styles/compose.module.scss';
 
 const { Text } = Typography;
 
@@ -37,7 +37,6 @@ export function IntelPanel({ intel, loading, onHashtagClick }: Props) {
   return (
     <div className={styles.intel}>
       <div className={styles.intel_body}>
-        {/* Content Score */}
         <div className={styles.intel_card}>
           <Text strong style={{ fontSize: 13 }}>
             <FontAwesomeIcon icon={faChartSimple} style={{ marginRight: 6, color: '#6366f1' }} />
@@ -48,7 +47,6 @@ export function IntelPanel({ intel, loading, onHashtagClick }: Props) {
           </div>
         </div>
 
-        {/* Best Times */}
         <div className={styles.intel_card}>
           <Text strong style={{ fontSize: 13 }}>
             <FontAwesomeIcon icon={faClock} style={{ marginRight: 6, color: '#f59e0b' }} />
@@ -59,7 +57,6 @@ export function IntelPanel({ intel, loading, onHashtagClick }: Props) {
           </div>
         </div>
 
-        {/* Suggested Hashtags */}
         <div className={styles.intel_card}>
           <Text strong style={{ fontSize: 13 }}>
             <FontAwesomeIcon icon={faHashtag} style={{ marginRight: 6, color: '#10b981' }} />
@@ -72,7 +69,6 @@ export function IntelPanel({ intel, loading, onHashtagClick }: Props) {
           </div>
         </div>
 
-        {/* Tips */}
         <div className={styles.intel_card}>
           <Text strong style={{ fontSize: 13 }}>
             <FontAwesomeIcon icon={faLightbulb} style={{ marginRight: 6, color: '#f97316' }} />
@@ -85,7 +81,6 @@ export function IntelPanel({ intel, loading, onHashtagClick }: Props) {
           </ul>
         </div>
 
-        {/* Audience Insight */}
         {intel.audienceInsight && (
           <div className={styles.intel_card}>
             <Text strong style={{ fontSize: 13 }}>

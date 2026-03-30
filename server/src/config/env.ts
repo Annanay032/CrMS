@@ -79,12 +79,37 @@ const envSchema = z.object({
   // Web Push (VAPID)
   VAPID_PUBLIC_KEY: z.string().optional(),
   VAPID_PRIVATE_KEY: z.string().optional(),
-  VAPID_CONTACT_EMAIL: z.string().email().optional(),
+  VAPID_CONTACT_EMAIL: z.preprocess(
+    (v) => (v === '' ? undefined : v),
+    z.string().email().optional(),
+  ),
 
   CLIENT_URL: z.string().default('http://localhost:5173'),
 
+  ADMIN_INVITE_CODE: z.string().default('CRMS_ADMIN_2026'),
+
+  // Microsoft (Azure AD) OAuth
+  MICROSOFT_CLIENT_ID: z.string().optional(),
+  MICROSOFT_CLIENT_SECRET: z.string().optional(),
+  MICROSOFT_CALLBACK_URL: z.string().optional(),
+  MICROSOFT_TENANT_ID: z.string().default('common'),
+
+  // Okta / Company SSO (OIDC)
+  OKTA_ISSUER: z.string().optional(),
+  OKTA_CLIENT_ID: z.string().optional(),
+  OKTA_CLIENT_SECRET: z.string().optional(),
+  OKTA_CALLBACK_URL: z.string().optional(),
+
   UPLOAD_DIR: z.string().default('./uploads'),
   MAX_FILE_SIZE: z.coerce.number().default(52428800),
+
+  // S3-compatible storage (Cloudflare R2, AWS S3, MinIO, etc.)
+  S3_ENDPOINT: z.string().optional(),
+  S3_ACCESS_KEY_ID: z.string().optional(),
+  S3_SECRET_ACCESS_KEY: z.string().optional(),
+  S3_BUCKET: z.string().optional(),
+  S3_REGION: z.string().default('auto'),
+  S3_PUBLIC_URL: z.string().optional(), // Public URL prefix for serving files (e.g., R2 custom domain)
 });
 
 export type Env = z.infer<typeof envSchema>;

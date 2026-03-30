@@ -39,5 +39,7 @@ router.post('/creator-profile', authenticate, authorize(Role.CREATOR), validate(
 router.post('/brand-profile', authenticate, authorize(Role.BRAND), validate(brandProfileSchema), userController.setupBrandProfile);
 router.post('/agency-profile', authenticate, authorize(Role.AGENCY), validate(agencyProfileSchema), userController.setupAgencyProfile);
 router.get('/', authenticate, authorize(Role.ADMIN), userController.listUsers);
+router.patch('/:id/role', authenticate, authorize(Role.ADMIN), validate(z.object({ role: z.enum(['CREATOR', 'BRAND', 'AGENCY', 'ADMIN']) })), userController.updateUserRole);
+router.patch('/:id/toggle-active', authenticate, authorize(Role.ADMIN), userController.toggleUserActive);
 
 export default router;

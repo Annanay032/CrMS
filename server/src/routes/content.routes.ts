@@ -9,7 +9,7 @@ const router = Router();
 
 const platformEnum = z.enum(['INSTAGRAM', 'YOUTUBE', 'TIKTOK', 'TWITTER', 'LINKEDIN', 'THREADS', 'BLUESKY', 'FACEBOOK', 'PINTEREST', 'REDDIT']);
 const postTypeEnum = z.enum(['IMAGE', 'VIDEO', 'REEL', 'STORY', 'CAROUSEL', 'SHORT', 'THREAD']);
-const statusEnum = z.enum(['IDEA', 'DRAFT', 'REVIEW', 'APPROVED', 'SCHEDULED']);
+const statusEnum = z.enum(['IDEA', 'DRAFT', 'REVIEW', 'APPROVED', 'SCHEDULED', 'PUBLISHED']);
 
 const createPostSchema = z.object({
   platform: platformEnum,
@@ -100,10 +100,14 @@ const injectQueueSchema = z.object({
 
 // ── Post CRUD ──
 router.post('/', authenticate, authorize(Role.CREATOR), validate(createPostSchema), contentController.createPost);
-router.put('/:id', authenticate, authorize(Role.CREATOR), validate(updatePostSchema), contentController.updatePost);
-router.delete('/:id', authenticate, authorize(Role.CREATOR), contentController.deletePost);
+router.get('/list', authenticate, authorize(Role.CREATOR), contentController.listPosts);
 router.get('/calendar', authenticate, authorize(Role.CREATOR), contentController.getCalendar);
 router.get('/status/:status', authenticate, authorize(Role.CREATOR), contentController.getPostsByStatus);
+router.get('/group/:groupId', authenticate, authorize(Role.CREATOR), contentController.getCrossplatformGroup);
+router.get('/:id', authenticate, authorize(Role.CREATOR), contentController.getPost);
+router.get('/:id/activity', authenticate, authorize(Role.CREATOR), contentController.getPostActivity);
+router.put('/:id', authenticate, authorize(Role.CREATOR), validate(updatePostSchema), contentController.updatePost);
+router.delete('/:id', authenticate, authorize(Role.CREATOR), contentController.deletePost);
 
 // ── Autosave ──
 router.put('/autosave', authenticate, authorize(Role.CREATOR), validate(autosaveSchema), contentController.autosavePost);

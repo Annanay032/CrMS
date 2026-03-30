@@ -20,9 +20,10 @@ import {
   faIndianRupeeSign,
   faSeedling,
   faFilm,
+  faList,
 } from '@fortawesome/free-solid-svg-icons';
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
-import type { UserRole, UsageTier } from '@/types';
+import type { UserRole, UsageTier, TeamRole } from '@/types';
 
 export interface NavItem {
   to: string;
@@ -50,6 +51,7 @@ const creatorGroups: NavGroup[] = [
     label: 'Content',
     items: [
       { to: '/studio', icon: faFilm, label: 'Studio' },
+      { to: '/content', icon: faList, label: 'Library' },
       { to: '/create', icon: faLightbulb, label: 'Ideas' },
       { to: '/calendar', icon: faCalendarDays, label: 'Calendar' },
       { to: '/media', icon: faPhotoFilm, label: 'Media Library' },
@@ -192,3 +194,24 @@ export const NAV_LINKS: Record<UserRole, NavItem[]> = {
   AGENCY: agencyGroups.flatMap((g) => g.items),
   ADMIN: adminGroups.flatMap((g) => g.items),
 };
+
+// ─── Team Role → Allowed Nav Sections ───────────────────────
+// When a user is in a team context, their TeamRole determines
+// which nav group labels are visible.
+export const TEAM_ROLE_ACCESS: Record<TeamRole, string[]> = {
+  OWNER: ['Home', 'Content', 'Monetization', 'Intelligence', 'AI & Growth', 'Communication', 'Channels', 'Account', 'Administration', 'Campaigns', 'Management', 'Tools'],
+  ADMIN: ['Home', 'Content', 'Monetization', 'Intelligence', 'AI & Growth', 'Communication', 'Channels', 'Account', 'Administration', 'Campaigns', 'Management', 'Tools'],
+  EDITOR: ['Home', 'Content', 'Intelligence', 'Communication', 'Channels', 'AI & Growth'],
+  CONTRIBUTOR: ['Home', 'Content', 'Communication'],
+  VIEWER: ['Home', 'Intelligence'],
+};
+
+/**
+ * Filter nav groups based on the active team role.
+ * Returns all groups if no team context (personal account).
+ */
+export function filterNavByTeamRole(groups: NavGroup[], teamRole: TeamRole | null): NavGroup[] {
+  if (!teamRole) return groups; // Personal account - show everything
+  const allowed = TEAM_ROLE_ACCESS[teamRole] ?? [];
+  return groups.filter((g) => allowed.includes(g.label));
+}

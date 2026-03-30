@@ -1,6 +1,6 @@
 import {
   Platform, PostStatus, PostType, IdeaStatus,
-  ReportFormat, ReportStatus,
+  ReportFormat, ReportStatus, PostActivityAction,
 } from '@prisma/client';
 import { SeedContext, daysAgo, futureDate, dateOnly } from './context.js';
 
@@ -16,6 +16,7 @@ export async function seedContent(ctx: SeedContext) {
         creatorProfileId: cp1.id, platform: Platform.INSTAGRAM, postType: PostType.REEL,
         caption: '5-minute morning stretch routine to kickstart your day! 🧘‍♀️', hashtags: ['morningroutine', 'fitness', 'stretch', 'wellness'],
         status: PostStatus.PUBLISHED, scheduledAt: daysAgo(7), publishedAt: daysAgo(7),
+        externalPostId: `ig_seed_${Date.now()}_1`,
         analytics: { create: { impressions: 45000, reach: 32000, likes: 4800, comments: 320, shares: 180, saves: 950, clicks: 120 } },
       },
     }),
@@ -24,6 +25,7 @@ export async function seedContent(ctx: SeedContext) {
         creatorProfileId: cp1.id, platform: Platform.TIKTOK, postType: PostType.SHORT,
         caption: 'Healthy meal prep for the week — under 30 mins! 🥗', hashtags: ['mealprep', 'healthyeating', 'fitnesslife'],
         status: PostStatus.PUBLISHED, scheduledAt: daysAgo(5), publishedAt: daysAgo(5),
+        externalPostId: `tt_seed_${Date.now()}_2`,
         analytics: { create: { impressions: 120000, reach: 95000, likes: 12500, comments: 680, shares: 520, saves: 2200, clicks: 340 } },
       },
     }),
@@ -32,6 +34,7 @@ export async function seedContent(ctx: SeedContext) {
         creatorProfileId: cp1.id, platform: Platform.YOUTUBE, postType: PostType.VIDEO,
         caption: 'Full Week of Workouts — No Equipment Needed! | Follow-along Series', hashtags: ['homeworkout', 'noequipment', 'fitness'],
         status: PostStatus.PUBLISHED, scheduledAt: daysAgo(3), publishedAt: daysAgo(3),
+        externalPostId: `yt_seed_${Date.now()}_3`,
         analytics: { create: { impressions: 28000, reach: 22000, likes: 1800, comments: 145, shares: 85, saves: 430, clicks: 200 } },
       },
     }),
@@ -65,6 +68,32 @@ export async function seedContent(ctx: SeedContext) {
     }),
   ]);
   console.log(`Content posts seeded: ${posts.length} ✓`);
+
+  // ── Activity Logs ─────────────────────────────────────────
+  const activityData: { post: typeof posts[0]; actions: PostActivityAction[] }[] = [
+    { post: posts[0], actions: [PostActivityAction.CREATED, PostActivityAction.SCHEDULED, PostActivityAction.PUBLISHED] },
+    { post: posts[1], actions: [PostActivityAction.CREATED, PostActivityAction.EDITED, PostActivityAction.SCHEDULED, PostActivityAction.PUBLISHED] },
+    { post: posts[2], actions: [PostActivityAction.CREATED, PostActivityAction.MEDIA_ADDED, PostActivityAction.CAPTION_EDITED, PostActivityAction.SCHEDULED, PostActivityAction.PUBLISHED] },
+    { post: posts[3], actions: [PostActivityAction.CREATED, PostActivityAction.SCHEDULED] },
+    { post: posts[4], actions: [PostActivityAction.CREATED, PostActivityAction.SCHEDULED] },
+    { post: posts[5], actions: [PostActivityAction.CREATED] },
+    { post: posts[6], actions: [PostActivityAction.CREATED, PostActivityAction.EDITED, PostActivityAction.STATUS_CHANGED] },
+  ];
+
+  for (const { post, actions } of activityData) {
+    for (let i = 0; i < actions.length; i++) {
+      await prisma.postActivityLog.create({
+        data: {
+          postId: post.id,
+          userId: creator1.id,
+          action: actions[i] as any,
+          details: `${actions[i].replace(/_/g, ' ').toLowerCase()} by ${creator1.name}`,
+          createdAt: new Date(post.createdAt.getTime() + i * 3600000), // 1hr apart
+        },
+      });
+    }
+  }
+  console.log('Post activity logs seeded ✓');
 
   // ── Analytics snapshots for Jane (14 days) ────────────────
   const baseFollowers = 398000;
@@ -205,6 +234,7 @@ export async function seedContent(ctx: SeedContext) {
         creatorProfileId: cp2.id, platform: Platform.YOUTUBE, postType: PostType.VIDEO,
         caption: 'Nova Headphones Review — Best ANC Under $200?', hashtags: ['techreview', 'headphones', 'audiophile'],
         status: PostStatus.PUBLISHED, scheduledAt: daysAgo(4), publishedAt: daysAgo(4),
+        externalPostId: `yt_seed_${Date.now()}_4`,
         analytics: { create: { impressions: 85000, reach: 67000, likes: 6200, comments: 890, shares: 320, saves: 1500, clicks: 700 } },
       },
     }),
@@ -213,6 +243,7 @@ export async function seedContent(ctx: SeedContext) {
         creatorProfileId: cp2.id, platform: Platform.TIKTOK, postType: PostType.SHORT,
         caption: 'Budget PC build that runs everything in 2026 🖥️', hashtags: ['pcbuild', 'gaming', 'budget'],
         status: PostStatus.PUBLISHED, scheduledAt: daysAgo(2), publishedAt: daysAgo(2),
+        externalPostId: `tt_seed_${Date.now()}_5`,
         analytics: { create: { impressions: 210000, reach: 165000, likes: 19500, comments: 1200, shares: 890, saves: 4500, clicks: 600 } },
       },
     }),
@@ -232,6 +263,7 @@ export async function seedContent(ctx: SeedContext) {
         creatorProfileId: cp3.id, platform: Platform.TIKTOK, postType: PostType.SHORT,
         caption: 'Get ready with me — everyday glam in 10 mins ✨', hashtags: ['grwm', 'beauty', 'makeup'],
         status: PostStatus.PUBLISHED, scheduledAt: daysAgo(6), publishedAt: daysAgo(6),
+        externalPostId: `tt_seed_${Date.now()}_6`,
         analytics: { create: { impressions: 350000, reach: 280000, likes: 28000, comments: 1800, shares: 1200, saves: 8500, clicks: 900 } },
       },
     }),
@@ -240,6 +272,7 @@ export async function seedContent(ctx: SeedContext) {
         creatorProfileId: cp3.id, platform: Platform.INSTAGRAM, postType: PostType.CAROUSEL,
         caption: 'Summer skincare routine — dermatologist approved 🌞', hashtags: ['skincare', 'summer', 'beauty'],
         status: PostStatus.PUBLISHED, scheduledAt: daysAgo(3), publishedAt: daysAgo(3),
+        externalPostId: `ig_seed_${Date.now()}_7`,
         analytics: { create: { impressions: 42000, reach: 35000, likes: 3800, comments: 290, shares: 150, saves: 2100, clicks: 280 } },
       },
     }),

@@ -1,0 +1,3 @@
+-- AlterEnum
+ALTER TYPE "OAuthProvider" ADD VALUE 'MICROSOFT';
+ALTER TYPE "OAuthProvider" ADD VALUE 'OKTA';

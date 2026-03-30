@@ -1,8 +1,11 @@
-import { Typography, Upload, Button, Tag, message } from 'antd';
+import { useState } from 'react';
+import { Typography, Upload, Button, Tag, message, Spin } from 'antd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faVideo, faFilm, faTrash, faImage } from '@fortawesome/free-solid-svg-icons';
-import type { VideoFileInfo } from './types';
-import styles from './compose.module.scss';
+import { faVideo, faFilm, faTrash, faImage, faPhotoFilm } from '@fortawesome/free-solid-svg-icons';
+import { MediaLibraryPicker } from './MediaLibraryPicker';
+import { uploadFileToServer } from '../helpers';
+import type { VideoFileInfo } from '../types';
+import styles from '../styles/compose.module.scss';
 
 const { Text } = Typography;
 
@@ -18,6 +21,20 @@ interface Props {
 export function VideoUploader({ postType, videoFile, thumbnailUrl, onSetVideoFile, onSetThumbnailUrl, onSetFormThumbnail }: Props) {
   const isVertical = ['REEL', 'SHORT'].includes(postType);
   const label = postType === 'REEL' ? 'Reel' : postType === 'SHORT' ? 'Short' : 'Video';
+  const [uploading, setUploading] = useState(false);
+  const [libraryOpen, setLibraryOpen] = useState(false);
+
+  const handleUpload = async (file: File): Promise<string | null> => {
+    try {
+      setUploading(true);
+      return await uploadFileToServer(file);
+    } catch {
+      message.error('Upload failed');
+      return null;
+    } finally {
+      setUploading(false);
+    }
+  };
 
   return (
     <div className={styles.media_zone}>
@@ -45,7 +62,6 @@ export function VideoUploader({ postType, videoFile, thumbnailUrl, onSetVideoFil
             </Text>
             <Button size="small" danger icon={<FontAwesomeIcon icon={faTrash} />} onClick={() => { URL.revokeObjectURL(videoFile.url); onSetVideoFile(null); }} style={{ marginTop: 4 }}>Remove</Button>
 
-            {/* Thumbnail */}
             <div style={{ marginTop: 8 }}>
               <Text type="secondary" style={{ fontSize: 11, marginBottom: 4, display: 'block' }}>Custom Thumbnail</Text>
               {thumbnailUrl ? (
@@ -72,23 +88,24 @@ export function VideoUploader({ postType, videoFile, thumbnailUrl, onSetVideoFil
         <Upload.Dragger
           accept="video/*"
           showUploadList={false}
+          disabled={uploading}
           beforeUpload={(file) => {
-            const url = URL.createObjectURL(file);
+            const previewUrl = URL.createObjectURL(file);
             const vid = document.createElement('video');
             vid.preload = 'metadata';
-            vid.onloadedmetadata = () => {
+            vid.onloadedmetadata = async () => {
               if (postType === 'SHORT' && vid.duration > 60) message.warning('Shorts must be 60 seconds or less');
-              onSetVideoFile({ url, name: file.name, size: file.size, duration: vid.duration });
-              URL.revokeObjectURL(vid.src);
+              const serverUrl = await handleUpload(file);
+              onSetVideoFile({ url: previewUrl, serverUrl: serverUrl ?? undefined, name: file.name, size: file.size, duration: vid.duration });
             };
-            vid.src = url;
+            vid.src = previewUrl;
             return false;
           }}
           className={styles.uploader}
         >
           <div className={styles.uploader_body}>
-            <FontAwesomeIcon icon={faFilm} className={styles.uploader_icon} />
-            <Text strong className={styles.uploader_title}>Drop a video or <span className={styles.uploader_link}>browse</span></Text>
+            {uploading ? <Spin size="large" /> : <FontAwesomeIcon icon={faFilm} className={styles.uploader_icon} />}
+            <Text strong className={styles.uploader_title}>{uploading ? 'Uploading...' : <>Drop a video or <span className={styles.uploader_link}>browse</span></>}</Text>
             <Text type="secondary" className={styles.uploader_hint}>
               {postType === 'REEL' ? 'MP4, MOV • 9:16 aspect ratio • up to 90 seconds'
                 : postType === 'SHORT' ? 'MP4, MOV • 9:16 vertical • max 60 seconds'
@@ -97,6 +114,29 @@ export function VideoUploader({ postType, videoFile, thumbnailUrl, onSetVideoFil
           </div>
         </Upload.Dragger>
       )}
+
+      {!videoFile && (
+        <Button
+          block
+          icon={<FontAwesomeIcon icon={faPhotoFilm} style={{ marginRight: 6 }} />}
+          onClick={() => setLibraryOpen(true)}
+          style={{ marginTop: 8 }}
+        >
+          Import from Media Library
+        </Button>
+      )}
+
+      <MediaLibraryPicker
+        open={libraryOpen}
+        onClose={() => setLibraryOpen(false)}
+        accept="video"
+        multiple={false}
+        onSelect={(urls) => {
+          if (urls[0]) {
+            onSetVideoFile({ url: urls[0], serverUrl: urls[0], name: urls[0].split('/').pop() || 'video', size: 0 });
+          }
+        }}
+      />
     </div>
   );
 }

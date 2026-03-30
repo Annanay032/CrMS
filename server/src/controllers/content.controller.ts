@@ -16,12 +16,14 @@ async function getCreatorProfileId(userId: string): Promise<string> {
 export async function createPost(req: AuthRequest, res: Response) {
   const creatorProfileId = await getCreatorProfileId(req.user!.userId);
   const post = await contentService.createPost(creatorProfileId, req.body);
+  await contentService.logPostActivity(post.id, req.user!.userId, 'CREATED', `Post created as ${post.status}`, { platform: post.platform, postType: post.postType });
   res.status(201).json({ success: true, data: post });
 }
 
 export async function updatePost(req: AuthRequest, res: Response) {
   const creatorProfileId = await getCreatorProfileId(req.user!.userId);
   const post = await contentService.updatePost(req.params.id as string, creatorProfileId, req.body);
+  await contentService.logPostActivity(post.id, req.user!.userId, 'EDITED', 'Post updated', { updatedFields: Object.keys(req.body) });
   res.json({ success: true, data: post });
 }
 
@@ -88,6 +90,68 @@ export async function searchContent(req: AuthRequest, res: Response) {
 }
 
 // ─── Queue Operations ───────────────────────────────────────
+
+// ─── Get Single Post Detail ─────────────────────────────────
+
+export async function getPost(req: AuthRequest, res: Response) {
+  const creatorProfileId = await getCreatorProfileId(req.user!.userId);
+  const post = await contentService.getPostById(req.params.id as string, creatorProfileId);
+  if (!post) {
+    res.status(404).json({ success: false, message: 'Post not found' });
+    return;
+  }
+  res.json({ success: true, data: post });
+}
+
+// ─── List Posts ─────────────────────────────────────────────
+
+export async function listPosts(req: AuthRequest, res: Response) {
+  const creatorProfileId = await getCreatorProfileId(req.user!.userId);
+  const page = Number(req.query.page) || 1;
+  const limit = Number(req.query.limit) || 20;
+  const platform = req.query.platform as string | undefined;
+  const status = req.query.status as string | undefined;
+  const postType = req.query.postType as string | undefined;
+  const search = req.query.search as string | undefined;
+
+  const { posts, total } = await contentService.listPosts(creatorProfileId, {
+    page, limit,
+    platform: platform as any,
+    status: status as any,
+    postType: postType as any,
+    search,
+  });
+
+  res.json({
+    success: true,
+    data: posts,
+    pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+  });
+}
+
+// ─── Cross-platform Group ───────────────────────────────────
+
+export async function getCrossplatformGroup(req: AuthRequest, res: Response) {
+  const creatorProfileId = await getCreatorProfileId(req.user!.userId);
+  const bulkGroupId = req.params.groupId as string;
+  const posts = await contentService.getCrossplatformGroup(bulkGroupId, creatorProfileId);
+  res.json({ success: true, data: posts });
+}
+
+// ─── Activity Log ───────────────────────────────────────────
+
+export async function getPostActivity(req: AuthRequest, res: Response) {
+  const page = Number(req.query.page) || 1;
+  const limit = Number(req.query.limit) || 50;
+  const { logs, total } = await contentService.getPostActivity(req.params.id as string, page, limit);
+  res.json({
+    success: true,
+    data: logs,
+    pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+  });
+}
+
+// ─── Queue Operations (continued) ───────────────────────────
 
 export async function shuffleQueue(req: AuthRequest, res: Response) {
   const creatorProfileId = await getCreatorProfileId(req.user!.userId);

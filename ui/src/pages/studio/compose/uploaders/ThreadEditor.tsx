@@ -1,8 +1,8 @@
 import { Typography, Input, Button, Tag, Space, Upload } from 'antd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faMinus, faArrowUp, faArrowDown, faImage, faTrash } from '@fortawesome/free-solid-svg-icons';
-import type { ThreadEntry } from './types';
-import styles from './compose.module.scss';
+import type { ThreadEntry } from '../types';
+import styles from '../styles/compose.module.scss';
 
 const { Text } = Typography;
 const { TextArea } = Input;

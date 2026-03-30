@@ -59,5 +59,10 @@ export async function updateAsset(userId: string, id: string, data: { tags?: str
 }
 
 export async function deleteAsset(userId: string, id: string) {
+  const asset = await prisma.mediaAsset.findFirst({ where: { id, userId } });
+  if (asset?.url) {
+    const { deleteFile } = await import('./storage.service.js');
+    await deleteFile(asset.url).catch(() => { /* best-effort cleanup */ });
+  }
   return prisma.mediaAsset.deleteMany({ where: { id, userId } });
 }

@@ -1,4 +1,7 @@
 import { logger } from '../config/logger.js';
+import { createReadStream, statSync, existsSync } from 'fs';
+import { downloadToLocal } from './storage.service.js';
+import path from 'path';
 
 export interface PlatformPublishResult {
   externalPostId: string;
@@ -263,11 +266,105 @@ export class YouTubeService implements IPlatformService {
     }
   }
 
-  async publish(_accessToken: string, _data: { caption?: string; mediaUrls: string[]; postType: string }): Promise<PlatformPublishResult> {
-    // YouTube video upload requires the Resumable Upload API with multipart form data
-    // This is a complex flow best done client-side or via a dedicated upload worker
-    logger.info('YouTube publish: video upload requires dedicated upload flow');
-    return { externalPostId: `yt_${Date.now()}`, url: '' };
+  async publish(accessToken: string, data: { caption?: string; mediaUrls: string[]; postType: string }): Promise<PlatformPublishResult> {
+    // YouTube Data API v3 — resumable video upload
+    if (!data.mediaUrls.length) throw new Error('No media/video URL provided');
+
+    // Find the video file from mediaUrls (skip images)
+    const videoExtensions = ['.mp4', '.mov', '.avi', '.wmv', '.flv', '.webm', '.mkv', '.m4v', '.3gp'];
+    const mediaUrl = data.mediaUrls.find((url) => videoExtensions.some((ext) => url.toLowerCase().endsWith(ext)))
+      ?? data.mediaUrls[0]; // Fallback to first if no video extension found
+
+    logger.info(`YouTube publish: using media URL "${mediaUrl}" from ${data.mediaUrls.length} URLs`, {
+      allUrls: data.mediaUrls,
+      postType: data.postType,
+    });
+
+    // Download to local path (handles both local disk and cloud storage)
+    let localPath: string;
+    try {
+      localPath = await downloadToLocal(mediaUrl);
+    } catch (err) {
+      logger.error(`YouTube upload: failed to resolve video file`, { mediaUrl, error: (err as Error).message });
+      throw new Error(`Video file not found: ${mediaUrl}. YouTube upload requires an accessible file.`);
+    }
+
+    const fileStat = statSync(localPath);
+    const fileSize = fileStat.size;
+    const isShort = data.postType === 'SHORT';
+    const title = data.caption?.slice(0, 100) || (isShort ? 'Short' : 'Video');
+    const description = data.caption || '';
+
+    // Step 1: Initiate resumable upload
+    const metadata = {
+      snippet: {
+        title,
+        description,
+        categoryId: '22', // People & Blogs
+      },
+      status: {
+        privacyStatus: 'public',
+        selfDeclaredMadeForKids: false,
+        ...(isShort ? {} : {}),
+      },
+    };
+
+    const initRes = await fetch(
+      'https://www.googleapis.com/upload/youtube/v3/videos?uploadType=resumable&part=snippet,status',
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json; charset=UTF-8',
+          'X-Upload-Content-Length': String(fileSize),
+          'X-Upload-Content-Type': 'video/*',
+        },
+        body: JSON.stringify(metadata),
+      },
+    );
+
+    if (!initRes.ok) {
+      const errBody = await initRes.text();
+      throw new Error(`YouTube upload init failed (${initRes.status}): ${errBody}`);
+    }
+
+    const uploadUrl = initRes.headers.get('location');
+    if (!uploadUrl) throw new Error('YouTube upload: no resumable upload URL returned');
+
+    // Step 2: Upload the video file
+    const fileBuffer = await new Promise<Buffer>((resolve, reject) => {
+      const chunks: Buffer[] = [];
+      const stream = createReadStream(localPath);
+      stream.on('data', (chunk) => chunks.push(Buffer.from(chunk as ArrayBufferLike)));
+      stream.on('end', () => resolve(Buffer.concat(chunks)));
+      stream.on('error', reject);
+    });
+
+    const uploadRes = await fetch(uploadUrl, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Length': String(fileSize),
+        'Content-Type': 'video/*',
+      },
+      body: fileBuffer,
+    });
+
+    if (!uploadRes.ok) {
+      const errBody = await uploadRes.text();
+      throw new Error(`YouTube video upload failed (${uploadRes.status}): ${errBody}`);
+    }
+
+    const result = (await uploadRes.json()) as { id?: string };
+    const videoId = result.id ?? `yt_${Date.now()}`;
+
+    logger.info(`YouTube video uploaded: ${videoId}`, { isShort, title });
+    return {
+      externalPostId: videoId,
+      url: isShort
+        ? `https://youtube.com/shorts/${videoId}`
+        : `https://youtube.com/watch?v=${videoId}`,
+    };
   }
 
   async getTrendingVideos(accessToken: string, regionCode = 'IN', maxResults = 20) {

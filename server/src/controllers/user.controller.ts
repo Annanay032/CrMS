@@ -33,3 +33,13 @@ export async function listUsers(req: AuthRequest, res: Response) {
     pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
   });
 }
+
+export async function updateUserRole(req: AuthRequest, res: Response) {
+  const user = await userService.updateUserRole(req.params.id, req.body.role);
+  res.json({ success: true, data: user });
+}
+
+export async function toggleUserActive(req: AuthRequest, res: Response) {
+  const user = await userService.toggleUserActive(req.params.id);
+  res.json({ success: true, data: user });
+}

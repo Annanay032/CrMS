@@ -1,8 +1,9 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import * as agentController from '../controllers/agent.controller.js';
-import { authenticate } from '../middleware/auth.js';
+import { authenticate, authorize } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
+import { Role } from '../types/enums.js';
 
 const router = Router();
 
@@ -64,5 +65,6 @@ router.post('/growth/weekly-plan', authenticate, agentController.growthWeeklyPla
 // Agent metadata
 router.get('/', authenticate, agentController.listAgents);
 router.get('/history', authenticate, agentController.getAgentHistory);
+router.get('/admin/history', authenticate, authorize(Role.ADMIN), agentController.getAdminAgentHistory);
 
 export default router;

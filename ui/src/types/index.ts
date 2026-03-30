@@ -3,6 +3,17 @@
 // ============================================
 
 export type UserRole = 'CREATOR' | 'BRAND' | 'AGENCY' | 'ADMIN';
+export type TeamRole = 'OWNER' | 'ADMIN' | 'EDITOR' | 'CONTRIBUTOR' | 'VIEWER';
+
+export interface UserTeam {
+  id: string;
+  name: string;
+  avatarUrl?: string | null;
+  ownerId: string;
+  teamRole: TeamRole;
+  memberCount?: number;
+  isOwner?: boolean;
+}
 
 export interface User {
   id: string;
@@ -11,10 +22,12 @@ export interface User {
   avatarUrl?: string;
   role: UserRole;
   isActive: boolean;
+  hasPassword?: boolean;
   createdAt: string;
   tier?: UsageTier;
   creatorProfile?: CreatorProfile;
   brandProfile?: BrandProfile;
+  teams?: UserTeam[];
 }
 
 export interface CreatorProfile {
@@ -141,6 +154,38 @@ export interface ContentPost {
   // Reliability
   retryCount?: number;
   lastError?: string;
+  // Relations (when included)
+  analytics?: PostAnalytics;
+  activityLogs?: PostActivityLog[];
+}
+
+export interface PostAnalytics {
+  id: string;
+  postId: string;
+  impressions: number;
+  reach: number;
+  likes: number;
+  comments: number;
+  shares: number;
+  saves: number;
+  clicks: number;
+  videoViews: number;
+  avgWatchTime: number;
+  profileVisits: number;
+  estimatedRevenue?: number;
+  boosted: boolean;
+  fetchedAt: string;
+}
+
+export interface PostActivityLog {
+  id: string;
+  postId: string;
+  userId: string;
+  action: string;
+  details?: string;
+  metadata?: Record<string, unknown>;
+  createdAt: string;
+  user?: { id: string; name: string; avatarUrl?: string };
 }
 
 export interface CalendarNote {

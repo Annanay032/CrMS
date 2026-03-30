@@ -15,6 +15,8 @@
     "db:generate": "prisma generate"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1019.0",
+    "@aws-sdk/lib-storage": "^3.1019.0",
     "@prisma/client": "^6.5.0",
     "bcryptjs": "^2.4.3",
     "bullmq": "^5.34.8",
@@ -31,6 +33,8 @@
     "openai": "^4.85.4",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
+    "passport-microsoft": "^2.1.0",
+    "passport-openidconnect": "^0.1.2",
     "razorpay": "^2.9.6",
     "socket.io": "^4.8.3",
     "stripe": "^17.7.0",
@@ -50,6 +54,8 @@
     "@types/node": "^22.19.15",
     "@types/passport": "^1.0.17",
     "@types/passport-google-oauth20": "^2.0.17",
+    "@types/passport-microsoft": "^2.1.1",
+    "@types/passport-openidconnect": "^0.1.3",
     "@types/uuid": "^10.0.0",
     "@types/web-push": "^3.6.4",
     "nodemon": "^3.1.14",

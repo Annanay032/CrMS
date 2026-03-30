@@ -2,7 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { LoginPage, RegisterPage, OAuthCallbackPage } from '@/pages/auth';
 import { DashboardPage } from '@/pages/dashboard';
-import { CalendarPage, CreatePostPage } from '@/pages/content';
+import { CalendarPage, CreatePostPage, ContentListPage, PostDetailPage } from '@/pages/content';
 import { AnalyticsPage } from '@/pages/analytics';
 import { CampaignsPage } from '@/pages/campaigns';
 import { DiscoverPage } from '@/pages/discover';
@@ -21,6 +21,8 @@ import RevenuePage from '@/pages/revenue/RevenuePage';
 import GrowthCopilotPage from '@/pages/growth/GrowthCopilotPage';
 import { PricingPage } from '@/pages/pricing';
 import { StudioLayout, StudioCompose, StudioMediaLab, StudioTemplates, StudioAiCopilot, StudioVideoLab, StudioVideoAnalysis } from '@/pages/studio';
+import { ChannelLayout, ChannelOverview, ChannelPosts, ChannelAnalytics } from '@/pages/channel';
+import { AdminUsersPage, AdminAgentLogsPage, AdminSystemPage } from '@/pages/admin';
 
 export default function App() {
   return (
@@ -33,7 +35,9 @@ export default function App() {
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/create" element={<CreatePage />} />
         <Route path="/calendar" element={<CalendarPage />} />
+        <Route path="/content" element={<ContentListPage />} />
         <Route path="/content/new" element={<CreatePostPage />} />
+        <Route path="/posts/:id" element={<PostDetailPage />} />
         <Route path="/analytics" element={<AnalyticsPage />} />
         <Route path="/campaigns/my" element={<CampaignsPage />} />
         <Route path="/discover" element={<DiscoverPage />} />
@@ -58,6 +62,14 @@ export default function App() {
           <Route path="video-analysis" element={<StudioVideoAnalysis />} />
           <Route path="ai" element={<StudioAiCopilot />} />
         </Route>
+        <Route path="/channel/:platform" element={<ChannelLayout />}>
+          <Route index element={<ChannelOverview />} />
+          <Route path="posts" element={<ChannelPosts />} />
+          <Route path="analytics" element={<ChannelAnalytics />} />
+        </Route>
+        <Route path="/admin/users" element={<AdminUsersPage />} />
+        <Route path="/admin/agents" element={<AdminAgentLogsPage />} />
+        <Route path="/admin/system" element={<AdminSystemPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>

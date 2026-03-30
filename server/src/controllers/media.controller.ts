@@ -1,5 +1,6 @@
 import type { Response } from 'express';
 import * as mediaService from '../services/media.service.js';
+import { uploadMulterFile, deleteFile } from '../services/storage.service.js';
 import type { AuthRequest } from '../types/common.js';
 
 // ─── Folders ────────────────────────────────────────────────
@@ -31,12 +32,15 @@ export async function uploadAsset(req: AuthRequest, res: Response) {
     return;
   }
 
+  // Upload to cloud storage (R2/S3) or keep local
+  const { url } = await uploadMulterFile(file);
+
   const asset = await mediaService.createAsset({
     userId: req.user!.userId,
     filename: file.originalname,
     mimeType: file.mimetype,
     size: file.size,
-    url: `/uploads/${file.filename}`,
+    url,
     folderId: req.body.folderId || undefined,
     tags: req.body.tags ? JSON.parse(req.body.tags) : [],
   });

@@ -76,6 +76,96 @@ export async function deletePost(postId: string, creatorProfileId: string) {
   });
 }
 
+// ─── Single Post Detail ─────────────────────────────────────
+
+export async function getPostById(postId: string, creatorProfileId: string) {
+  return prisma.contentPost.findFirst({
+    where: { id: postId, creatorProfileId },
+    include: {
+      analytics: true,
+      comments: { orderBy: { createdAt: 'desc' }, take: 50 },
+      activityLogs: { orderBy: { createdAt: 'desc' }, take: 100, include: { user: { select: { id: true, name: true, avatarUrl: true } } } },
+      threadParts: { orderBy: { threadOrder: 'asc' } },
+    },
+  });
+}
+
+// ─── List All Posts ─────────────────────────────────────────
+
+export async function listPosts(creatorProfileId: string, opts: {
+  page: number;
+  limit: number;
+  platform?: Platform;
+  status?: PostStatus;
+  postType?: PostType;
+  search?: string;
+}) {
+  const { skip, take } = paginate(opts.page, opts.limit);
+
+  const where: Prisma.ContentPostWhereInput = {
+    creatorProfileId,
+    ...(opts.platform && { platform: opts.platform }),
+    ...(opts.status && { status: opts.status }),
+    ...(opts.postType && { postType: opts.postType }),
+    ...(opts.search && { caption: { contains: opts.search, mode: 'insensitive' as const } }),
+    parentPostId: null, // exclude thread parts
+  };
+
+  const [posts, total] = await Promise.all([
+    prisma.contentPost.findMany({
+      where,
+      skip,
+      take,
+      include: { analytics: true },
+      orderBy: { createdAt: 'desc' },
+    }),
+    prisma.contentPost.count({ where }),
+  ]);
+
+  return { posts, total };
+}
+
+// ─── Cross-platform Group ───────────────────────────────────
+
+export async function getCrossplatformGroup(bulkGroupId: string, creatorProfileId: string) {
+  return prisma.contentPost.findMany({
+    where: { bulkGroupId, creatorProfileId },
+    include: { analytics: true },
+    orderBy: { platform: 'asc' },
+  });
+}
+
+// ─── Activity Log ───────────────────────────────────────────
+
+export async function logPostActivity(postId: string, userId: string, action: string, details?: string, metadata?: Record<string, unknown>) {
+  return prisma.postActivityLog.create({
+    data: {
+      postId,
+      userId,
+      action: action as any,
+      details,
+      metadata: metadata ? (metadata as Prisma.InputJsonValue) : undefined,
+    },
+  });
+}
+
+export async function getPostActivity(postId: string, page: number, limit: number) {
+  const { skip, take } = paginate(page, limit);
+
+  const [logs, total] = await Promise.all([
+    prisma.postActivityLog.findMany({
+      where: { postId },
+      skip,
+      take,
+      include: { user: { select: { id: true, name: true, avatarUrl: true } } },
+      orderBy: { createdAt: 'desc' },
+    }),
+    prisma.postActivityLog.count({ where: { postId } }),
+  ]);
+
+  return { logs, total };
+}
+
 export async function getCalendar(creatorProfileId: string, month: number, year: number) {
   const start = new Date(year, month - 1, 1);
   const end = new Date(year, month, 0, 23, 59, 59);

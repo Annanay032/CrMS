@@ -104,6 +104,35 @@
     border-top: 1px solid rgba(255, 255, 255, 0.06);
   }
 
+  &__team_badge {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    padding: 6px $space-3;
+    margin-bottom: $space-2;
+    border-radius: $radius-md;
+    background: rgba($color-primary-500, 0.08);
+    font-size: 11px;
+    font-weight: $font-weight-medium;
+    color: $color-primary-300;
+  }
+
+  &__team_dot {
+    width: 6px;
+    height: 6px;
+    border-radius: $radius-full;
+    background: $color-primary-400;
+    flex-shrink: 0;
+  }
+
+  &__team_role {
+    margin-left: auto;
+    font-size: 10px;
+    color: $color-slate-400;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
   &__user {
     display: flex;
     align-items: center;

@@ -24,6 +24,8 @@ import publicApiRoutes from './public-api.routes.js';
 import studioRoutes from './studio.routes.js';
 import subscriptionRoutes from './subscription.routes.js';
 import cloudImportRoutes from './cloud-import.routes.js';
+import channelRoutes from './channel.routes.js';
+import adminRoutes from './admin.routes.js';
 const router = Router();
 
 router.use('/auth', authRoutes);
@@ -51,5 +53,7 @@ router.use('/public', publicApiRoutes);
 router.use('/studio', studioRoutes);
 router.use('/subscriptions', subscriptionRoutes);
 router.use('/cloud-import', cloudImportRoutes);
+router.use('/channels', channelRoutes);
+router.use('/admin', adminRoutes);
 
 export default router;

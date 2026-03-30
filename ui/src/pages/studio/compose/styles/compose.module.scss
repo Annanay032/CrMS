@@ -13,13 +13,34 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border-right: 1px solid $color-slate-200;
 }
 
 .editor_tabs {
   padding: $space-2 $space-4;
   border-bottom: 1px solid $color-slate-100;
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+}
+
+.editor_platform_ctx {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  padding: $space-1 $space-2;
+  background: $color-slate-50;
+  border-radius: $radius-md;
+}
+
+.editor_platform_type {
+  padding: 1px 8px;
+  border-radius: $radius-full;
+  background: rgba(0, 0, 0, 0.06);
+  font-size: 10px;
+  font-weight: $font-weight-medium;
+  color: $color-slate-500;
+  text-transform: capitalize;
 }
 
 .editor_content {
@@ -39,6 +60,42 @@
   border-bottom: 1px solid $color-slate-100;
   background: $color-slate-50;
   flex-shrink: 0;
+}
+
+/* ─── Platform context bar ─── */
+
+.platform_context {
+  display: flex;
+  align-items: center;
+  padding: $space-2 $space-4;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.04), rgba(139, 92, 246, 0.04));
+  border-bottom: 1px solid $color-slate-100;
+  flex-shrink: 0;
+  gap: 2px;
+  font-size: 13px;
+}
+
+.platform_icon {
+  font-size: 16px;
+  margin-right: 6px;
+}
+
+/* ─── Actions bar ─── */
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $space-3 $space-4;
+  border-top: 1px solid $color-slate-100;
+  background: $color-slate-50;
+  flex-shrink: 0;
+}
+
+.actions_left {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
 }
 
 /* ─── Write tab ─── */
@@ -95,22 +152,42 @@
   overflow-y: auto;
 }
 
-/* ─── Actions bar ─── */
-
-.actions {
-  display: flex;
-  align-items: center;
-  gap: $space-3;
-  padding: $space-3 $space-6;
-  border-top: 1px solid $color-slate-200;
-  background: $color-slate-50;
-  flex-shrink: 0;
-}
-
 /* ─── Right: Panel pane ─── */
 
+.resize_handle {
+  width: 6px;
+  flex-shrink: 0;
+  cursor: col-resize;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  transition: background $transition-fast;
+  position: relative;
+  z-index: 2;
+
+  &:hover,
+  &:active {
+    background: rgba(99, 102, 241, 0.12);
+  }
+}
+
+.resize_grip {
+  width: 3px;
+  height: 32px;
+  border-radius: 2px;
+  background: $color-slate-300;
+  transition: background $transition-fast;
+
+  .resize_handle:hover &,
+  .resize_handle:active & {
+    background: $color-primary-400;
+  }
+}
+
 .panel {
-  width: 380px;
+  min-width: 320px;
+  max-width: 50%;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
@@ -404,10 +481,24 @@
 }
 
 .chat_bubble {
-  max-width: 280px;
+  max-width: 85%;
   padding: $space-2 $space-3;
   font-size: $font-size-sm;
   line-height: $line-height-normal;
+}
+
+.chat_media {
+  margin-bottom: $space-2;
+  border-radius: $radius-md;
+  overflow: hidden;
+}
+
+.chat_media_preview {
+  max-width: 100%;
+  max-height: 180px;
+  border-radius: $radius-md;
+  display: block;
+  object-fit: cover;
 }
 
 .chat_thinking {
@@ -419,6 +510,12 @@
 .chat_input {
   padding: $space-3 $space-4;
   border-top: 1px solid $color-slate-100;
+}
+
+.chat_input_row {
+  display: flex;
+  align-items: center;
+  gap: $space-1;
 }
 
 /* ─── Settings panel ─── */
@@ -496,4 +593,200 @@
 @keyframes pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }
+}
+
+/* ─── Media Library Picker ─── */
+
+.library_grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: $space-3;
+  max-height: 400px;
+  overflow-y: auto;
+  padding: $space-1;
+}
+
+.library_item {
+  position: relative;
+  border-radius: $radius-lg;
+  overflow: hidden;
+  border: 2px solid $color-slate-200;
+  cursor: pointer;
+  transition: border-color $transition-fast, box-shadow $transition-fast;
+  aspect-ratio: 1;
+
+  &:hover {
+    border-color: $color-primary-400;
+  }
+
+  &--selected {
+    border-color: $color-primary-500;
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.25);
+  }
+}
+
+.library_preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.library_check {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+}
+
+.library_tag {
+  position: absolute;
+  bottom: 4px;
+  left: 4px;
+  font-size: 10px !important;
+  margin: 0 !important;
+}
+
+.library_name {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.6));
+  color: $color-white;
+  font-size: 10px;
+  padding: 12px 4px 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ─── Media strategy toggle ─── */
+
+.media_strategy {
+  display: inline-flex;
+  gap: 4px;
+  padding: 2px;
+  background: $color-slate-100;
+  border-radius: $radius-md;
+}
+
+/* ─── Platform compatibility info ─── */
+
+.platform_compat_info {
+  margin-bottom: $space-2;
+}
+
+/* ─── Per-platform media section ─── */
+
+.platform_media_section {
+  margin-top: $space-1;
+}
+
+.platform_media_thumb {
+  width: 48px;
+  height: 48px;
+  border-radius: $radius-sm;
+  border: 1px solid $color-slate-200;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: $color-slate-50;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+}
+
+/* ─── Multi-Platform Studio (mps) ─── */
+
+.mps_strip {
+  display: flex;
+  gap: $space-1;
+  padding: $space-2 $space-4;
+  background: $color-slate-50;
+  border-bottom: 1px solid $color-slate-100;
+  overflow-x: auto;
+  flex-shrink: 0;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.mps_pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: $radius-full;
+  border: 1px solid $color-slate-200;
+  background: $color-white;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  color: $color-slate-500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all $transition-fast;
+  flex-shrink: 0;
+
+  &:hover {
+    border-color: $color-slate-300;
+    color: $color-slate-700;
+    background: $color-white;
+    box-shadow: $shadow-sm;
+  }
+
+  &--active {
+    border-color: var(--pill-color, $color-primary-500);
+    background: var(--pill-bg, $color-primary-50);
+    color: $color-slate-800;
+    box-shadow: 0 0 0 1px var(--pill-color, $color-primary-500) inset;
+
+    &:hover {
+      border-color: var(--pill-color, $color-primary-500);
+      background: var(--pill-bg, $color-primary-50);
+    }
+  }
+}
+
+.mps_pill_icon {
+  font-size: 13px;
+  color: $color-slate-400;
+
+  .mps_pill--active & {
+    color: var(--pill-color, $color-primary-500);
+  }
+}
+
+.mps_pill_label {
+  line-height: 1;
+}
+
+.mps_pill_star {
+  font-size: 8px;
+  color: $color-warning-500;
+}
+
+.mps_pill_dot {
+  width: 14px;
+  height: 14px;
+  border-radius: $radius-full;
+  background: $color-success-500;
+  color: $color-white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 7px;
+}
+
+/* ─── Per-platform media zone in Media tab ─── */
+
+.platform_media_zone {
+  margin: $space-3 $space-4 $space-4;
 }

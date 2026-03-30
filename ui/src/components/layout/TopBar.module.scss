@@ -44,12 +44,6 @@
     background: $color-border;
   }
 
-  &__user {
-    display: flex;
-    align-items: center;
-    gap: $space-2;
-  }
-
   &__avatar {
     width: 32px;
     height: 32px;
@@ -59,6 +53,7 @@
     font-size: $font-size-xs;
     font-weight: $font-weight-bold;
     color: $color-white;
+    flex-shrink: 0;
   }
 
   &__name {
@@ -72,5 +67,151 @@
     font-size: $font-size-xs;
     color: $color-slate-400;
     margin-top: 2px;
+  }
+
+  // ── Account Switcher ──
+  &__account {
+    position: relative;
+  }
+
+  &__account_trigger {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    padding: 4px 8px 4px 4px;
+    border-radius: $radius-lg;
+    background: transparent;
+    border: 1.5px solid transparent;
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:hover {
+      background: $color-slate-50;
+      border-color: $color-slate-200;
+    }
+  }
+
+  &__account_info {
+    text-align: left;
+    min-width: 0;
+  }
+
+  &__chevron {
+    font-size: 10px;
+    color: $color-slate-400;
+    transition: transform 0.2s ease;
+    margin-left: 4px;
+
+    &--open {
+      transform: rotate(180deg);
+    }
+  }
+
+  // ── Dropdown ──
+  &__dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    width: 300px;
+    background: $color-white;
+    border: 1px solid $color-slate-200;
+    border-radius: $radius-xl;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.04);
+    z-index: $z-dropdown;
+    animation: dropdownFadeIn 0.15s ease;
+    overflow: hidden;
+  }
+
+  &__dropdown_section {
+    padding: $space-2;
+
+    & + & {
+      border-top: 1px solid $color-slate-100;
+    }
+  }
+
+  &__dropdown_label {
+    font-size: 10px;
+    font-weight: $font-weight-bold;
+    color: $color-slate-400;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 6px 10px 4px;
+  }
+
+  &__dropdown_item {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    width: 100%;
+    padding: 8px 10px;
+    border-radius: $radius-lg;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    text-align: left;
+
+    &:hover {
+      background: $color-slate-50;
+    }
+
+    &--active {
+      background: rgba($color-primary-50, 0.8);
+
+      &:hover {
+        background: $color-primary-50;
+      }
+    }
+  }
+
+  &__dropdown_avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: $radius-full;
+    background: $color-slate-200;
+    @include flex-center;
+    font-size: 10px;
+    font-weight: $font-weight-bold;
+    color: $color-slate-600;
+    flex-shrink: 0;
+  }
+
+  &__dropdown_text {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__dropdown_name {
+    display: block;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    color: $color-text;
+    @include truncate;
+  }
+
+  &__dropdown_meta {
+    display: block;
+    font-size: 11px;
+    color: $color-slate-400;
+    @include truncate;
+    margin-top: 1px;
+  }
+
+  &__dropdown_check {
+    color: $color-primary-500;
+    font-size: 12px;
+    flex-shrink: 0;
+  }
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

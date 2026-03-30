@@ -1,5 +1,5 @@
 import { api } from '../api';
-import type { ContentPost, CalendarNote, ContentTemplate, ApiResponse } from '@/types';
+import type { ContentPost, CalendarNote, ContentTemplate, PostActivityLog, ApiResponse } from '@/types';
 
 export const contentApi = api.injectEndpoints({
   endpoints: (build) => ({
@@ -80,6 +80,38 @@ export const contentApi = api.injectEndpoints({
       query: (id) => ({ url: `/content/templates/${id}`, method: 'DELETE' }),
       invalidatesTags: ['Templates'],
     }),
+
+    // ── Post Detail ──
+    getPost: build.query<ApiResponse<ContentPost>, string>({
+      query: (id) => `/content/${id}`,
+      providesTags: (_r, _e, id) => [{ type: 'Content', id }],
+    }),
+
+    // ── List Posts ──
+    listPosts: build.query<ApiResponse<ContentPost[]> & { pagination: { total: number; page: number; limit: number; totalPages: number } }, { page?: number; limit?: number; platform?: string; status?: string; postType?: string; search?: string }>({
+      query: (params) => {
+        const qs = new URLSearchParams();
+        if (params.page) qs.set('page', String(params.page));
+        if (params.limit) qs.set('limit', String(params.limit));
+        if (params.platform) qs.set('platform', params.platform);
+        if (params.status) qs.set('status', params.status);
+        if (params.postType) qs.set('postType', params.postType);
+        if (params.search) qs.set('search', params.search);
+        return `/content/list?${qs.toString()}`;
+      },
+      providesTags: ['Content'],
+    }),
+
+    // ── Cross-platform Group ──
+    getCrossplatformGroup: build.query<ApiResponse<ContentPost[]>, string>({
+      query: (groupId) => `/content/group/${groupId}`,
+      providesTags: ['Content'],
+    }),
+
+    // ── Activity Log ──
+    getPostActivity: build.query<ApiResponse<PostActivityLog[]> & { pagination: { total: number } }, { id: string; page?: number }>({
+      query: ({ id, page = 1 }) => `/content/${id}/activity?page=${page}`,
+    }),
   }),
 });
 
@@ -101,4 +133,8 @@ export const {
   useGetTemplatesQuery,
   useCreateTemplateMutation,
   useDeleteTemplateMutation,
+  useGetPostQuery,
+  useListPostsQuery,
+  useGetCrossplatformGroupQuery,
+  useGetPostActivityQuery,
 } = contentApi;

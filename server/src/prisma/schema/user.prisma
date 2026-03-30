@@ -19,6 +19,8 @@ enum OAuthProvider {
   FACEBOOK
   PINTEREST
   MASTODON
+  MICROSOFT
+  OKTA
 }
 
 model User {
@@ -45,14 +47,44 @@ model User {
   ownedTeams       Team[]
   teamMembers      TeamMember[]
   postComments     PostComment[]
+  postActivityLogs PostActivityLog[]
   startPages       StartPage[]
   notifications    Notification[]
   usageBudget      UsageBudget?
   subscription     Subscription?
   userSettings     UserSettings?
   apiKeys          ApiKey[]
+  invitesSent      Invite[]     @relation("InvitesSent")
+  invitesAccepted  Invite[]     @relation("InvitesAccepted")
 
   @@map("users")
+}
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+  REVOKED
+}
+
+model Invite {
+  id          String       @id @default(cuid())
+  email       String
+  role        Role
+  token       String       @unique
+  status      InviteStatus @default(PENDING)
+  expiresAt   DateTime
+  invitedById String
+  acceptedById String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  invitedBy  User  @relation("InvitesSent", fields: [invitedById], references: [id])
+  acceptedBy User? @relation("InvitesAccepted", fields: [acceptedById], references: [id])
+
+  @@index([token])
+  @@index([email])
+  @@map("invites")
 }
 
 model OAuthAccount {

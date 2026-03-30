@@ -73,3 +73,20 @@ export async function listUsers(page: number, limit: number, role?: Role) {
 
   return { users, total };
 }
+
+export async function updateUserRole(userId: string, role: Role) {
+  return prisma.user.update({
+    where: { id: userId },
+    data: { role },
+    select: { id: true, email: true, name: true, avatarUrl: true, role: true, isActive: true, createdAt: true },
+  });
+}
+
+export async function toggleUserActive(userId: string) {
+  const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
+  return prisma.user.update({
+    where: { id: userId },
+    data: { isActive: !user.isActive },
+    select: { id: true, email: true, name: true, avatarUrl: true, role: true, isActive: true, createdAt: true },
+  });
+}

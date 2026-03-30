@@ -133,6 +133,8 @@ export enum OAuthProvider {
   FACEBOOK = 'FACEBOOK',
   PINTEREST = 'PINTEREST',
   MASTODON = 'MASTODON',
+  MICROSOFT = 'MICROSOFT',
+  OKTA = 'OKTA',
 }
 
 export enum TeamRole {

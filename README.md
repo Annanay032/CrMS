@@ -148,6 +148,18 @@ See [.env.example](.env.example) for the full list. Key variables:
 | `RAZORPAY_KEY_ID` | Razorpay key ID | *(optional)* |
 | `RAZORPAY_KEY_SECRET` | Razorpay key secret | *(optional)* |
 | `RAZORPAY_WEBHOOK_SECRET` | Razorpay webhook signing secret | *(optional)* |
+| `TWITTER_CLIENT_ID` | Twitter/X OAuth 2.0 client ID | *(optional)* |
+| `TWITTER_CLIENT_SECRET` | Twitter/X OAuth 2.0 client secret | *(optional)* |
+| `TWITTER_CALLBACK_URL` | Twitter/X OAuth callback URL | *(optional)* |
+| `LINKEDIN_CLIENT_ID` | LinkedIn OAuth client ID | *(optional)* |
+| `LINKEDIN_CLIENT_SECRET` | LinkedIn OAuth client secret | *(optional)* |
+| `LINKEDIN_CALLBACK_URL` | LinkedIn OAuth callback URL | *(optional)* |
+| `FACEBOOK_APP_ID` | Facebook app ID | *(optional)* |
+| `FACEBOOK_APP_SECRET` | Facebook app secret | *(optional)* |
+| `THREADS_APP_ID` | Threads app ID (uses Meta/Instagram app) | *(optional)* |
+| `THREADS_APP_SECRET` | Threads app secret | *(optional)* |
+| `PINTEREST_APP_ID` | Pinterest app ID | *(optional)* |
+| `PINTEREST_APP_SECRET` | Pinterest app secret | *(optional)* |
 | `GOOGLE_BUSINESS_CLIENT_ID` | Google Business Profile OAuth client ID | *(optional)* |
 | `GOOGLE_BUSINESS_CLIENT_SECRET` | Google Business Profile OAuth secret | *(optional)* |
 | `GOOGLE_DRIVE_API_KEY` | Google Drive API key for cloud imports | *(optional)* |
@@ -307,7 +319,7 @@ CrMS/
 │       │   ├── community.service.ts#   Interactions, saved replies, voice profiles, threads, channels
 │       │   ├── dashboard.service.ts#   Dashboard stats, analytics, reports
 │       │   ├── account.service.ts  #   Social account connections
-│       │   ├── platform.service.ts #   Instagram/YouTube/TikTok API abstraction (real endpoints)
+│       │   ├── platform.service.ts #   Platform API abstraction (Instagram, YouTube, TikTok, Twitter/X, LinkedIn, Facebook, Threads, Pinterest)
 │       │   ├── revenue.service.ts  #   Revenue streams, brand deals, invoices, post ROI
 │       │   ├── trends-data.service.ts # Real trend data (Google Trends, YouTube, TikTok, Instagram)
 │       │   ├── email-inbox.service.ts # IMAP email polling → CommunityInteraction
@@ -357,7 +369,8 @@ CrMS/
 │       │
 │       ├── jobs/                   # Background job processing (BullMQ)
 │       │   ├── index.ts            #   Queue definitions, workers, recurring schedules
-│       │   ├── publish.job.ts      #   Auto-publish scheduled posts
+│       │   ├── publish.job.ts      #   Auto-publish scheduled posts (non-retryable error detection)
+│       │   ├── first-comment.job.ts #  Post first comment after publish (90s delay, 5 retries)
 │       │   ├── analytics.job.ts    #   Fetch post analytics + creator snapshots
 │       │   ├── trends.job.ts       #   Periodic trend scanning
 │       │   ├── growth.job.ts       #   Daily AI growth recommendations for creators
@@ -926,8 +939,9 @@ All agents log their tasks (input, output, tokens used) to the `AgentTask` table
 
 | Queue | Schedule | Description |
 |-------|----------|-------------|
-| `publish` | Every 60 seconds | Checks for scheduled posts within a 2-min window and publishes via platform APIs. Falls back to PENDING_MANUAL + web push notification when no OAuth token is available |
-| `analytics` | Every 6 hours | Fetches post analytics from platform APIs, updates creator snapshots, and detects boosted/promoted posts |
+| `publish` | Every 60 seconds | Checks for scheduled posts within a 2-min window and publishes via platform APIs. Non-retryable errors (quota exceeded, upload limit, forbidden) skip retries and fail immediately. Falls back to PENDING_MANUAL + web push notification when no OAuth token is available |
+| `first-comment` | On publish (90s delay) | Posts the first comment on a newly published video (e.g., YouTube). Retries up to 5 times with exponential backoff |
+| `analytics` | Every 6 hours | Fetches post analytics from all 8 platform APIs (YouTube uses dual Data API + Analytics API for watch time/revenue), updates creator snapshots, and detects boosted/promoted posts. On-demand fetch for stale data (1hr threshold + zero-value check for recent posts) |
 | `trends` | On-demand | Scans for trending content by niche/platform |
 | `listening` | Every 15 minutes | Polls social platforms for brand mentions and keyword matches |
 | `competitive` | Daily | Collects competitor metrics and activity for benchmarking |
@@ -991,7 +1005,7 @@ Single-item groups (e.g., Home, Communication) render inline without a header. C
 - Change `JWT_SECRET` and `ENCRYPTION_KEY` to strong random values
 - Set `NODE_ENV=production`
 - Use managed PostgreSQL and Redis services
-- Configure real OAuth credentials for Google, Instagram, YouTube, TikTok
+- Configure real OAuth credentials for Google, Instagram, YouTube, TikTok, Twitter/X, LinkedIn, Facebook, Threads, Pinterest
 - Configure Stripe keys (`STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET`) for USD billing
 - Configure Razorpay keys (`RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET`) for INR billing
 - Create Razorpay plans matching `RAZORPAY_PLAN_MAP` IDs in `razorpay.service.ts`

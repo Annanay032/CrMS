@@ -24,7 +24,7 @@ function getPlatformConfig(provider: string): PlatformOAuthConfig | null {
         clientId: env.INSTAGRAM_APP_ID,
         clientSecret: env.INSTAGRAM_APP_SECRET,
         callbackUrl: env.INSTAGRAM_CALLBACK_URL,
-        scopes: ['user_profile', 'user_media'],
+        scopes: ['user_profile', 'user_media', 'instagram_manage_insights'],
       };
     case 'YOUTUBE':
       if (!env.YOUTUBE_CLIENT_ID || !env.YOUTUBE_CLIENT_SECRET || !env.YOUTUBE_CALLBACK_URL) return null;
@@ -79,7 +79,7 @@ function getPlatformConfig(provider: string): PlatformOAuthConfig | null {
         clientId: env.FACEBOOK_APP_ID,
         clientSecret: env.FACEBOOK_APP_SECRET,
         callbackUrl: env.FACEBOOK_CALLBACK_URL,
-        scopes: ['pages_show_list', 'pages_read_engagement', 'pages_manage_posts'],
+        scopes: ['pages_show_list', 'pages_read_engagement', 'pages_manage_posts', 'read_insights'],
       };
     case 'THREADS':
       // Threads uses Instagram's Graph API (same Meta OAuth)
@@ -90,7 +90,7 @@ function getPlatformConfig(provider: string): PlatformOAuthConfig | null {
         clientId: env.INSTAGRAM_APP_ID,
         clientSecret: env.INSTAGRAM_APP_SECRET,
         callbackUrl: env.INSTAGRAM_CALLBACK_URL,
-        scopes: ['threads_basic', 'threads_content_publish'],
+        scopes: ['threads_basic', 'threads_content_publish', 'threads_manage_insights'],
       };
     case 'PINTEREST':
       if (!env.PINTEREST_APP_ID || !env.PINTEREST_APP_SECRET || !env.PINTEREST_CALLBACK_URL) return null;
@@ -100,7 +100,7 @@ function getPlatformConfig(provider: string): PlatformOAuthConfig | null {
         clientId: env.PINTEREST_APP_ID,
         clientSecret: env.PINTEREST_APP_SECRET,
         callbackUrl: env.PINTEREST_CALLBACK_URL,
-        scopes: ['boards:read', 'pins:read', 'pins:write', 'user_accounts:read'],
+        scopes: ['boards:read', 'pins:read', 'pins:write', 'pins:read_secret', 'user_accounts:read'],
       };
     case 'MASTODON':
       if (!env.MASTODON_CLIENT_ID || !env.MASTODON_CLIENT_SECRET || !env.MASTODON_CALLBACK_URL) return null;

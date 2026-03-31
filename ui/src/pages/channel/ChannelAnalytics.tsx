@@ -2,13 +2,14 @@ import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Card, Row, Col, Statistic, Table, Tag, Typography, Skeleton, Empty, Select, Space } from 'antd';
 import {
-  EyeOutlined, HeartOutlined, MessageOutlined, ShareAltOutlined,
-  RiseOutlined, TrophyOutlined,
+  HeartOutlined, MessageOutlined, ShareAltOutlined,
+  RiseOutlined, TrophyOutlined, PlayCircleOutlined, FieldTimeOutlined,
+  BookOutlined, LinkOutlined, DollarOutlined,
 } from '@ant-design/icons';
 import { useGetChannelAnalyticsQuery } from '@/store/endpoints/channels';
 import type { PostAnalytics } from '@/types';
 
-const { Text, Title } = Typography;
+const { Text } = Typography;
 
 export function ChannelAnalytics() {
   const { platform } = useParams<{ platform: string }>();
@@ -30,11 +31,21 @@ export function ChannelAnalytics() {
         acc.likes += p.analytics.likes;
         acc.comments += p.analytics.comments;
         acc.shares += p.analytics.shares;
+        acc.saves += p.analytics.saves ?? 0;
+        acc.clicks += p.analytics.clicks ?? 0;
+        acc.videoViews += p.analytics.videoViews ?? 0;
+        acc.totalWatchTime += p.analytics.avgWatchTime ?? 0;
+        acc.watchTimeCount += (p.analytics.avgWatchTime ?? 0) > 0 ? 1 : 0;
+        acc.estimatedRevenue += p.analytics.estimatedRevenue ?? 0;
       }
       return acc;
     },
-    { impressions: 0, likes: 0, comments: 0, shares: 0 },
+    { impressions: 0, likes: 0, comments: 0, shares: 0, saves: 0, clicks: 0, videoViews: 0, totalWatchTime: 0, watchTimeCount: 0, estimatedRevenue: 0 },
   );
+
+  const avgWatchTime = totals.watchTimeCount > 0
+    ? Math.round(totals.totalWatchTime / totals.watchTimeCount)
+    : 0;
 
   const engagement = totals.impressions > 0
     ? (((totals.likes + totals.comments + totals.shares) / totals.impressions) * 100).toFixed(2)
@@ -60,34 +71,62 @@ export function ChannelAnalytics() {
 
       {/* Summary stats */}
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-        <Col span={4}>
+        <Col xs={12} sm={8} md={4} lg={3}>
           <Card size="small">
-            <Statistic title="Total Impressions" value={totals.impressions} prefix={<EyeOutlined />} />
+            <Statistic title="Views" value={totals.videoViews || totals.impressions} prefix={<PlayCircleOutlined />} />
           </Card>
         </Col>
-        <Col span={4}>
+        <Col xs={12} sm={8} md={4} lg={3}>
           <Card size="small">
-            <Statistic title="Total Likes" value={totals.likes} prefix={<HeartOutlined />} />
+            <Statistic title="Likes" value={totals.likes} prefix={<HeartOutlined />} />
           </Card>
         </Col>
-        <Col span={4}>
+        <Col xs={12} sm={8} md={4} lg={3}>
           <Card size="small">
-            <Statistic title="Total Comments" value={totals.comments} prefix={<MessageOutlined />} />
+            <Statistic title="Comments" value={totals.comments} prefix={<MessageOutlined />} />
           </Card>
         </Col>
-        <Col span={4}>
+        <Col xs={12} sm={8} md={4} lg={3}>
           <Card size="small">
-            <Statistic title="Total Shares" value={totals.shares} prefix={<ShareAltOutlined />} />
+            <Statistic title="Shares" value={totals.shares} prefix={<ShareAltOutlined />} />
           </Card>
         </Col>
-        <Col span={4}>
+        {totals.saves > 0 && (
+          <Col xs={12} sm={8} md={4} lg={3}>
+            <Card size="small">
+              <Statistic title="Saves" value={totals.saves} prefix={<BookOutlined />} />
+            </Card>
+          </Col>
+        )}
+        {totals.clicks > 0 && (
+          <Col xs={12} sm={8} md={4} lg={3}>
+            <Card size="small">
+              <Statistic title="Clicks" value={totals.clicks} prefix={<LinkOutlined />} />
+            </Card>
+          </Col>
+        )}
+        {avgWatchTime > 0 && (
+          <Col xs={12} sm={8} md={4} lg={3}>
+            <Card size="small">
+              <Statistic title="Avg Watch Time" value={`${avgWatchTime}s`} prefix={<FieldTimeOutlined />} />
+            </Card>
+          </Col>
+        )}
+        {totals.estimatedRevenue > 0 && (
+          <Col xs={12} sm={8} md={4} lg={3}>
+            <Card size="small">
+              <Statistic title="Est. Revenue" value={totals.estimatedRevenue} precision={2} prefix={<DollarOutlined />} />
+            </Card>
+          </Col>
+        )}
+        <Col xs={12} sm={8} md={4} lg={3}>
           <Card size="small">
-            <Statistic title="Engagement Rate" value={engagement} suffix="%" prefix={<RiseOutlined />} />
+            <Statistic title="Engagement" value={engagement} suffix="%" prefix={<RiseOutlined />} />
           </Card>
         </Col>
-        <Col span={4}>
+        <Col xs={12} sm={8} md={4} lg={3}>
           <Card size="small">
-            <Statistic title="Posts Published" value={analytics.posts.length} />
+            <Statistic title="Posts" value={analytics.posts.length} />
           </Card>
         </Col>
       </Row>
@@ -129,8 +168,8 @@ export function ChannelAnalytics() {
             },
             { title: 'Type', dataIndex: 'postType', key: 'postType', width: 80, render: (t: string) => <Tag>{t}</Tag> },
             {
-              title: 'Impressions', key: 'impressions', width: 110,
-              render: (_: unknown, r: { analytics?: PostAnalytics }) => r.analytics?.impressions?.toLocaleString() ?? '—',
+              title: 'Views', key: 'views', width: 90,
+              render: (_: unknown, r: { analytics?: PostAnalytics }) => (r.analytics?.videoViews || r.analytics?.impressions)?.toLocaleString() ?? '—',
             },
             {
               title: 'Likes', key: 'likes', width: 80,
@@ -143,6 +182,10 @@ export function ChannelAnalytics() {
             {
               title: 'Shares', key: 'shares', width: 80,
               render: (_: unknown, r: { analytics?: PostAnalytics }) => r.analytics?.shares?.toLocaleString() ?? '—',
+            },
+            {
+              title: 'Saves', key: 'saves', width: 80,
+              render: (_: unknown, r: { analytics?: PostAnalytics }) => r.analytics?.saves?.toLocaleString() ?? '—',
             },
             {
               title: 'Published', key: 'publishedAt', width: 100,

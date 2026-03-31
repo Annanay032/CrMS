@@ -104,10 +104,22 @@ export async function publishScheduledPosts() {
       logger.info(`Published post ${post.id} to ${post.platform}: ${result.externalPostId}`);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+
+      // Non-retryable errors — fail immediately instead of wasting retry attempts
+      const nonRetryable = [
+        'uploadLimitExceeded',     // YouTube daily upload limit
+        'quotaExceeded',           // YouTube API quota exceeded
+        'forbidden',               // Permission/scope issues
+        'accountTerminated',       // Account suspended
+        'channelNotFound',         // Channel deleted
+        'invalidAccessToken',      // Token revoked
+      ];
+      const isNonRetryable = nonRetryable.some((reason) => errorMessage.includes(reason));
+
       const retryCount = post.retryCount + 1;
       const maxRetries = post.maxRetries;
 
-      if (retryCount < maxRetries) {
+      if (!isNonRetryable && retryCount < maxRetries) {
         // Exponential backoff: 2^retryCount minutes (2, 4, 8, ...)
         const backoffMs = Math.pow(2, retryCount) * 60 * 1000;
         const nextRetryAt = new Date(now.getTime() + backoffMs);

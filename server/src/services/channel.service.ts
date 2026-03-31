@@ -1,10 +1,60 @@
 import { prisma } from '../config/index.js';
 import { paginate } from '../utils/helpers.js';
+import { logger } from '../config/logger.js';
+import { getPlatformService } from './platform.service.js';
+import { decrypt } from '../utils/crypto.js';
 import type { Platform } from '../types/enums.js';
 
 // ─── Channel Overview (per-platform dashboard) ──────────────
 
 export async function getChannelOverview(creatorProfileId: string, platform: Platform) {
+  const staleThreshold = new Date(Date.now() - 60 * 60 * 1000); // 1 hour
+  const recentPublishThreshold = new Date(Date.now() - 24 * 60 * 60 * 1000); // 24 hours
+
+  // Check for published posts missing analytics or with stale data
+  const stalePosts = await prisma.contentPost.findMany({
+    where: {
+      creatorProfileId,
+      platform,
+      status: 'PUBLISHED',
+      externalPostId: { not: null },
+      OR: [
+        { analytics: null },
+        { analytics: { fetchedAt: { lt: staleThreshold } } },
+        // Re-fetch if analytics are all zeros and post was published recently
+        {
+          publishedAt: { gte: recentPublishThreshold },
+          analytics: { impressions: 0, likes: 0, comments: 0 },
+        },
+      ],
+    },
+    include: {
+      creatorProfile: {
+        include: { user: { include: { oauthAccounts: true } } },
+      },
+    },
+  });
+
+  // On-demand fetch for stale/missing analytics
+  if (stalePosts.length > 0) {
+    const platformService = getPlatformService(platform);
+    for (const post of stalePosts) {
+      try {
+        const oauthAccount = post.creatorProfile.user.oauthAccounts.find((a) => a.provider === platform);
+        if (!oauthAccount || !post.externalPostId) continue;
+        const accessToken = decrypt(oauthAccount.accessToken);
+        const analytics = await platformService.getAnalytics(accessToken, post.externalPostId);
+        await prisma.postAnalytics.upsert({
+          where: { postId: post.id },
+          update: { ...analytics, fetchedAt: new Date() },
+          create: { postId: post.id, ...analytics },
+        });
+      } catch (err) {
+        logger.warn(`On-demand analytics fetch failed for post ${post.id}`, { error: (err as Error).message });
+      }
+    }
+  }
+
   const [totalPosts, publishedPosts, scheduledPosts, draftPosts, recentPosts, analyticsAgg] = await Promise.all([
     prisma.contentPost.count({ where: { creatorProfileId, platform, parentPostId: null } }),
     prisma.contentPost.count({ where: { creatorProfileId, platform, status: 'PUBLISHED' } }),
@@ -27,6 +77,7 @@ export async function getChannelOverview(creatorProfileId: string, platform: Pla
         saves: true,
         clicks: true,
         videoViews: true,
+        estimatedRevenue: true,
       },
       _avg: {
         avgWatchTime: true,
@@ -52,6 +103,7 @@ export async function getChannelOverview(creatorProfileId: string, platform: Pla
       clicks: analyticsAgg._sum.clicks ?? 0,
       videoViews: analyticsAgg._sum.videoViews ?? 0,
       avgWatchTime: analyticsAgg._avg.avgWatchTime ?? 0,
+      estimatedRevenue: analyticsAgg._sum.estimatedRevenue ?? 0,
     },
     recentPosts,
   };
@@ -95,6 +147,8 @@ export async function getChannelPosts(creatorProfileId: string, platform: Platfo
 
 export async function getChannelAnalytics(creatorProfileId: string, platform: Platform, days = 30) {
   const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+  const staleThreshold = new Date(Date.now() - 60 * 60 * 1000); // 1 hour
+  const recentPublishThreshold = new Date(Date.now() - 24 * 60 * 60 * 1000); // 24 hours
 
   // Per-post analytics for posts on this platform
   const posts = await prisma.contentPost.findMany({
@@ -104,9 +158,45 @@ export async function getChannelAnalytics(creatorProfileId: string, platform: Pl
       status: 'PUBLISHED',
       publishedAt: { gte: since },
     },
-    include: { analytics: true },
+    include: {
+      analytics: true,
+      creatorProfile: {
+        include: { user: { include: { oauthAccounts: true } } },
+      },
+    },
     orderBy: { publishedAt: 'asc' },
   });
+
+  // On-demand: fetch analytics for posts missing data or with stale data
+  const stale = posts.filter(
+    (p) => p.externalPostId && (
+      !p.analytics ||
+      (p.analytics.fetchedAt && p.analytics.fetchedAt < staleThreshold) ||
+      // Re-fetch zeros for recently published posts
+      (p.analytics.impressions === 0 && p.analytics.likes === 0 && p.analytics.comments === 0 &&
+       p.publishedAt && p.publishedAt >= recentPublishThreshold)
+    ),
+  );
+
+  if (stale.length > 0) {
+    const platformService = getPlatformService(platform);
+    for (const post of stale) {
+      try {
+        const oauthAccount = post.creatorProfile.user.oauthAccounts.find((a) => a.provider === platform);
+        if (!oauthAccount || !post.externalPostId) continue;
+        const accessToken = decrypt(oauthAccount.accessToken);
+        const analytics = await platformService.getAnalytics(accessToken, post.externalPostId);
+        const upserted = await prisma.postAnalytics.upsert({
+          where: { postId: post.id },
+          update: { ...analytics, fetchedAt: new Date() },
+          create: { postId: post.id, ...analytics },
+        });
+        post.analytics = upserted;
+      } catch (err) {
+        logger.warn(`On-demand analytics fetch failed for post ${post.id}`, { error: (err as Error).message });
+      }
+    }
+  }
 
   // Top performing posts
   const topPosts = await prisma.contentPost.findMany({

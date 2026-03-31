@@ -1,9 +1,10 @@
 import { useParams, Link } from 'react-router-dom';
-import { Card, Row, Col, Statistic, Tag, Table, Typography, Skeleton, Space, Empty } from 'antd';
+import { Card, Row, Col, Statistic, Tag, Table, Typography, Skeleton, Empty } from 'antd';
 import {
-  EyeOutlined, HeartOutlined, MessageOutlined, ShareAltOutlined,
+  HeartOutlined, MessageOutlined, ShareAltOutlined,
   BookOutlined, PlayCircleOutlined, FileTextOutlined,
-  ClockCircleOutlined, EditOutlined,
+  ClockCircleOutlined, EditOutlined, FieldTimeOutlined,
+  LinkOutlined, DollarOutlined,
 } from '@ant-design/icons';
 import { useGetChannelOverviewQuery } from '@/store/endpoints/channels';
 import { STATUS_COLORS } from '@/pages/content/constants';
@@ -50,14 +51,19 @@ export function ChannelOverview() {
       {/* Aggregated analytics */}
       <Card title="Total Performance" size="small" style={{ marginBottom: 24 }}>
         <Row gutter={[16, 16]}>
-          <Col span={4}><Statistic title="Impressions" value={analytics.impressions} prefix={<EyeOutlined />} /></Col>
-          <Col span={4}><Statistic title="Reach" value={analytics.reach} /></Col>
+          <Col span={4}><Statistic title="Views" value={analytics.videoViews || analytics.impressions} prefix={<PlayCircleOutlined />} /></Col>
           <Col span={4}><Statistic title="Likes" value={analytics.likes} prefix={<HeartOutlined />} /></Col>
           <Col span={4}><Statistic title="Comments" value={analytics.comments} prefix={<MessageOutlined />} /></Col>
           <Col span={4}><Statistic title="Shares" value={analytics.shares} prefix={<ShareAltOutlined />} /></Col>
           <Col span={4}><Statistic title="Saves" value={analytics.saves} prefix={<BookOutlined />} /></Col>
-          {analytics.videoViews > 0 && (
-            <Col span={4}><Statistic title="Video Views" value={analytics.videoViews} prefix={<PlayCircleOutlined />} /></Col>
+          {analytics.clicks > 0 && (
+            <Col span={4}><Statistic title="Clicks" value={analytics.clicks} prefix={<LinkOutlined />} /></Col>
+          )}
+          {analytics.avgWatchTime > 0 && (
+            <Col span={4}><Statistic title="Avg Watch Time" value={`${Math.round(analytics.avgWatchTime)}s`} prefix={<FieldTimeOutlined />} /></Col>
+          )}
+          {analytics.estimatedRevenue > 0 && (
+            <Col span={4}><Statistic title="Est. Revenue" value={analytics.estimatedRevenue} precision={2} prefix={<DollarOutlined />} /></Col>
           )}
         </Row>
       </Card>
@@ -90,10 +96,28 @@ export function ChannelOverview() {
               render: (_: unknown, r: ContentPost) => r.analytics?.likes ?? '—',
             },
             {
+              title: 'Comments',
+              key: 'comments',
+              width: 100,
+              render: (_: unknown, r: ContentPost) => r.analytics?.comments ?? '—',
+            },
+            {
+              title: 'Shares',
+              key: 'shares',
+              width: 80,
+              render: (_: unknown, r: ContentPost) => r.analytics?.shares ?? '—',
+            },
+            {
               title: 'Views',
               key: 'views',
               width: 80,
-              render: (_: unknown, r: ContentPost) => r.analytics?.impressions ?? '—',
+              render: (_: unknown, r: ContentPost) => r.analytics?.videoViews || r.analytics?.impressions || '—',
+            },
+            {
+              title: 'Saves',
+              key: 'saves',
+              width: 80,
+              render: (_: unknown, r: ContentPost) => r.analytics?.saves || '—',
             },
             {
               title: 'Date',

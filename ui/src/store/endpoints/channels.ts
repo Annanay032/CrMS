@@ -19,6 +19,7 @@ export interface ChannelOverviewData {
     clicks: number;
     videoViews: number;
     avgWatchTime: number;
+    estimatedRevenue: number;
   };
   recentPosts: ContentPost[];
 }

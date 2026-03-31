@@ -13,6 +13,8 @@ import { refreshExpiringTokens } from './token-refresh.job.js';
 import { processRecurringPosts } from './recurring-post.job.js';
 import { processRssFeeds } from './rss-import.job.js';
 import { processSubscriptionExpiry } from './subscription.job.js';
+import { postFirstComment } from './first-comment.job.js';
+import type { FirstCommentJobData } from './first-comment.job.js';
 const connection = { connection: redis as any };
 
 // ── Queues ──────────────────────────────────────────────────
@@ -29,6 +31,7 @@ export const tokenRefreshQueue = new Queue('token-refresh', connection);
 export const recurringPostQueue = new Queue('recurring-posts', connection);
 export const rssImportQueue = new Queue('rss-import', connection);
 export const subscriptionQueue = new Queue('subscription-expiry', connection);
+export const firstCommentQueue = new Queue<FirstCommentJobData>('first-comment', connection);
 
 // ── Workers ─────────────────────────────────────────────────
 
@@ -104,15 +107,37 @@ export function startWorkers() {
     await processSubscriptionExpiry();
   }, connection);
 
+  const firstCommentWorker = new Worker<FirstCommentJobData>('first-comment', async (job) => {
+    logger.info(`First comment job ${job.id} (attempt ${job.data.attempt})`);
+    await postFirstComment(job.data);
+  }, {
+    ...connection,
+    settings: {
+      backoffStrategy: () => 60_000, // 60s between retries
+    },
+  });
+
   growthWorker.on('failed', (job, err) => logger.error(`Growth job ${job?.id} failed`, err));
   inboxEmailWorker.on('failed', (job, err) => logger.error(`Inbox email job ${job?.id} failed`, err));
   tokenRefreshWorker.on('failed', (job, err) => logger.error(`Token refresh job ${job?.id} failed`, err));
   recurringPostWorker.on('failed', (job, err) => logger.error(`Recurring post job ${job?.id} failed`, err));
   rssImportWorker.on('failed', (job, err) => logger.error(`RSS import job ${job?.id} failed`, err));
   subscriptionWorker.on('failed', (job, err) => logger.error(`Subscription expiry job ${job?.id} failed`, err));
+  firstCommentWorker.on('failed', (job, err) => {
+    const data = job?.data;
+    if (data && data.attempt < 5) {
+      // Re-queue with incremented attempt and exponential backoff
+      firstCommentQueue.add('post-first-comment', { ...data, attempt: data.attempt + 1 }, {
+        delay: data.attempt * 60_000, // 1min, 2min, 3min, 4min
+      });
+      logger.info(`First comment retry scheduled for post ${data.postId} (attempt ${data.attempt + 1})`);
+    } else {
+      logger.error(`First comment job ${job?.id} failed permanently`, err);
+    }
+  });
 
   logger.info('BullMQ workers started');
-  return { publishWorker, analyticsWorker, trendsWorker, listeningWorker, competitiveWorker, reportWorker, growthWorker, inboxEmailWorker, tokenRefreshWorker, recurringPostWorker, rssImportWorker, subscriptionWorker };
+  return { publishWorker, analyticsWorker, trendsWorker, listeningWorker, competitiveWorker, reportWorker, growthWorker, inboxEmailWorker, tokenRefreshWorker, recurringPostWorker, rssImportWorker, subscriptionWorker, firstCommentWorker };
 }
 
 // ── Scheduled (repeating) jobs ──────────────────────────────

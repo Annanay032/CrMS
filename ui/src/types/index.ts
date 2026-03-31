@@ -132,6 +132,7 @@ export interface ContentPost {
   platformOverrides?: Record<string, { caption?: string; hashtags?: string[] }>;
   bulkGroupId?: string;
   ideaId?: string;
+  externalPostId?: string;
   approvalStatus?: ApprovalStatus;
   teamId?: string;
   comments?: PostComment[];

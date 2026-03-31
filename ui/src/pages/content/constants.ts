@@ -1,5 +1,11 @@
 export const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
+export const PLATFORM_ICONS: Record<string, string> = {
+  INSTAGRAM: '📷', YOUTUBE: '▶️', TIKTOK: '🎵', TWITTER: '𝕏',
+  LINKEDIN: '💼', THREADS: '🧵', BLUESKY: '🦋', FACEBOOK: '👤',
+  PINTEREST: '📌', REDDIT: '🔴',
+};
+
 export const STATUS_COLORS: Record<string, string> = {
   DRAFT: '#e2e8f0',
   REVIEW: '#fde68a',

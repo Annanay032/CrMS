@@ -4,9 +4,9 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronLeft, faChevronRight, faStickyNote, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { useGetCalendarQuery, useDeleteCalendarNoteMutation } from '@/store/endpoints/content';
 import type { ContentPost, CalendarNote } from '@/types';
-import { DAYS, STATUS_COLORS } from './constants';
-import { CalendarGrid } from './components/CalendarGrid';
-import { ApprovalDrawer } from './components/ApprovalDrawer';
+import { DAYS, STATUS_COLORS } from '../constants';
+import { CalendarGrid } from '../components/CalendarGrid';
+import { ApprovalDrawer } from '../components/ApprovalDrawer';
 import { CalendarNoteModal } from '@/components/content/CalendarNoteModal';
 
 const { Title } = Typography;

@@ -44,7 +44,7 @@ export function ChannelPosts() {
     {
       title: 'Caption', dataIndex: 'caption', key: 'caption', ellipsis: true,
       render: (caption: string, post: ContentPost) => (
-        <Link to={`/posts/${post.id}`}>
+        <Link to={`/posts/${post.id}?from=channel&platform=${upper}`}>
           {caption ? (caption.length > 80 ? caption.slice(0, 80) + '…' : caption) : <Text type="secondary">No caption</Text>}
         </Link>
       ),
@@ -78,7 +78,7 @@ export function ChannelPosts() {
       title: '', key: 'actions', width: 80,
       render: (_: unknown, post: ContentPost) => (
         <Space>
-          <Link to={`/posts/${post.id}`}><Button type="text" size="small" icon={<EyeOutlined />} /></Link>
+          <Link to={`/posts/${post.id}?from=channel&platform=${upper}`}><Button type="text" size="small" icon={<EyeOutlined />} /></Link>
           <Button type="text" size="small" icon={<EditOutlined />} onClick={() => navigate(`/studio/compose?edit=${post.id}`)} />
         </Space>
       ),

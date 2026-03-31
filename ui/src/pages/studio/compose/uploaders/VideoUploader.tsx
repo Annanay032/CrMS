@@ -96,7 +96,12 @@ export function VideoUploader({ postType, videoFile, thumbnailUrl, onSetVideoFil
             vid.onloadedmetadata = async () => {
               if (postType === 'SHORT' && vid.duration > 60) message.warning('Shorts must be 60 seconds or less');
               const serverUrl = await handleUpload(file);
-              onSetVideoFile({ url: previewUrl, serverUrl: serverUrl ?? undefined, name: file.name, size: file.size, duration: vid.duration });
+              if (!serverUrl) {
+                message.error('Video upload failed. Please try again.');
+                URL.revokeObjectURL(previewUrl);
+                return;
+              }
+              onSetVideoFile({ url: previewUrl, serverUrl, name: file.name, size: file.size, duration: vid.duration });
             };
             vid.src = previewUrl;
             return false;

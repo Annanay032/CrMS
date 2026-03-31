@@ -35,6 +35,7 @@ export interface IPlatformService {
     caption?: string;
     mediaUrls: string[];
     postType: string;
+    scheduledAt?: Date;
   }): Promise<PlatformPublishResult>;
   getAnalytics(accessToken: string, externalPostId: string): Promise<PlatformAnalytics>;
   getProfile(accessToken: string): Promise<PlatformProfile>;
@@ -266,7 +267,7 @@ export class YouTubeService implements IPlatformService {
     }
   }
 
-  async publish(accessToken: string, data: { caption?: string; mediaUrls: string[]; postType: string }): Promise<PlatformPublishResult> {
+  async publish(accessToken: string, data: { caption?: string; mediaUrls: string[]; postType: string; scheduledAt?: Date }): Promise<PlatformPublishResult> {
     // YouTube Data API v3 — resumable video upload
     if (!data.mediaUrls.length) throw new Error('No media/video URL provided');
 
@@ -295,6 +296,9 @@ export class YouTubeService implements IPlatformService {
     const title = data.caption?.slice(0, 100) || (isShort ? 'Short' : 'Video');
     const description = data.caption || '';
 
+    // Determine if this is a scheduled upload (future date)
+    const isScheduled = data.scheduledAt && new Date(data.scheduledAt).getTime() > Date.now() + 60_000;
+
     // Step 1: Initiate resumable upload
     const metadata = {
       snippet: {
@@ -303,9 +307,9 @@ export class YouTubeService implements IPlatformService {
         categoryId: '22', // People & Blogs
       },
       status: {
-        privacyStatus: 'public',
+        privacyStatus: isScheduled ? 'private' : 'public',
         selfDeclaredMadeForKids: false,
-        ...(isShort ? {} : {}),
+        ...(isScheduled ? { publishAt: new Date(data.scheduledAt!).toISOString() } : {}),
       },
     };
 
@@ -358,7 +362,8 @@ export class YouTubeService implements IPlatformService {
     const result = (await uploadRes.json()) as { id?: string };
     const videoId = result.id ?? `yt_${Date.now()}`;
 
-    logger.info(`YouTube video uploaded: ${videoId}`, { isShort, title });
+    logger.info(`YouTube video uploaded: ${videoId}`, { isShort, title, isScheduled: !!isScheduled });
+
     return {
       externalPostId: videoId,
       url: isShort

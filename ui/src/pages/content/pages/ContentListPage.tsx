@@ -8,7 +8,7 @@ import {
   HeartOutlined, MessageOutlined, ShareAltOutlined,
 } from '@ant-design/icons';
 import { useListPostsQuery } from '@/store/endpoints/content';
-import { STATUS_COLORS, PLATFORM_OPTIONS, POST_TYPE_OPTIONS } from './constants';
+import { STATUS_COLORS, PLATFORM_OPTIONS, POST_TYPE_OPTIONS } from '../constants';
 import type { ContentPost } from '@/types';
 import type { ColumnsType } from 'antd/es/table';
 
@@ -144,7 +144,7 @@ export function ContentListPage() {
   ];
 
   return (
-    <div style={{ padding: '24px 16px', maxWidth: 1200, margin: '0 auto' }}>
+    <div style={{ padding: '24px 16px', margin: '0 auto' }}>
       <Space style={{ marginBottom: 16, width: '100%', justifyContent: 'space-between' }}>
         <Title level={4} style={{ margin: 0 }}>Content Library</Title>
         <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/studio/compose')}>

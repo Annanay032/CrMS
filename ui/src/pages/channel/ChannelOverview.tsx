@@ -76,7 +76,7 @@ export function ChannelOverview() {
               key: 'caption',
               ellipsis: true,
               render: (caption: string, post: ContentPost) => (
-                <Link to={`/posts/${post.id}`}>
+                <Link to={`/posts/${post.id}?from=channel&platform=${platform?.toUpperCase()}`}>
                   {caption ? (caption.length > 60 ? caption.slice(0, 60) + '…' : caption) : <Text type="secondary">No caption</Text>}
                 </Link>
               ),

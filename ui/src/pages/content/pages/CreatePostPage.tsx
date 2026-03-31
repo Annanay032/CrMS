@@ -16,8 +16,8 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { useCreatePostMutation, useAutosavePostMutation } from '@/store/endpoints/content';
 import { useGenerateContentMutation, useRunAgentMutation } from '@/store/endpoints/agents';
-import { PLATFORM_OPTIONS, POST_TYPE_OPTIONS } from './constants';
-import { AiSuggestPanel } from './components/AiSuggestPanel';
+import { PLATFORM_OPTIONS, POST_TYPE_OPTIONS } from '../constants';
+import { AiSuggestPanel } from '../components/AiSuggestPanel';
 import { TemplateDrawer } from '@/components/content/TemplateDrawer';
 import { IdeasSidePanel } from '@/components/content/IdeasSidePanel';
 import { ThumbnailPicker } from '@/components/content/ThumbnailPicker';

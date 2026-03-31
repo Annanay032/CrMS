@@ -2,6 +2,11 @@ import { prisma } from '../config/index.js';
 import { logger } from '../config/logger.js';
 import { getPlatformService } from '../services/platform.service.js';
 import { decrypt } from '../utils/crypto.js';
+import { Queue } from 'bullmq';
+import { redis } from '../config/redis.js';
+import type { FirstCommentJobData } from './first-comment.job.js';
+
+const firstCommentQueue = new Queue<FirstCommentJobData>('first-comment', { connection: redis as any });
 
 export async function publishScheduledPosts() {
   const now = new Date();
@@ -19,6 +24,10 @@ export async function publishScheduledPosts() {
           status: 'PUBLISHED',
           publishedAt: null, // Not yet actually published — instant upload request
           externalPostId: null,
+          OR: [
+            { scheduledAt: null },
+            { scheduledAt: { lte: window } },
+          ],
         },
       ],
     },
@@ -64,6 +73,7 @@ export async function publishScheduledPosts() {
         caption: post.caption ?? undefined,
         mediaUrls: post.mediaUrls,
         postType: post.postType,
+        scheduledAt: post.scheduledAt ?? undefined,
       });
 
       await prisma.contentPost.update({
@@ -75,6 +85,21 @@ export async function publishScheduledPosts() {
           lastError: null,
         },
       });
+
+      // Schedule first comment as a delayed job (videos need processing time)
+      if (post.firstComment && result.externalPostId) {
+        await firstCommentQueue.add('post-first-comment', {
+          postId: post.id,
+          platform: post.platform,
+          externalPostId: result.externalPostId,
+          comment: post.firstComment,
+          creatorProfileId: post.creatorProfileId,
+          attempt: 1,
+        }, {
+          delay: 90_000, // Wait 90s for video processing
+        });
+        logger.info(`Scheduled first comment for post ${post.id} in 90s`);
+      }
 
       logger.info(`Published post ${post.id} to ${post.platform}: ${result.externalPostId}`);
     } catch (err) {

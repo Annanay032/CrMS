@@ -329,7 +329,13 @@ export function useComposeForm() {
     try {
       const hashtags = values.hashtags?.split(',').map((h) => h.trim()).filter(Boolean) ?? [];
       const allMedia = [...mediaUrls];
-      if (videoFile) allMedia.push(videoFile.serverUrl || videoFile.url);
+      if (videoFile) {
+        if (!videoFile.serverUrl) {
+          message.error('Video upload is incomplete. Please remove and re-upload the video.');
+          return;
+        }
+        allMedia.push(videoFile.serverUrl);
+      }
       const base = {
         ...values, hashtags,
         scheduledAt: values.scheduledAt ? new Date(values.scheduledAt).toISOString() : undefined,

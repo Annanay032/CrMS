@@ -1,4 +1,4 @@
-export { CalendarPage } from './CalendarPage';
-export { CreatePostPage } from './CreatePostPage';
-export { ContentListPage } from './ContentListPage';
-export { PostDetailPage } from './PostDetailPage';
+export { CalendarPage } from './pages/CalendarPage';
+export { CreatePostPage } from './pages/CreatePostPage';
+export { ContentListPage } from './pages/ContentListPage';
+export { PostDetailPage } from './pages/PostDetailPage';

@@ -140,7 +140,7 @@ export async function listInvites(page: number, limit: number, status?: string) 
   return { invites, total };
 }
 
-export async function revokeInvite(inviteId: string, adminId: string) {
+export async function revokeInvite(inviteId: string, _adminId: string) {
   const invite = await prisma.invite.findUnique({ where: { id: inviteId } });
 
   if (!invite) {

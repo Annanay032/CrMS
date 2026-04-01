@@ -132,7 +132,7 @@ export async function getInvoiceStats(req: AuthRequest, res: Response) {
 // ─── Invoice PDF ─────────────────────────────────────────────
 
 export async function downloadInvoicePdf(req: AuthRequest, res: Response) {
-  const pdfBuffer = await generateInvoicePdf(req.params.id);
+  const pdfBuffer = await generateInvoicePdf(req.params.id as string);
   res.setHeader('Content-Type', 'application/pdf');
   res.setHeader('Content-Disposition', `attachment; filename="invoice-${req.params.id}.pdf"`);
   res.send(pdfBuffer);

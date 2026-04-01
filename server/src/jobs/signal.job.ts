@@ -182,7 +182,7 @@ export async function processCrmSync(data: CrmSyncJobData) {
         type: 'SYSTEM',
         title: `New ${intent === 'BUYING' ? 'buying' : 'collaboration'} lead detected`,
         body: `@${mention.source ?? 'unknown'} on ${mention.platform} shows ${intent.toLowerCase()} intent. A contact and deal have been auto-created.`,
-        metadata: { contactId: contact.id, mentionId },
+        data: { contactId: contact.id, mentionId },
       },
     });
 

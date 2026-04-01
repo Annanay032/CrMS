@@ -1,6 +1,7 @@
 import { prisma } from '../config/index.js';
 import { env } from '../config/env.js';
 import { encrypt, decrypt } from '../utils/crypto.js';
+import { logger } from '../config/logger.js';
 import type { OAuthProvider } from '../types/enums.js';
 import type { Platform } from '@prisma/client';
 
@@ -177,7 +178,7 @@ export async function getConnectedAccounts(userId: string) {
     });
 
   // Add content-only platforms (platforms with posts but no OAuth connection)
-  const oauthProviders = new Set(oauthAccounts.map((a) => a.provider));
+  const oauthProviders = new Set<string>(oauthAccounts.map((a) => a.provider));
   for (const cp of contentPlatforms) {
     if (!oauthProviders.has(cp.platform)) {
       const stats = creatorProfile?.platformStats?.find(
@@ -185,7 +186,7 @@ export async function getConnectedAccounts(userId: string) {
       );
       oauthAccounts.push({
         id: `content-${cp.platform.toLowerCase()}`,
-        provider: cp.platform,
+        provider: cp.platform as string as typeof oauthAccounts[0]['provider'],
         providerAccountId: '',
         connected: true,
         connectedAt: new Date(),
@@ -557,4 +558,81 @@ export async function refreshAccountToken(userId: string, provider: OAuthProvide
   });
 
   return { provider, refreshed: true, expiresAt };
+}
+
+// ─── Get valid (auto-refreshing) access token ───────────────
+/**
+ * Returns a decrypted, valid access token for the given OAuth account.
+ * Automatically refreshes the token if it's expired or about to expire (within 5 min buffer).
+ */
+export async function getValidAccessToken(oauthAccount: {
+  id: string;
+  provider: string;
+  accessToken: string;
+  refreshToken: string | null;
+  expiresAt: Date | null;
+}): Promise<string> {
+  const bufferMs = 5 * 60 * 1000; // 5 minute buffer before actual expiry
+  const isExpired = oauthAccount.expiresAt && oauthAccount.expiresAt.getTime() - bufferMs < Date.now();
+
+  if (!isExpired) {
+    return decrypt(oauthAccount.accessToken);
+  }
+
+  // Token is expired or about to expire — try to refresh
+  if (!oauthAccount.refreshToken) {
+    logger.warn(`Token expired for ${oauthAccount.provider} account ${oauthAccount.id} but no refresh token available`);
+    return decrypt(oauthAccount.accessToken); // Return stale token; API call may fail
+  }
+
+  const config = getPlatformConfig(oauthAccount.provider);
+  if (!config) {
+    logger.warn(`Cannot refresh token for ${oauthAccount.provider}: platform not configured`);
+    return decrypt(oauthAccount.accessToken);
+  }
+
+  try {
+    const decryptedRefreshToken = decrypt(oauthAccount.refreshToken);
+
+    const tokenResponse = await fetch(config.tokenUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        client_id: config.clientId,
+        client_secret: config.clientSecret,
+        refresh_token: decryptedRefreshToken,
+        grant_type: 'refresh_token',
+      }),
+    });
+
+    if (!tokenResponse.ok) {
+      logger.warn(`Token refresh failed for ${oauthAccount.provider} account ${oauthAccount.id}: HTTP ${tokenResponse.status}`);
+      return decrypt(oauthAccount.accessToken);
+    }
+
+    const tokenData = (await tokenResponse.json()) as {
+      access_token: string;
+      refresh_token?: string;
+      expires_in?: number;
+    };
+
+    const expiresAt = tokenData.expires_in
+      ? new Date(Date.now() + tokenData.expires_in * 1000)
+      : null;
+
+    await prisma.oAuthAccount.update({
+      where: { id: oauthAccount.id },
+      data: {
+        accessToken: encrypt(tokenData.access_token),
+        refreshToken: tokenData.refresh_token ? encrypt(tokenData.refresh_token) : undefined,
+        expiresAt,
+      },
+    });
+
+    logger.info(`Auto-refreshed ${oauthAccount.provider} token for account ${oauthAccount.id}`);
+    return tokenData.access_token;
+  } catch (err) {
+    logger.warn(`Token refresh error for ${oauthAccount.provider} account ${oauthAccount.id}`, { error: (err as Error).message });
+    return decrypt(oauthAccount.accessToken);
+  }
 }

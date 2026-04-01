@@ -253,6 +253,6 @@ export async function reschedulePost(req: AuthRequest, res: Response) {
     res.status(400).json({ success: false, error: 'scheduledAt is required' });
     return;
   }
-  const result = await contentService.reschedulePost(req.params.id, creatorProfileId, new Date(scheduledAt));
+  const result = await contentService.reschedulePost(req.params.id as string, creatorProfileId, new Date(scheduledAt));
   res.json({ success: true, data: result });
 }

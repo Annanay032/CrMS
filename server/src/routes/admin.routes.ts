@@ -76,7 +76,7 @@ router.get('/invites', authenticate, authorize(Role.ADMIN), async (req: AuthRequ
 });
 
 router.delete('/invites/:id', authenticate, authorize(Role.ADMIN), async (req: AuthRequest, res: Response) => {
-  const invite = await inviteService.revokeInvite(req.params.id, req.user!.userId);
+  const invite = await inviteService.revokeInvite(req.params.id as string, req.user!.userId);
   res.json({ success: true, data: invite });
 });
 
@@ -101,7 +101,7 @@ const acceptInviteSchema = z.object({
 });
 
 router.post('/invites/accept/:token', validate(acceptInviteSchema), async (req, res) => {
-  const user = await inviteService.acceptInvite(req.params.token, req.body.name, req.body.password);
+  const user = await inviteService.acceptInvite(req.params.token as string, req.body.name, req.body.password);
   res.json({ success: true, data: user });
 });
 

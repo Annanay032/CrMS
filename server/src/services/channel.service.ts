@@ -2,7 +2,7 @@ import { prisma } from '../config/index.js';
 import { paginate } from '../utils/helpers.js';
 import { logger } from '../config/logger.js';
 import { getPlatformService } from './platform.service.js';
-import { decrypt } from '../utils/crypto.js';
+import { getValidAccessToken } from './account.service.js';
 import type { Platform } from '../types/enums.js';
 
 // ─── Channel Overview (per-platform dashboard) ──────────────
@@ -44,7 +44,7 @@ export async function getChannelOverview(creatorProfileId: string, platform: Pla
       try {
         const oauthAccount = post.creatorProfile.user.oauthAccounts.find((a) => a.provider === platform);
         if (!oauthAccount || !post.externalPostId) continue;
-        const accessToken = decrypt(oauthAccount.accessToken);
+        const accessToken = await getValidAccessToken(oauthAccount);
         const analytics = await platformService.getAnalytics(accessToken, post.externalPostId);
         await prisma.postAnalytics.upsert({
           where: { postId: post.id },
@@ -186,7 +186,7 @@ export async function getChannelAnalytics(creatorProfileId: string, platform: Pl
       try {
         const oauthAccount = post.creatorProfile.user.oauthAccounts.find((a) => a.provider === platform);
         if (!oauthAccount || !post.externalPostId) continue;
-        const accessToken = decrypt(oauthAccount.accessToken);
+        const accessToken = await getValidAccessToken(oauthAccount);
         const analytics = await platformService.getAnalytics(accessToken, post.externalPostId);
         const upserted = await prisma.postAnalytics.upsert({
           where: { postId: post.id },

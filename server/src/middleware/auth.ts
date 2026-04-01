@@ -53,7 +53,7 @@ export function requireTeamRole(...allowedRoles: string[]) {
       return;
     }
 
-    const teamId = (req.headers['x-team-id'] as string) || req.params.teamId;
+    const teamId = (req.headers['x-team-id'] as string) || (req.params.teamId as string);
     if (!teamId) {
       res.status(400).json({ success: false, error: 'Team context required (X-Team-Id header or :teamId param)' });
       return;

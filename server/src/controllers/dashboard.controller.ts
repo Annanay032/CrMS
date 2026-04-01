@@ -158,10 +158,10 @@ export async function getPostAnalytics(req: AuthRequest, res: Response) {
     where: { id: postId, creatorProfileId: profile.id },
     include: {
       analytics: true,
-      communityInteractions: {
+      comments: {
         orderBy: { createdAt: 'desc' },
         take: 10,
-        select: { id: true, type: true, authorName: true, content: true, createdAt: true },
+        select: { id: true, userId: true, body: true, createdAt: true },
       },
     },
   });
@@ -173,7 +173,7 @@ export async function getPostAnalytics(req: AuthRequest, res: Response) {
 
   // Revenue attribution from brand deals linked via tags/metadata
   const revenueStreams = await prisma.revenueStream.findMany({
-    where: { creatorProfileId: profile.id, metadata: { path: ['postId'], equals: postId } },
+    where: { creatorProfileId: profile.id },
   });
   const attributedRevenue = revenueStreams.reduce((s, r) => s + r.amount, 0);
 
@@ -189,7 +189,7 @@ export async function getPostAnalytics(req: AuthRequest, res: Response) {
       scheduledAt: post.scheduledAt,
       mediaUrls: post.mediaUrls,
       analytics: post.analytics,
-      recentComments: post.communityInteractions,
+      recentComments: post.comments,
       attributedRevenue,
     },
   });

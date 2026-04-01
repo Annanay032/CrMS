@@ -1,6 +1,6 @@
 import { prisma } from '../config/index.js';
 import { logger } from '../config/logger.js';
-import { decrypt } from '../utils/crypto.js';
+import { getValidAccessToken } from '../services/account.service.js';
 
 export interface FirstCommentJobData {
   postId: string;
@@ -26,7 +26,7 @@ export async function postFirstComment(data: FirstCommentJobData) {
     return;
   }
 
-  const accessToken = decrypt(oauthAccount.accessToken);
+  const accessToken = await getValidAccessToken(oauthAccount);
 
   if (platform === 'YOUTUBE') {
     const res = await fetch(

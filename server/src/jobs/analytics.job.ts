@@ -1,7 +1,7 @@
 import { prisma } from '../config/index.js';
 import { logger } from '../config/logger.js';
 import { getPlatformService } from '../services/platform.service.js';
-import { decrypt } from '../utils/crypto.js';
+import { getValidAccessToken } from '../services/account.service.js';
 
 export async function fetchAnalytics() {
   // Find published posts that need analytics updates (published in last 30 days)
@@ -31,7 +31,7 @@ export async function fetchAnalytics() {
       if (!oauthAccount || !post.externalPostId) continue;
 
       const platformService = getPlatformService(post.platform);
-      const accessToken = decrypt(oauthAccount.accessToken);
+      const accessToken = await getValidAccessToken(oauthAccount);
       const analytics = await platformService.getAnalytics(accessToken, post.externalPostId);
 
       await prisma.postAnalytics.upsert({

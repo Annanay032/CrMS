@@ -35,11 +35,11 @@ export async function listUsers(req: AuthRequest, res: Response) {
 }
 
 export async function updateUserRole(req: AuthRequest, res: Response) {
-  const user = await userService.updateUserRole(req.params.id, req.body.role);
+  const user = await userService.updateUserRole(req.params.id as string, req.body.role);
   res.json({ success: true, data: user });
 }
 
 export async function toggleUserActive(req: AuthRequest, res: Response) {
-  const user = await userService.toggleUserActive(req.params.id);
+  const user = await userService.toggleUserActive(req.params.id as string);
   res.json({ success: true, data: user });
 }

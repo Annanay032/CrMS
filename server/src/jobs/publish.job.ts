@@ -1,7 +1,7 @@
 import { prisma } from '../config/index.js';
 import { logger } from '../config/logger.js';
 import { getPlatformService } from '../services/platform.service.js';
-import { decrypt } from '../utils/crypto.js';
+import { getValidAccessToken } from '../services/account.service.js';
 import { Queue } from 'bullmq';
 import { redis } from '../config/redis.js';
 import type { FirstCommentJobData } from './first-comment.job.js';
@@ -67,7 +67,7 @@ export async function publishScheduledPosts() {
       }
 
       const platformService = getPlatformService(post.platform);
-      const accessToken = decrypt(oauthAccount.accessToken);
+      const accessToken = await getValidAccessToken(oauthAccount);
 
       const result = await platformService.publish(accessToken, {
         caption: post.caption ?? undefined,

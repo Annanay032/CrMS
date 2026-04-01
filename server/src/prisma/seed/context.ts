@@ -3,14 +3,14 @@ import { PrismaClient } from '@prisma/client';
 export interface SeedContext {
   prisma: PrismaClient;
   users: {
-    admin: { id: string };
-    creator1: { id: string };
-    creator2: { id: string };
-    creator3: { id: string };
-    testUser: { id: string };
-    brand1: { id: string };
-    brand2: { id: string };
-    agencyUser: { id: string };
+    admin: { id: string; name: string };
+    creator1: { id: string; name: string };
+    creator2: { id: string; name: string };
+    creator3: { id: string; name: string };
+    testUser: { id: string; name: string };
+    brand1: { id: string; name: string };
+    brand2: { id: string; name: string };
+    agencyUser: { id: string; name: string };
   };
   profiles: {
     cp1: { id: string };

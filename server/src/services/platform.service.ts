@@ -1,7 +1,7 @@
 import { logger } from '../config/logger.js';
-import { createReadStream, statSync, existsSync } from 'fs';
+import { createReadStream, statSync } from 'fs';
 import { downloadToLocal } from './storage.service.js';
-import path from 'path';
+// path import removed (unused)
 
 export interface PlatformPublishResult {
   externalPostId: string;
@@ -244,7 +244,11 @@ export class YouTubeService implements IPlatformService {
         `https://www.googleapis.com/youtube/v3/videos?part=statistics&id=${encodeURIComponent(externalPostId)}`,
         { headers: { Authorization: `Bearer ${accessToken}` } },
       );
-      if (!res.ok) throw new Error(`YouTube video stats API ${res.status}`);
+      if (!res.ok) {
+        const errBody = await res.text();
+        logger.warn('YouTube video stats API failed', { videoId: externalPostId, status: res.status, body: errBody });
+        throw new Error(`YouTube video stats API ${res.status}`);
+      }
       const json = (await res.json()) as {
         items?: Array<{
           statistics?: { viewCount?: string; likeCount?: string; commentCount?: string; favoriteCount?: string };
@@ -411,7 +415,7 @@ export class YouTubeService implements IPlatformService {
     const fileBuffer = await new Promise<Buffer>((resolve, reject) => {
       const chunks: Buffer[] = [];
       const stream = createReadStream(localPath);
-      stream.on('data', (chunk) => chunks.push(Buffer.from(chunk as ArrayBufferLike)));
+      stream.on('data', (chunk: Buffer) => chunks.push(chunk));
       stream.on('end', () => resolve(Buffer.concat(chunks)));
       stream.on('error', reject);
     });

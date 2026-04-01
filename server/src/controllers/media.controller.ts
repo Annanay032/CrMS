@@ -1,6 +1,6 @@
 import type { Response } from 'express';
 import * as mediaService from '../services/media.service.js';
-import { uploadMulterFile, deleteFile } from '../services/storage.service.js';
+import { uploadMulterFile } from '../services/storage.service.js';
 import type { AuthRequest } from '../types/common.js';
 
 // ─── Folders ────────────────────────────────────────────────

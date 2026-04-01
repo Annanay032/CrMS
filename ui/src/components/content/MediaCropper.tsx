@@ -73,7 +73,9 @@ export function MediaCropper({ open, onClose, imageUrl, platform, onCrop }: Medi
   // Reset state when modal opens
   useEffect(() => {
     if (!open) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional reset when modal closes
       setLoaded(false);
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional reset when modal closes
       setSelectedPreset('Free form');
       return;
     }

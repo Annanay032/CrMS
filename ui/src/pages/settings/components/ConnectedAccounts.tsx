@@ -10,7 +10,8 @@ import {
   useTogglePauseAccountMutation,
 } from '@/store/endpoints/accounts';
 import type { ConnectedAccount, PlatformAvailability } from '@/store/endpoints/accounts';
-import { ChannelConnectModal, CHANNEL_META } from './ChannelConnectModal';
+import { ChannelConnectModal } from './ChannelConnectModal';
+import { CHANNEL_META } from '../constants';
 import { InstagramConnectChoice } from './InstagramConnectChoice';
 import { ManualConnectModal } from './ManualConnectModal';
 

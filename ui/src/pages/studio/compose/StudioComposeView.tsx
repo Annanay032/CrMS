@@ -1,11 +1,11 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { Controller } from 'react-hook-form';
 import { Input, Typography, Tag, Segmented, Button, message } from 'antd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faPenToSquare, faImage, faSliders, faRobot, faBrain, faStar, faCheck,
 } from '@fortawesome/free-solid-svg-icons';
-import { CHANNEL_META } from '@/pages/settings/components/ChannelConnectModal';
+import { CHANNEL_META } from '@/pages/settings/constants';
 import { MediaCropper } from '@/components/content/MediaCropper';
 import { useCreateTemplateMutation } from '@/store/endpoints/content';
 import { useComposeForm } from './useComposeForm';
@@ -26,25 +26,18 @@ export function StudioComposeView() {
   const [createTemplate] = useCreateTemplateMutation();
   const [editorTab, setEditorTab] = useState<EditorTab>('write');
   const [panelWidth, setPanelWidth] = useState(380);
-  const [activePlatform, setActivePlatform] = useState<string>(ctx.platform);
+  const [selectedPlatform, setSelectedPlatform] = useState<string>(ctx.platform);
   const composeRef = useRef<HTMLDivElement>(null);
   const dragging = useRef(false);
 
   const showPerPlatform = ctx.multiPlatform && ctx.extraPlatforms.length > 0 && ctx.mediaStrategy === 'customize';
   const allPlatforms = [ctx.platform, ...ctx.extraPlatforms];
+
+  // Derive effective active platform from selection + props
+  const activePlatform = !showPerPlatform
+    ? ctx.platform
+    : (allPlatforms.includes(selectedPlatform) ? selectedPlatform : ctx.platform);
   const isPrimary = activePlatform === ctx.platform;
-
-  // Reset to primary when per-platform mode is turned off or platform changes
-  useEffect(() => {
-    if (!showPerPlatform) setActivePlatform(ctx.platform);
-  }, [showPerPlatform, ctx.platform]);
-
-  // Ensure activePlatform is valid
-  useEffect(() => {
-    if (showPerPlatform && !allPlatforms.includes(activePlatform)) {
-      setActivePlatform(ctx.platform);
-    }
-  }, [showPerPlatform, allPlatforms, activePlatform, ctx.platform]);
 
   // Derive caption/hashtags/charLimit for the active platform
   const activeState = !isPrimary ? ctx.platformEditorStates[activePlatform] : null;
@@ -184,7 +177,7 @@ export function StudioComposeView() {
                 <button
                   key={p}
                   className={`${styles.mps_pill} ${isActive ? styles['mps_pill--active'] : ''}`}
-                  onClick={() => setActivePlatform(p)}
+                  onClick={() => setSelectedPlatform(p)}
                   style={isActive && meta ? { '--pill-color': meta.color, '--pill-bg': meta.bg } as React.CSSProperties : undefined}
                 >
                   {meta?.icon && (

@@ -74,7 +74,7 @@ export function CreatePostPage() {
   const [validation, setValidation] = useState<ValidationResult | null>(null);
   const [templateOpen, setTemplateOpen] = useState(false);
   const [ideasOpen, setIdeasOpen] = useState(false);
-  const [draftPostId, _setDraftPostId] = useState<string | undefined>();
+  const [draftPostId] = useState<string | undefined>();
   const [threadParts, setThreadParts] = useState<ThreadPart[]>([]);
   const [mediaUrls, setMediaUrls] = useState<string[]>([]);
   const [cropperOpen, setCropperOpen] = useState(false);

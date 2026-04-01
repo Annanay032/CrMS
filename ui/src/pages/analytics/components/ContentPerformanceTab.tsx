@@ -15,7 +15,7 @@ interface ContentPerformanceTabProps {
   metrics: Record<string, unknown> | undefined;
 }
 
-export function ContentPerformanceTab({ period, metrics: _metrics }: ContentPerformanceTabProps) {
+export function ContentPerformanceTab({ period }: ContentPerformanceTabProps) {
   const { data, isLoading } = useGetContentTypeStatsQuery({ period });
   const [runAgent, { isLoading: aiLoading }] = useRunAgentMutation();
   const [aiBreakdown, setAiBreakdown] = useState<Record<string, unknown> | null>(null);

@@ -2,7 +2,6 @@ import { useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useAppDispatch } from './store';
 import { api } from '@/store/api';
-import type { Notification } from '@/types';
 
 export function useSocket() {
   const dispatch = useAppDispatch();
@@ -18,7 +17,7 @@ export function useSocket() {
       transports: ['websocket'],
     });
 
-    socket.on('notification', (_data: Notification) => {
+    socket.on('notification', () => {
       // Invalidate notification cache to refetch
       dispatch(api.util.invalidateTags(['Notifications']));
     });

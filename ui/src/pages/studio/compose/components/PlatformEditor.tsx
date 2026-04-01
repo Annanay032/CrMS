@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Input, Typography, Segmented, Tooltip } from 'antd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPenToSquare, faImage, faHashtag, faCircleInfo } from '@fortawesome/free-solid-svg-icons';
-import { CHANNEL_META } from '@/pages/settings/components/ChannelConnectModal';
+import { CHANNEL_META } from '@/pages/settings/constants';
 import { MediaZone } from './MediaZone';
 import { PLATFORM_LIMITS, PLATFORM_OPTIONS, PLATFORM_POST_TYPES } from '../constants';
 import type { PlatformEditorState, VideoFileInfo, ThreadEntry } from '../types';

@@ -16,7 +16,6 @@ import {
   faLightbulb,
   faPaperclip,
   faXmark,
-  faImage,
   faVideo,
   faFile,
   faSpinner,

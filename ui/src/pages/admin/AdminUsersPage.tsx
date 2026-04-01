@@ -122,8 +122,9 @@ export function AdminUsersPage() {
 
       form.resetFields();
       setInviteModalOpen(false);
-    } catch (err: any) {
-      const msg = err?.data?.error || err?.message || 'Failed to create invite';
+    } catch (err: unknown) {
+      const e = err as { data?: { error?: string }; message?: string };
+      const msg = e?.data?.error || e?.message || 'Failed to create invite';
       message.error(msg);
     }
   };
@@ -247,7 +248,7 @@ export function AdminUsersPage() {
       dataIndex: 'status',
       key: 'status',
       width: 120,
-      render: (status: string) => <Badge status={STATUS_COLORS[status] as any} text={status} />,
+      render: (status: string) => <Badge status={STATUS_COLORS[status] as 'success' | 'processing' | 'default' | 'error' | 'warning'} text={status} />,
     },
     {
       title: 'Invited By',

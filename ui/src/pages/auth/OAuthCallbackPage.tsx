@@ -10,13 +10,12 @@ export function OAuthCallbackPage() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const dispatch = useAppDispatch();
-  const [error, setError] = useState('');
 
   const accessToken = params.get('accessToken');
   const refreshToken = params.get('refreshToken');
   const hasTokens = !!accessToken && !!refreshToken;
 
-  // Only fetch me once tokens are stored
+  // Store tokens then mark ready so the /me query fires
   const [ready, setReady] = useState(false);
   const { data, isError } = useGetMeQuery(undefined, { skip: !ready });
 
@@ -24,6 +23,7 @@ export function OAuthCallbackPage() {
     if (!hasTokens) return;
     localStorage.setItem('accessToken', accessToken!);
     localStorage.setItem('refreshToken', refreshToken!);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- must trigger query after storing tokens
     setReady(true);
   }, [hasTokens, accessToken, refreshToken]);
 
@@ -33,10 +33,11 @@ export function OAuthCallbackPage() {
       navigate('/dashboard');
     }
     if (isError) {
-      setError('Failed to load profile. Redirecting...');
       setTimeout(() => navigate('/login'), 2000);
     }
   }, [data, isError, dispatch, navigate]);
+
+  const error = isError ? 'Failed to load profile. Redirecting...' : '';
 
   if (!hasTokens || error) {
     return (

@@ -20,7 +20,9 @@ import s from './styles/Community.module.scss';
 
 type FilterTab = 'all' | 'unread' | 'pending' | 'open' | 'in_progress' | 'resolved' | 'high_priority' | 'starred';
 
-const TABS: { key: FilterTab; label: string; statsKey?: keyof typeof STAT_MAP }[] = [
+type StatMapKey = 'total' | 'unread' | 'highPriority';
+
+const TABS: { key: FilterTab; label: string; statsKey?: StatMapKey }[] = [
   { key: 'all', label: 'All', statsKey: 'total' },
   { key: 'unread', label: 'Unread', statsKey: 'unread' },
   { key: 'pending', label: 'Pending' },
@@ -30,7 +32,6 @@ const TABS: { key: FilterTab; label: string; statsKey?: keyof typeof STAT_MAP }[
   { key: 'high_priority', label: 'High Priority', statsKey: 'highPriority' },
   { key: 'starred', label: 'Starred' },
 ];
-const STAT_MAP = { total: 0, unread: 0, highPriority: 0 };
 
 const SENTIMENT_COLORS: Record<string, string> = { POSITIVE: 'green', NEGATIVE: 'red', NEUTRAL: 'default', MIXED: 'orange' };
 const PRIORITY_COLORS: Record<string, string> = { HIGH: 'red', MEDIUM: 'orange', LOW: 'blue' };

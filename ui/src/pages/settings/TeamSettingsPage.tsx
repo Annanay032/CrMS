@@ -184,8 +184,9 @@ function MembersTab({ team }: { team: Team }) {
       message.success('Member added');
       setModalOpen(false);
       form.resetFields();
-    } catch (e: any) {
-      message.error(e?.data?.error || 'Failed to add member');
+    } catch (e: unknown) {
+      const err = e as { data?: { error?: string } };
+      message.error(err?.data?.error || 'Failed to add member');
     }
   };
 

@@ -101,7 +101,6 @@ function TogglePill<T extends string>({
 
 /* ── Main Page ───────────────────────────────────────────── */
 
-/* global Razorpay */
 declare global {
   interface Window { Razorpay: new (opts: Record<string, unknown>) => { open(): void } }
 }

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Typography } from 'antd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faStar, faArrowUp, faCheck } from '@fortawesome/free-solid-svg-icons';
-import { CHANNEL_META } from '@/pages/settings/components/ChannelConnectModal';
+import { CHANNEL_META } from '@/pages/settings/constants';
 import { PLATFORM_OPTIONS } from '../constants';
 import type { PlatformEditorState } from '../types';
 import { PlatformEditor } from './PlatformEditor';

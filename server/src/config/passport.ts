@@ -144,7 +144,7 @@ export function configurePassport() {
           callbackURL: env.OKTA_CALLBACK_URL,
           scope: 'openid profile email',
         },
-        async (_issuer: string, profile: { id: string; displayName?: string; emails?: Array<{ value: string }>; photos?: Array<{ value: string }> }, done: (err: Error | null, user?: Express.User | false) => void) => {
+        async (_issuer: string, profile: { id: string; displayName?: string; emails?: Array<{ value: string }>; photos?: Array<{ value: string }> }, done: (err?: Error | null, user?: Express.User, info?: any) => void) => {
           try {
             const email = profile.emails?.[0]?.value;
             if (!email) return done(new Error('No email from Okta'));

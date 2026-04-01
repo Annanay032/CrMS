@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Row, Col, Button, Spin, Empty, Form, Card, Space, Typography, Tag, Modal, Input, message, Popconfirm } from 'antd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faLink, faPlus, faTrash, faPen, faEye, faChartLine } from '@fortawesome/free-solid-svg-icons';
+import { faLink, faPlus, faTrash, faPen, faChartLine } from '@fortawesome/free-solid-svg-icons';
 import {
   useGetMyPagesQuery,
   useCreatePageMutation,

@@ -129,17 +129,34 @@ export async function seedContent(ctx: SeedContext) {
     update: {}, create: { creatorProfileId: cp1.id, name: 'nutrition', color: '#f59e0b' },
   });
 
+  // ── Seed default idea stages ──────────────────────────────
+  const stageData = [
+    { name: 'Spark', color: '#fbbf24', position: 0 },
+    { name: 'Developing', color: '#60a5fa', position: 1 },
+    { name: 'Ready', color: '#34d399', position: 2 },
+    { name: 'Archived', color: '#94a3b8', position: 3 },
+  ];
+  const stages: Record<string, string> = {};
+  for (const sd of stageData) {
+    const stage = await prisma.ideaStage.upsert({
+      where: { creatorProfileId_name: { creatorProfileId: cp1.id, name: sd.name } },
+      update: {},
+      create: { creatorProfileId: cp1.id, ...sd },
+    });
+    stages[sd.name] = stage.id;
+  }
+
   const idea1 = await prisma.contentIdea.create({
-    data: { creatorProfileId: cp1.id, title: '30-day plank challenge series', body: 'A progressive plank challenge starting from 20s and building up to 5 mins.', status: IdeaStatus.READY, source: 'manual' },
+    data: { creatorProfileId: cp1.id, title: '30-day plank challenge series', body: 'A progressive plank challenge starting from 20s and building up to 5 mins.', status: IdeaStatus.READY, stageId: stages['Ready'], source: 'manual' },
   });
   const idea2 = await prisma.contentIdea.create({
-    data: { creatorProfileId: cp1.id, title: 'Smoothie bowl recipe compilation', body: 'Top 10 smoothie bowl ideas with macros breakdown.', status: IdeaStatus.DEVELOPING, source: 'ai' },
+    data: { creatorProfileId: cp1.id, title: 'Smoothie bowl recipe compilation', body: 'Top 10 smoothie bowl ideas with macros breakdown.', status: IdeaStatus.DEVELOPING, stageId: stages['Developing'], source: 'ai' },
   });
   await prisma.contentIdea.create({
-    data: { creatorProfileId: cp1.id, title: 'Yoga for desk workers', status: IdeaStatus.SPARK, source: 'trend' },
+    data: { creatorProfileId: cp1.id, title: 'Yoga for desk workers', status: IdeaStatus.SPARK, stageId: stages['Spark'], source: 'trend' },
   });
   await prisma.contentIdea.create({
-    data: { creatorProfileId: cp1.id, title: 'Old protein bar comparison (outdated)', status: IdeaStatus.ARCHIVED, source: 'manual' },
+    data: { creatorProfileId: cp1.id, title: 'Old protein bar comparison (outdated)', status: IdeaStatus.ARCHIVED, stageId: stages['Archived'], source: 'manual' },
   });
 
   await prisma.contentIdeaTag.createMany({

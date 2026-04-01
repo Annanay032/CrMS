@@ -44,8 +44,45 @@ export const dashboardApi = api.injectEndpoints({
       query: (id) => ({ url: `/dashboard/reports/${id}/generate`, method: 'POST' }),
       invalidatesTags: ['Reports'],
     }),
+    getPostAnalytics: build.query<ApiResponse<PostAnalyticsDetail>, string>({
+      query: (postId) => `/dashboard/posts/${postId}/analytics`,
+      providesTags: ['Analytics'],
+    }),
   }),
 });
+
+export interface PostAnalyticsDetail {
+  id: string;
+  caption?: string;
+  platform: string;
+  postType: string;
+  status: string;
+  publishedAt?: string;
+  scheduledAt?: string;
+  mediaUrls: string[];
+  analytics?: {
+    impressions: number;
+    reach: number;
+    likes: number;
+    comments: number;
+    shares: number;
+    saves: number;
+    clicks: number;
+    videoViews: number;
+    avgWatchTime: number;
+    profileVisits: number;
+    estimatedRevenue?: number;
+    audienceDemographics?: Record<string, unknown>;
+  };
+  recentComments: Array<{
+    id: string;
+    type: string;
+    authorName?: string;
+    content?: string;
+    createdAt: string;
+  }>;
+  attributedRevenue: number;
+}
 
 export const {
   useGetDashboardStatsQuery,
@@ -58,4 +95,5 @@ export const {
   useUpdateReportMutation,
   useDeleteReportMutation,
   useGenerateReportMutation,
+  useGetPostAnalyticsQuery,
 } = dashboardApi;

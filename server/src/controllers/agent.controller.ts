@@ -1,8 +1,12 @@
 import type { Response } from 'express';
 import { orchestrator } from '../agents/orchestrator.js';
-import { prisma } from '../config/index.js';
+import { prisma, openai } from '../config/index.js';
+import { env } from '../config/env.js';
+import { logger } from '../config/logger.js';
 import type { AuthRequest } from '../types/common.js';
-import type { AgentType } from '../types/enums.js';
+import { AgentType } from '../types/enums.js';
+import { gatherUserContext } from '../services/context.service.js';
+import { checkBudget, recordUsage } from '../services/usage.service.js';
 
 /** Return true if the error was handled (response sent). */
 function handleAiError(err: unknown, res: Response): boolean {
@@ -166,44 +170,86 @@ export async function getAdminAgentHistory(req: AuthRequest, res: Response) {
 }
 
 /**
- * Chat endpoint: server-side NLP routing → single or multi-agent pipeline.
+ * Chat endpoint: context-aware AI chat with full user data.
+ * Makes a single OpenAI call with comprehensive user context injected
+ * into the system prompt, replacing the old keyword-routing approach.
  */
 export async function chat(req: AuthRequest, res: Response) {
-  const { message } = req.body as { message: string };
+  const { message, history } = req.body as {
+    message: string;
+    history?: Array<{ role: 'user' | 'ai'; content: string }>;
+  };
   const userId = req.user!.userId;
 
-  const { steps, input } = orchestrator.routeMessage(message);
+  try {
+    await checkBudget(userId);
 
-  if (steps.length === 1) {
-    const result = await orchestrator.run(steps[0].agentType as AgentType, userId, {
-      ...input,
-      ...(steps[0].action ? { action: steps[0].action } : {}),
+    const userContext = await gatherUserContext(userId);
+
+    const systemPrompt = `You are CrMS AI — an expert social media management assistant. You have access to the user's real-time data below. Use it to give data-backed, actionable answers.
+
+When the user asks about their performance, analytics, growth, revenue, content, or strategy, reference their actual numbers. Be specific with data points. Format responses with markdown for readability.
+
+If the user asks you to generate content (captions, ideas, hooks, hashtags), create high-quality, platform-optimized content.
+
+If you don't have enough data to answer, say so honestly and suggest what data would help.
+
+---
+${userContext}
+---
+
+Guidelines:
+- Be concise but thorough
+- Use bullet points and headers for clarity
+- Reference actual metrics when available
+- Give actionable recommendations
+- For content generation, optimize for the user's niche and platforms`;
+
+    // Build conversation messages
+    const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
+      { role: 'system', content: systemPrompt },
+    ];
+
+    // Include conversation history (last 10 messages max)
+    if (history && Array.isArray(history)) {
+      for (const msg of history.slice(-10)) {
+        messages.push({
+          role: msg.role === 'user' ? 'user' : 'assistant',
+          content: msg.content,
+        });
+      }
+    }
+
+    messages.push({ role: 'user', content: message });
+
+    const response = await openai.chat.completions.create({
+      model: env.OPENAI_MODEL,
+      messages,
+      temperature: 0.4,
+      max_tokens: 2000,
     });
+
+    const output = response.choices[0]?.message?.content ?? 'I could not generate a response.';
+    const tokensUsed = response.usage?.total_tokens;
+
+    // Record usage
+    if (tokensUsed) {
+      await recordUsage(userId, AgentType.CONTENT_GENERATION, tokensUsed, env.OPENAI_MODEL).catch(() => {});
+    }
+
     res.json({
       success: true,
       data: {
-        mode: 'single',
-        agentType: steps[0].agentType,
-        output: result.output,
-        tokensUsed: result.tokensUsed,
+        mode: 'single' as const,
+        agentType: 'CHAT',
+        output,
+        tokensUsed,
       },
     });
-    return;
+  } catch (err) {
+    logger.error('Chat endpoint error', err);
+    if (!handleAiError(err, res)) throw err;
   }
-
-  // Multi-step pipeline
-  const results = await orchestrator.runPipeline(userId, steps, input);
-  res.json({
-    success: true,
-    data: {
-      mode: 'pipeline',
-      steps: results.map((r, i) => ({
-        agentType: steps[i].agentType,
-        output: r.output,
-        tokensUsed: r.tokensUsed,
-      })),
-    },
-  });
 }
 
 // ─── Growth Copilot endpoints ────────────────────────────────

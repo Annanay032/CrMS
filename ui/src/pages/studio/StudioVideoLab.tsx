@@ -44,7 +44,7 @@ export function StudioVideoLab() {
     }
     try {
       const res = await createClipApi({ videoUrl, duration: maxDuration, style: clipStyle }).unwrap();
-      if (res.success && res.data) {
+      if (res.data) {
         setClips(res.data.clips ?? []);
         setSuggestedCuts(res.data.suggestedCuts ?? []);
         message.success('Clip suggestions ready!');

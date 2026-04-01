@@ -29,10 +29,6 @@ export function DiscoverPage() {
     platform,
     minFollowers,
     minEngagement,
-    location: location || undefined,
-    language: language || undefined,
-    minReliability,
-    sortBy: sortBy || undefined,
   });
 
   const clearAll = () => {

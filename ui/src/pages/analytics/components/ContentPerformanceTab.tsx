@@ -5,7 +5,7 @@ import { useGetContentTypeStatsQuery } from '@/store/endpoints/dashboard';
 import { useRunAgentMutation } from '@/store/endpoints/agents';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faRobot } from '@fortawesome/free-solid-svg-icons';
-import { CONTENT_TYPE_COLORS, PLATFORM_COLORS } from '../constants';
+import { CONTENT_TYPE_COLORS } from '../constants';
 import type { Period } from '../types';
 
 const { Text, Title, Paragraph } = Typography;
@@ -15,7 +15,7 @@ interface ContentPerformanceTabProps {
   metrics: Record<string, unknown> | undefined;
 }
 
-export function ContentPerformanceTab({ period, metrics }: ContentPerformanceTabProps) {
+export function ContentPerformanceTab({ period, metrics: _metrics }: ContentPerformanceTabProps) {
   const { data, isLoading } = useGetContentTypeStatsQuery({ period });
   const [runAgent, { isLoading: aiLoading }] = useRunAgentMutation();
   const [aiBreakdown, setAiBreakdown] = useState<Record<string, unknown> | null>(null);
@@ -138,8 +138,8 @@ export function ContentPerformanceTab({ period, metrics }: ContentPerformanceTab
         </div>
         {aiBreakdown ? (
           <div>
-            {aiBreakdown.bestPerformingType && <Paragraph><Text strong>Best Performing:</Text> {aiBreakdown.bestPerformingType as string}</Paragraph>}
-            {aiBreakdown.worstPerformingType && <Paragraph><Text strong>Needs Improvement:</Text> {aiBreakdown.worstPerformingType as string}</Paragraph>}
+            {aiBreakdown.bestPerformingType ? <Paragraph><Text strong>Best Performing:</Text> {String(aiBreakdown.bestPerformingType)}</Paragraph> : null}
+            {aiBreakdown.worstPerformingType ? <Paragraph><Text strong>Needs Improvement:</Text> {String(aiBreakdown.worstPerformingType)}</Paragraph> : null}
             {(aiBreakdown.insights as string[])?.map((insight, i) => (
               <div key={i} style={{ padding: '8px 12px', background: '#eef2ff', borderRadius: 6, marginBottom: 6, fontSize: 14 }}>{insight}</div>
             ))}

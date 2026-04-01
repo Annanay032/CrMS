@@ -1,6 +1,7 @@
 import { Queue, Worker } from 'bullmq';
 import { redis } from '../config/redis.js';
 import { logger } from '../config/logger.js';
+import { prisma } from '../config/database.js';
 import { publishScheduledPosts } from './publish.job.js';
 import { fetchAnalytics } from './analytics.job.js';
 import { scanTrends } from './trends.job.js';
@@ -15,23 +16,35 @@ import { processRssFeeds } from './rss-import.job.js';
 import { processSubscriptionExpiry } from './subscription.job.js';
 import { postFirstComment } from './first-comment.job.js';
 import type { FirstCommentJobData } from './first-comment.job.js';
+import { processIntentAnalysis } from './signal.job.js';
+import type { IntentAnalysisJobData } from './signal.job.js';
 const connection = { connection: redis as any };
+
+// Default job options with dead-letter handling
+const defaultJobOpts = {
+  attempts: 3,
+  backoff: { type: 'exponential' as const, delay: 30_000 },
+  removeOnComplete: { count: 500 },
+  removeOnFail: { count: 200 },
+};
 
 // ── Queues ──────────────────────────────────────────────────
 
-export const publishQueue = new Queue('publish', connection);
-export const analyticsQueue = new Queue('analytics', connection);
-export const trendsQueue = new Queue('trends', connection);
-export const listeningQueue = new Queue('listening', connection);
-export const competitiveQueue = new Queue('competitive', connection);
-export const reportQueue = new Queue('reports', connection);
-export const growthQueue = new Queue('growth-daily', connection);
-export const inboxEmailQueue = new Queue('inbox-email-poll', connection);
-export const tokenRefreshQueue = new Queue('token-refresh', connection);
-export const recurringPostQueue = new Queue('recurring-posts', connection);
-export const rssImportQueue = new Queue('rss-import', connection);
-export const subscriptionQueue = new Queue('subscription-expiry', connection);
-export const firstCommentQueue = new Queue<FirstCommentJobData>('first-comment', connection);
+export const publishQueue = new Queue('publish', { ...connection, defaultJobOptions: defaultJobOpts });
+export const analyticsQueue = new Queue('analytics', { ...connection, defaultJobOptions: defaultJobOpts });
+export const trendsQueue = new Queue('trends', { ...connection, defaultJobOptions: defaultJobOpts });
+export const listeningQueue = new Queue('listening', { ...connection, defaultJobOptions: defaultJobOpts });
+export const competitiveQueue = new Queue('competitive', { ...connection, defaultJobOptions: defaultJobOpts });
+export const reportQueue = new Queue('reports', { ...connection, defaultJobOptions: defaultJobOpts });
+export const growthQueue = new Queue('growth-daily', { ...connection, defaultJobOptions: defaultJobOpts });
+export const inboxEmailQueue = new Queue('inbox-email-poll', { ...connection, defaultJobOptions: defaultJobOpts });
+export const tokenRefreshQueue = new Queue('token-refresh', { ...connection, defaultJobOptions: defaultJobOpts });
+export const recurringPostQueue = new Queue('recurring-posts', { ...connection, defaultJobOptions: defaultJobOpts });
+export const rssImportQueue = new Queue('rss-import', { ...connection, defaultJobOptions: defaultJobOpts });
+export const subscriptionQueue = new Queue('subscription-expiry', { ...connection, defaultJobOptions: defaultJobOpts });
+export const firstCommentQueue = new Queue<FirstCommentJobData>('first-comment', { ...connection, defaultJobOptions: defaultJobOpts });
+export const signalQueue = new Queue<IntentAnalysisJobData>('signal-pipeline', { ...connection, defaultJobOptions: defaultJobOpts });
+export const cleanupQueue = new Queue('cleanup', { ...connection, defaultJobOptions: defaultJobOpts });
 
 // ── Workers ─────────────────────────────────────────────────
 
@@ -136,8 +149,41 @@ export function startWorkers() {
     }
   });
 
+  const signalWorker = new Worker<IntentAnalysisJobData>('signal-pipeline', async (job) => {
+    logger.info(`Signal pipeline job ${job.id}`);
+    await processIntentAnalysis(job.data);
+  }, {
+    ...connection,
+    concurrency: 2,
+  });
+
+  signalWorker.on('failed', (job, err) => logger.error(`Signal pipeline job ${job?.id} failed`, err));
+
+  // Stale data cleanup worker
+  const cleanupWorker = new Worker('cleanup', async (job) => {
+    logger.info(`Cleanup job ${job.id}`);
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    // Delete old agent usage logs (>90 days)
+    const ninetyDaysAgo = new Date();
+    ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+    const { count: usagePurged } = await prisma.agentUsageLog.deleteMany({
+      where: { date: { lt: ninetyDaysAgo } },
+    });
+
+    // Delete old ignored signals (>30 days)
+    const { count: signalsPurged } = await prisma.signal.deleteMany({
+      where: { status: 'IGNORED', createdAt: { lt: thirtyDaysAgo } },
+    });
+
+    logger.info(`Cleanup: purged ${usagePurged} old usage logs, ${signalsPurged} ignored signals`);
+  }, connection);
+
+  cleanupWorker.on('failed', (job, err) => logger.error(`Cleanup job ${job?.id} failed`, err));
+
   logger.info('BullMQ workers started');
-  return { publishWorker, analyticsWorker, trendsWorker, listeningWorker, competitiveWorker, reportWorker, growthWorker, inboxEmailWorker, tokenRefreshWorker, recurringPostWorker, rssImportWorker, subscriptionWorker, firstCommentWorker };
+  return { publishWorker, analyticsWorker, trendsWorker, listeningWorker, competitiveWorker, reportWorker, growthWorker, inboxEmailWorker, tokenRefreshWorker, recurringPostWorker, rssImportWorker, subscriptionWorker, firstCommentWorker, signalWorker, cleanupWorker };
 }
 
 // ── Scheduled (repeating) jobs ──────────────────────────────
@@ -218,6 +264,13 @@ export async function scheduleRecurringJobs() {
     every: 24 * 60 * 60_000,
   }, {
     name: 'subscription-expiry-daily',
+  });
+
+  // Stale data cleanup daily
+  await cleanupQueue.upsertJobScheduler('cleanup-daily', {
+    every: 24 * 60 * 60_000,
+  }, {
+    name: 'cleanup-stale-data',
   });
 
   logger.info('Recurring jobs scheduled');

@@ -1,17 +1,24 @@
-import { useState } from 'react';
-import { Card, Button, Tag, Typography, Tooltip } from 'antd';
+import { useState, useCallback } from 'react';
+import { Button, Tag, message } from 'antd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronLeft, faChevronRight, faStickyNote, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
-import { useGetCalendarQuery, useDeleteCalendarNoteMutation } from '@/store/endpoints/content';
+import { faChevronLeft, faChevronRight, faStickyNote, faPlus } from '@fortawesome/free-solid-svg-icons';
+import { useGetCalendarQuery, useDeleteCalendarNoteMutation, useReschedulePostMutation } from '@/store/endpoints/content';
 import type { ContentPost, CalendarNote } from '@/types';
 import { DAYS, STATUS_COLORS } from '../constants';
-import { CalendarGrid } from '../components/CalendarGrid';
 import { ApprovalDrawer } from '../components/ApprovalDrawer';
 import { CalendarNoteModal } from '@/components/content/CalendarNoteModal';
+import { useNavigate } from 'react-router-dom';
+import s from '../styles/Calendar.module.scss';
 
-const { Title } = Typography;
+const APPROVAL_BADGES: Record<string, string> = {
+  PENDING_REVIEW: '⏳',
+  CHANGES_REQUESTED: '✏️',
+  APPROVED: '✅',
+  REJECTED: '❌',
+};
 
 export function CalendarPage() {
+  const navigate = useNavigate();
   const [date, setDate] = useState(new Date());
   const year = date.getFullYear();
   const month = date.getMonth() + 1;
@@ -19,12 +26,14 @@ export function CalendarPage() {
   const [noteModalOpen, setNoteModalOpen] = useState(false);
   const [selectedNote, setSelectedNote] = useState<CalendarNote | undefined>();
   const [noteDefaultDate, setNoteDefaultDate] = useState<string | undefined>();
+  const [dragOverDay, setDragOverDay] = useState<number | null>(null);
 
   const { data } = useGetCalendarQuery({ month, year });
   const calendarData = data?.data;
   const posts: ContentPost[] = calendarData?.posts ?? (Array.isArray(calendarData) ? calendarData : []);
   const notes: CalendarNote[] = calendarData?.notes ?? [];
   const [deleteNote] = useDeleteCalendarNoteMutation();
+  const [reschedulePost] = useReschedulePostMutation();
 
   const daysInMonth = new Date(year, month, 0).getDate();
   const firstDay = new Date(year, month - 1, 1).getDay();
@@ -35,14 +44,11 @@ export function CalendarPage() {
   const now = new Date();
   const isCurrentMonth = month === now.getMonth() + 1 && year === now.getFullYear();
 
-  const getPostsForDay = (day: number) =>
+  const getPostsForDay = useCallback((day: number) =>
     posts.filter((p) => {
       const d = new Date(p.scheduledAt || p.publishedAt || p.createdAt);
       return d.getDate() === day;
-    });
-
-  const getNotesForDay = (day: number) =>
-    notes.filter((n) => new Date(n.date).getDate() === day);
+    }), [posts]);
 
   const openNoteModal = (day?: number) => {
     setSelectedNote(undefined);
@@ -55,48 +61,113 @@ export function CalendarPage() {
     setNoteModalOpen(true);
   };
 
+  const handleQuickCreate = (day: number) => {
+    const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}T10:00:00`;
+    navigate(`/studio/compose?scheduledAt=${encodeURIComponent(dateStr)}`);
+  };
+
+  // Drag-and-drop reschedule
+  const handleDragStart = (e: React.DragEvent, post: ContentPost) => {
+    e.dataTransfer.setData('text/plain', post.id);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e: React.DragEvent, day: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOverDay(day);
+  };
+
+  const handleDragLeave = () => setDragOverDay(null);
+
+  const handleDrop = async (e: React.DragEvent, day: number) => {
+    e.preventDefault();
+    setDragOverDay(null);
+    const postId = e.dataTransfer.getData('text/plain');
+    if (!postId) return;
+    const targetDate = new Date(year, month - 1, day, 10, 0, 0);
+    try {
+      await reschedulePost({ id: postId, scheduledAt: targetDate.toISOString() }).unwrap();
+      message.success('Post rescheduled');
+    } catch {
+      message.error('Failed to reschedule');
+    }
+  };
+
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-        <Title level={2} style={{ margin: 0 }}>Content Calendar</Title>
-        <div style={{ display: 'flex', gap: 8 }}>
+      <div className={s.page_header}>
+        <h1 className={s.page_title}>Content Calendar</h1>
+        <div className={s.header_actions}>
           <Button icon={<FontAwesomeIcon icon={faStickyNote} />} onClick={() => openNoteModal()}>Add Note</Button>
-          <Button type="primary" href="/content/new">+ New Post</Button>
+          <Button type="primary" icon={<FontAwesomeIcon icon={faPlus} />} onClick={() => navigate('/studio/compose')}>New Post</Button>
         </div>
       </div>
 
-      <Card>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+      <div className={s.calendar_card}>
+        <div className={s.month_nav}>
           <Button type="text" icon={<FontAwesomeIcon icon={faChevronLeft} />} onClick={prevMonth} />
-          <Title level={4} style={{ margin: 0 }}>
+          <h3 className={s.month_title}>
             {date.toLocaleString('default', { month: 'long', year: 'numeric' })}
-          </Title>
+          </h3>
           <Button type="text" icon={<FontAwesomeIcon icon={faChevronRight} />} onClick={nextMonth} />
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 1, background: '#e2e8f0', borderRadius: 8, overflow: 'hidden' }}>
+        <div className={s.calendar_grid}>
           {DAYS.map((d) => (
-            <div key={d} style={{ background: '#f8fafc', padding: 8, textAlign: 'center', fontSize: 12, fontWeight: 500, color: '#64748b' }}>
-              {d}
-            </div>
+            <div key={d} className={s.day_header}>{d}</div>
           ))}
 
-          <CalendarGrid
-            daysInMonth={daysInMonth}
-            firstDay={firstDay}
-            currentDay={now.getDate()}
-            isCurrentMonth={isCurrentMonth}
-            getPostsForDay={getPostsForDay}
-            onPostClick={setSelectedPost}
-          />
+          {Array.from({ length: firstDay }).map((_, i) => (
+            <div key={`e-${i}`} className={`${s.day_cell} ${s['day_cell--empty']}`} />
+          ))}
+
+          {Array.from({ length: daysInMonth }).map((_, i) => {
+            const day = i + 1;
+            const dayPosts = getPostsForDay(day);
+            const isToday = isCurrentMonth && day === now.getDate();
+            const isDragOver = dragOverDay === day;
+
+            return (
+              <div
+                key={day}
+                className={`${s.day_cell} ${isToday ? s['day_cell--today'] : ''} ${isDragOver ? s['day_cell--drag_over'] : ''}`}
+                onDragOver={(e) => handleDragOver(e, day)}
+                onDragLeave={handleDragLeave}
+                onDrop={(e) => handleDrop(e, day)}
+              >
+                <span className={`${s.day_number} ${isToday ? s['day_number--today'] : ''}`}>{day}</span>
+                <button className={s.day_add_btn} onClick={() => handleQuickCreate(day)} title="Quick create">+</button>
+
+                {dayPosts.slice(0, 3).map((p) => (
+                  <div
+                    key={p.id}
+                    className={s.post_pill}
+                    style={{ background: STATUS_COLORS[p.status] || '#f1f5f9' }}
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, p)}
+                    onClick={() => setSelectedPost(p)}
+                  >
+                    {p.approvalStatus && APPROVAL_BADGES[p.approvalStatus] && (
+                      <span className={s.post_pill__approval}>{APPROVAL_BADGES[p.approvalStatus]}</span>
+                    )}
+                    {p.platform.slice(0, 2)} · {p.caption?.slice(0, 20) || 'Untitled'}
+                  </div>
+                ))}
+                {dayPosts.length > 3 && (
+                  <span className={s.post_pill__more}>+{dayPosts.length - 3} more</span>
+                )}
+              </div>
+            );
+          })}
         </div>
 
-        <div style={{ marginTop: 16, display: 'flex', flexWrap: 'wrap', gap: 12 }}>
-          {Object.entries(STATUS_COLORS).map(([status, color]) => (
-            <Tag key={status} color={color} style={{ color: '#334155' }}>{status}</Tag>
+        <div className={s.status_legend}>
+          {Object.entries(STATUS_COLORS).map(([st, color]) => (
+            <Tag key={st} color={color} style={{ color: '#334155' }}>{st}</Tag>
           ))}
         </div>
-      </Card>
+      </div>
 
       <ApprovalDrawer
         post={selectedPost}
@@ -112,8 +183,9 @@ export function CalendarPage() {
       />
 
       {notes.length > 0 && (
-        <Card size="small" title="Calendar Notes" style={{ marginTop: 16 }}>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+        <div className={s.notes_section}>
+          <h3 className={s.notes_title}>Calendar Notes</h3>
+          <div className={s.notes_list}>
             {notes.map((n) => (
               <Tag
                 key={n.id}
@@ -128,7 +200,7 @@ export function CalendarPage() {
               </Tag>
             ))}
           </div>
-        </Card>
+        </div>
       )}
     </div>
   );

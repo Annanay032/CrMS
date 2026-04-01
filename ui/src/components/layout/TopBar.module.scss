@@ -32,6 +32,42 @@
     }
   }
 
+  &__search_icon {
+    color: $color-slate-400;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  &__kbd {
+    font-size: 10px;
+    font-family: inherit;
+    color: $color-slate-400;
+    background: $color-white;
+    border: 1px solid $color-slate-200;
+    border-radius: $radius-sm;
+    padding: 1px 5px;
+    line-height: 1.4;
+    flex-shrink: 0;
+  }
+
+  &__quick_create {
+    width: 32px;
+    height: 32px;
+    border-radius: $radius-full;
+    background: $gradient-primary;
+    border: none;
+    color: $color-white;
+    font-size: 13px;
+    cursor: pointer;
+    @include flex-center;
+    transition: opacity $transition-fast, transform $transition-fast;
+
+    &:hover {
+      opacity: 0.9;
+      transform: scale(1.05);
+    }
+  }
+
   &__actions {
     display: flex;
     align-items: center;

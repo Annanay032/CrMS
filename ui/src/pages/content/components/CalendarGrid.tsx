@@ -1,4 +1,4 @@
-import { Tag, Typography } from 'antd';
+import { Typography } from 'antd';
 import type { ContentPost } from '@/types';
 import { STATUS_COLORS } from '../constants';
 

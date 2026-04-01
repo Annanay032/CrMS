@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { faPalette, faBuilding, faBriefcase, faShieldHalved, faUserTie } from '@fortawesome/free-solid-svg-icons';
+import { faPalette, faBuilding, faBriefcase, faShieldHalved } from '@fortawesome/free-solid-svg-icons';
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 
 export const API_BASE = '/api';
@@ -17,7 +17,7 @@ export const registerSchema = z.object({
   password: z.string().min(8, 'Password must be at least 8 characters'),
   role: z.enum(['CREATOR', 'BRAND', 'AGENCY', 'ADMIN']),
   inviteCode: z.string().optional(),
-  agreeTerms: z.literal(true, { errorMap: () => ({ message: 'You must agree to the terms' }) }),
+  agreeTerms: z.literal(true, { message: 'You must agree to the terms' }),
 });
 
 export type RegisterForm = z.infer<typeof registerSchema>;

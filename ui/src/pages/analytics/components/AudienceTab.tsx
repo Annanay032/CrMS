@@ -5,7 +5,6 @@ import { useGetAudienceInsightsQuery } from '@/store/endpoints/dashboard';
 import { useRunAgentMutation } from '@/store/endpoints/agents';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faRobot, faUsers } from '@fortawesome/free-solid-svg-icons';
-import { PLATFORM_COLORS } from '../constants';
 
 const { Text, Title, Paragraph } = Typography;
 
@@ -89,7 +88,7 @@ export function AudienceTab() {
                       <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                       <XAxis dataKey="name" tick={{ fontSize: 12 }} />
                       <YAxis tick={{ fontSize: 11 }} />
-                      <Tooltip formatter={(v: number) => `${v}%`} />
+                      <Tooltip formatter={(v) => `${Number(v)}%`} />
                       <Bar dataKey="value" fill="#4f46e5" radius={[4, 4, 0, 0]} name="%" />
                     </BarChart>
                   </ResponsiveContainer>
@@ -191,12 +190,12 @@ export function AudienceTab() {
         </div>
         {aiAudience ? (
           <div>
-            {aiAudience.summary && <Paragraph>{aiAudience.summary as string}</Paragraph>}
+            {aiAudience.summary ? <Paragraph>{String(aiAudience.summary)}</Paragraph> : null}
             {(aiAudience.keySegments as Array<Record<string, unknown>>)?.map((seg, i) => (
               <div key={i} style={{ padding: 12, background: '#f8fafc', borderRadius: 8, marginBottom: 8 }}>
-                <Text strong>{seg.name as string}</Text> — <Text type="secondary">{seg.percentage as number}%</Text>
+                <Text strong>{String(seg.name)}</Text> — <Text type="secondary">{Number(seg.percentage)}%</Text>
                 <br />
-                <Text style={{ fontSize: 13 }}>{seg.description as string}</Text>
+                <Text style={{ fontSize: 13 }}>{String(seg.description)}</Text>
               </div>
             ))}
             {(aiAudience.growthOpportunities as string[])?.map((opp, i) => (

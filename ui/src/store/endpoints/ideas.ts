@@ -1,5 +1,5 @@
 import { api } from '../api';
-import type { ApiResponse } from '@/types';
+import type { ApiResponse, IdeaStage } from '@/types';
 import type { ContentIdea, ContentTag, ContentTemplate } from '@/types';
 
 export const ideaApi = api.injectEndpoints({
@@ -71,6 +71,32 @@ export const ideaApi = api.injectEndpoints({
       query: (body) => ({ url: '/ideas/templates', method: 'POST', body }),
       invalidatesTags: ['Templates'],
     }),
+
+    // ─── Stages ───────────────────────────────────────────────
+    getStages: build.query<ApiResponse<IdeaStage[]>, void>({
+      query: () => '/ideas/stages/all',
+      providesTags: ['IdeaStages'],
+    }),
+
+    createStage: build.mutation<ApiResponse<IdeaStage>, { name: string; color?: string }>({
+      query: (body) => ({ url: '/ideas/stages', method: 'POST', body }),
+      invalidatesTags: ['IdeaStages'],
+    }),
+
+    updateStage: build.mutation<ApiResponse<IdeaStage>, { id: string; data: Partial<{ name: string; color: string; position: number }> }>({
+      query: ({ id, data }) => ({ url: `/ideas/stages/${id}`, method: 'PUT', body: data }),
+      invalidatesTags: ['IdeaStages'],
+    }),
+
+    reorderStages: build.mutation<ApiResponse<IdeaStage[]>, { stageIds: string[] }>({
+      query: (body) => ({ url: '/ideas/stages/reorder', method: 'PUT', body }),
+      invalidatesTags: ['IdeaStages'],
+    }),
+
+    deleteStage: build.mutation<ApiResponse<void>, { id: string; moveToStageId?: string }>({
+      query: ({ id, ...body }) => ({ url: `/ideas/stages/${id}`, method: 'DELETE', body }),
+      invalidatesTags: ['IdeaStages', 'Ideas'],
+    }),
   }),
 });
 
@@ -86,4 +112,9 @@ export const {
   useDeleteTagMutation,
   useGetTemplatesQuery,
   useCreateTemplateMutation,
+  useGetStagesQuery,
+  useCreateStageMutation,
+  useUpdateStageMutation,
+  useReorderStagesMutation,
+  useDeleteStageMutation,
 } = ideaApi;

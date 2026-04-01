@@ -2,7 +2,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { Input, Dropdown, Typography, List, Tag, Spin, Empty } from 'antd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch } from '@fortawesome/free-solid-svg-icons';
-import { useSearchContentMutation } from '@/store/endpoints/content';
+import { useSearchContentQuery } from '@/store/endpoints/content';
 import type { ContentPost } from '@/types';
 
 const { Text, Paragraph } = Typography;
@@ -14,8 +14,9 @@ interface GlobalSearchProps {
 export function GlobalSearch({ style }: GlobalSearchProps) {
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
-  const [searchContent, { data, isLoading }] = useSearchContentMutation();
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const [debouncedQ, setDebouncedQ] = useState('');
+  const { data, isLoading } = useSearchContentQuery({ q: debouncedQ }, { skip: !debouncedQ.trim() });
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const results: ContentPost[] = data?.data ?? [];
 
@@ -28,11 +29,11 @@ export function GlobalSearch({ style }: GlobalSearchProps) {
         return;
       }
       debounceRef.current = setTimeout(() => {
-        searchContent({ query: value });
+        setDebouncedQ(value);
         setOpen(true);
       }, 350);
     },
-    [searchContent],
+    [],
   );
 
   useEffect(() => {

@@ -1,4 +1,4 @@
-import { Card, Typography, Row, Col, Statistic, Tag, List, Avatar, Spin, Divider, Space } from 'antd';
+import { Card, Typography, Row, Col, Statistic, Tag, List, Avatar, Spin, Space } from 'antd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faShieldHalved, faUsers, faUserCheck, faUserXmark,

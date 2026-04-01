@@ -1,3 +1,5 @@
+@use '../../styles/abstracts' as *;
+
 .copilot {
   display: flex;
   flex-direction: column;
@@ -6,78 +8,4 @@
   max-width: 768px;
   margin: 0 auto;
   width: 100%;
-
-  // ── Messages ──
-  &__messages {
-    flex: 1;
-    overflow-y: auto;
-    padding: $space-6;
-    display: flex;
-    flex-direction: column;
-    gap: $space-4;
-  }
-
-  &__msg {
-    display: flex;
-    gap: $space-3;
-
-    &--user {
-      justify-content: flex-end;
-
-      .copilot__bubble {
-        background: $color-primary-500;
-        color: $color-white;
-        border-radius: $radius-lg $radius-lg 4px $radius-lg;
-      }
-    }
-
-    &--ai {
-      .copilot__bubble {
-        background: $color-slate-100;
-        color: $color-slate-800;
-        border-radius: $radius-lg $radius-lg $radius-lg 4px;
-      }
-    }
-  }
-
-  &__bubble {
-    max-width: 600px;
-    padding: $space-3 $space-4;
-    font-size: $font-size-sm;
-    line-height: $line-height-relaxed;
-  }
-
-  // ── Quick Actions ──
-  &__quick {
-    display: flex;
-    gap: $space-2;
-    padding: 0 $space-6 $space-3;
-    flex-wrap: wrap;
-  }
-
-  &__quick_btn {
-    display: flex;
-    align-items: center;
-    gap: $space-2;
-    padding: $space-2 $space-3;
-    border: 1px solid $color-slate-200;
-    border-radius: $radius-full;
-    background: $color-white;
-    cursor: pointer;
-    font-size: $font-size-sm;
-    color: $color-slate-600;
-    transition: all $transition-fast;
-
-    &:hover {
-      border-color: $color-primary-300;
-      color: $color-primary-600;
-      background: $color-primary-50;
-    }
-  }
-
-  // ── Input ──
-  &__input {
-    padding: $space-4 $space-6;
-    border-top: 1px solid $color-slate-100;
-  }
 }

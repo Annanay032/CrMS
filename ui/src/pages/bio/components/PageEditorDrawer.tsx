@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import {
-  Drawer, Tabs, Form, Input, Select, Switch, Button, Space, Card, Typography,
-  List, Popconfirm, Tag, Modal, InputNumber, message,
+  Drawer, Tabs, Form, Input, Select, Switch, Button, Space, Typography,
+  List, Popconfirm, Tag, Modal, message,
 } from 'antd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faTrash, faPen, faGripVertical, faEye, faArrowUp, faArrowDown } from '@fortawesome/free-solid-svg-icons';
@@ -14,7 +14,7 @@ import {
 } from '@/store/endpoints/startpages';
 import { PagePreview } from './PagePreview';
 
-const { Text, TextArea } = Typography;
+const { Text } = Typography;
 
 const THEME_OPTIONS = [
   { value: 'default', label: 'Default' },

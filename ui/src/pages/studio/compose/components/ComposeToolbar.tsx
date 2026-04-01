@@ -3,7 +3,7 @@ import { Select, Button, Tooltip, Space, Divider, Switch, Tag, Typography } from
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faWandMagicSparkles, faCircleCheck, faComment,
-  faCalendarDays, faBrain, faCopy, faPencil,
+  faCalendarDays, faBrain, faCopy, faPencil, faBookmark,
 } from '@fortawesome/free-solid-svg-icons';
 import {
   PLATFORM_OPTIONS, PLATFORM_POST_TYPES, POST_TYPE_OPTIONS,
@@ -35,6 +35,7 @@ interface Props {
   onValidate: () => void;
   onToggleFirstComment: () => void;
   onToggleSchedule: () => void;
+  onSaveAsTemplate?: () => void;
 }
 
 export function ComposeToolbar({
@@ -43,7 +44,7 @@ export function ComposeToolbar({
   agentLoading, intelLoading, showFirstComment, showSchedule,
   onMultiPlatformChange, onExtraPlatformsChange, onMediaStrategyChange,
   onFetchIntelligence, onAiOptimize, onValidate,
-  onToggleFirstComment, onToggleSchedule,
+  onToggleFirstComment, onToggleSchedule, onSaveAsTemplate,
 }: Props) {
   const postTypeOptions = PLATFORM_POST_TYPES[platform] || POST_TYPE_OPTIONS;
   const compatibleOptions = getCompatiblePlatforms(postType, platform);
@@ -143,6 +144,14 @@ export function ComposeToolbar({
         <Tooltip title="Schedule">
           <Button size="small" type={showSchedule ? 'primary' : 'default'} ghost={showSchedule} icon={<FontAwesomeIcon icon={faCalendarDays} />} onClick={onToggleSchedule} />
         </Tooltip>
+        {onSaveAsTemplate && (
+          <>
+            <Divider type="vertical" />
+            <Tooltip title="Save as Template">
+              <Button size="small" icon={<FontAwesomeIcon icon={faBookmark} />} onClick={onSaveAsTemplate} />
+            </Tooltip>
+          </>
+        )}
       </Space>
     </div>
   );

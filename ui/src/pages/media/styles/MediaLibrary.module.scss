@@ -1,0 +1,279 @@
+@use '../../../styles/abstracts' as *;
+
+// ── Page Layout ──
+.page_header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $space-6;
+}
+
+.page_title {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  font-size: $font-size-2xl;
+  font-weight: $font-weight-bold;
+  color: $color-text;
+  margin: 0;
+}
+
+.page_title__icon {
+  color: $color-primary-500;
+}
+
+// ── Toolbar ──
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $space-4;
+  gap: $space-3;
+  flex-wrap: wrap;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.breadcrumb__item {
+  cursor: pointer;
+  color: $color-primary-500;
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: $font-size-sm;
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  &--current {
+    color: $color-text;
+    cursor: default;
+
+    &:hover {
+      text-decoration: none;
+    }
+  }
+}
+
+.breadcrumb__sep {
+  color: $color-text-secondary;
+}
+
+.toolbar__actions {
+  display: flex;
+  gap: $space-2;
+  align-items: center;
+}
+
+// ── Bulk Bar ──
+.bulk_bar {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  padding: $space-3 $space-4;
+  background: $color-primary-50;
+  border-radius: $radius-md;
+  margin-bottom: $space-4;
+}
+
+.bulk_bar__count {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-primary-700;
+}
+
+// ── Storage Meter ──
+.storage_meter {
+  @include card;
+  padding: $space-4;
+  margin-bottom: $space-4;
+  display: flex;
+  align-items: center;
+  gap: $space-4;
+}
+
+.storage_bar {
+  flex: 1;
+  height: 8px;
+  background: $color-slate-200;
+  border-radius: $radius-full;
+  overflow: hidden;
+}
+
+.storage_bar__fill {
+  height: 100%;
+  background: $color-primary-500;
+  border-radius: $radius-full;
+  transition: width $transition-fast;
+
+  &--warn {
+    background: $color-warning-500;
+  }
+
+  &--danger {
+    background: $color-red-500;
+  }
+}
+
+.storage_label {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  white-space: nowrap;
+}
+
+// ── Folder Grid ──
+.section_title {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-text-secondary;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: $space-3;
+}
+
+.folder_grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: $space-3;
+  margin-bottom: $space-6;
+}
+
+.folder_card {
+  @include card;
+  padding: $space-4;
+  text-align: center;
+  cursor: pointer;
+  transition: all $transition-fast;
+  position: relative;
+
+  &:hover {
+    box-shadow: $shadow-md;
+  }
+}
+
+.folder_card__icon {
+  font-size: 28px;
+  color: #faad14;
+  margin-bottom: $space-2;
+}
+
+.folder_card__name {
+  font-weight: $font-weight-semibold;
+  font-size: $font-size-sm;
+  color: $color-text;
+  @include truncate;
+}
+
+.folder_card__meta {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  margin-top: $space-1;
+}
+
+.folder_card__delete {
+  position: absolute;
+  top: $space-2;
+  right: $space-2;
+  opacity: 0;
+  transition: opacity $transition-fast;
+
+  .folder_card:hover & {
+    opacity: 1;
+  }
+}
+
+// ── Asset Grid ──
+.asset_grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: $space-3;
+}
+
+.asset_card {
+  @include card;
+  overflow: hidden;
+  transition: all $transition-fast;
+  position: relative;
+
+  &:hover {
+    box-shadow: $shadow-md;
+  }
+
+  &--selected {
+    outline: 2px solid $color-primary-500;
+    outline-offset: -2px;
+  }
+}
+
+.asset_card__checkbox {
+  position: absolute;
+  top: $space-2;
+  left: $space-2;
+  z-index: 2;
+  opacity: 0;
+  transition: opacity $transition-fast;
+
+  .asset_card:hover &,
+  .asset_card--selected & {
+    opacity: 1;
+  }
+}
+
+.asset_card__preview {
+  height: 140px;
+  width: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.asset_card__fallback {
+  height: 140px;
+  @include flex-center;
+  background: $color-slate-100;
+  color: $color-text-secondary;
+  font-size: 32px;
+}
+
+.asset_card__info {
+  padding: $space-3;
+}
+
+.asset_card__name {
+  font-weight: $font-weight-semibold;
+  font-size: $font-size-xs;
+  color: $color-text;
+  @include truncate;
+}
+
+.asset_card__tags {
+  display: flex;
+  gap: $space-1;
+  flex-wrap: wrap;
+  margin-top: $space-2;
+}
+
+.asset_card__delete {
+  position: absolute;
+  top: $space-2;
+  right: $space-2;
+  opacity: 0;
+  transition: opacity $transition-fast;
+
+  .asset_card:hover & {
+    opacity: 1;
+  }
+}
+
+// ── Empty ──
+.empty_state {
+  padding: $space-12;
+  text-align: center;
+  color: $color-text-secondary;
+}

@@ -1,0 +1,319 @@
+@use '../../styles/abstracts' as *;
+
+// ============================================
+// Unified Chat Component
+// Adapts to three modes: floating, fullpage, embedded
+// ============================================
+
+.chat {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+
+  // ── Mode: Floating (inside floating panel) ──
+  &--floating {
+    .chat__messages {
+      min-height: 200px;
+      max-height: 380px;
+      padding: $space-3;
+      gap: $space-3;
+    }
+
+    .msg__bubble {
+      font-size: $font-size-sm;
+    }
+
+    .quick {
+      padding: $space-2 $space-3;
+      gap: $space-2;
+    }
+
+    .quick__btn {
+      padding: $space-2;
+      font-size: $font-size-xs;
+    }
+
+    .quick__desc {
+      display: none;
+    }
+
+    .input_area {
+      padding: $space-3;
+    }
+  }
+
+  // ── Mode: Fullpage ──
+  &--fullpage {
+    max-width: 800px;
+    margin: 0 auto;
+    width: 100%;
+    height: calc(100vh - 140px);
+    background: $color-surface;
+    border: 1px solid $color-border;
+    border-radius: $radius-xl;
+    box-shadow: $shadow-sm;
+
+    .chat__messages {
+      padding: $space-6;
+      gap: $space-4;
+    }
+
+    .quick {
+      padding: $space-3 $space-6;
+      gap: $space-3;
+    }
+
+    .quick__btn {
+      flex: 1 1 calc(50% - $space-3);
+      min-width: 200px;
+    }
+
+    .input_area {
+      padding: $space-4 $space-6;
+    }
+  }
+
+  // ── Mode: Embedded (inside studio, etc.) ──
+  &--embedded {
+    .chat__messages {
+      padding: $space-4 $space-6;
+      gap: $space-4;
+    }
+
+    .quick {
+      padding: $space-2 $space-6 $space-3;
+    }
+
+    .quick__btn {
+      border-radius: $radius-full;
+      padding: $space-2 $space-3;
+    }
+
+    .input_area {
+      padding: $space-4 $space-6;
+    }
+  }
+}
+
+// ── Messages area ──
+.chat__messages {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  @include custom-scrollbar;
+}
+
+// ── Message row ──
+.msg {
+  display: flex;
+  gap: $space-2;
+  max-width: 92%;
+
+  &--user {
+    align-self: flex-end;
+    flex-direction: row-reverse;
+  }
+}
+
+.msg__avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: $radius-full;
+  @include flex-center;
+  font-size: 12px;
+  flex-shrink: 0;
+
+  &--ai {
+    background: $color-primary-50;
+    color: $color-primary-600;
+  }
+
+  &--user {
+    background: $color-slate-200;
+    color: $color-slate-600;
+  }
+}
+
+.msg__bubble {
+  border-radius: $radius-lg;
+  padding: $space-2 $space-3;
+  line-height: $line-height-normal;
+  word-break: break-word;
+
+  &--ai {
+    background: $color-slate-100;
+    color: $color-slate-800;
+  }
+
+  &--user {
+    background: $color-primary-600;
+    color: $color-white;
+  }
+}
+
+.msg__content {
+  white-space: pre-wrap;
+}
+
+.msg__actions {
+  display: flex;
+  align-items: center;
+  gap: $space-1;
+  margin-top: $space-2;
+  padding-top: $space-2;
+  border-top: 1px solid $color-slate-200;
+}
+
+.msg__action {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px $space-2;
+  border: 1px solid $color-slate-300;
+  border-radius: $radius-md;
+  background: $color-white;
+  color: $color-slate-600;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all $transition-fast;
+
+  &:hover {
+    background: $color-primary-50;
+    border-color: $color-primary-300;
+    color: $color-primary-600;
+  }
+}
+
+// ── Quick actions ──
+.quick {
+  display: flex;
+  flex-wrap: wrap;
+  border-top: 1px solid $color-border;
+}
+
+.quick__btn {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  padding: $space-2 $space-3;
+  border: 1px solid $color-border;
+  border-radius: $radius-lg;
+  background: $color-surface;
+  cursor: pointer;
+  font-size: $font-size-sm;
+  color: $color-slate-600;
+  transition: all $transition-fast;
+  text-align: left;
+
+  &:hover {
+    background: $color-primary-50;
+    border-color: $color-primary-200;
+    color: $color-primary-600;
+  }
+}
+
+.quick__icon {
+  font-size: 14px;
+  flex-shrink: 0;
+  color: $color-primary-500;
+}
+
+.quick__label {
+  font-weight: $font-weight-medium;
+  white-space: nowrap;
+}
+
+.quick__desc {
+  font-size: $font-size-xs;
+  color: $color-slate-400;
+  @include truncate;
+}
+
+// ── Input area ──
+.input_area {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  border-top: 1px solid $color-border;
+  flex-shrink: 0;
+}
+
+.input_field {
+  flex: 1;
+  padding: $space-2 $space-3;
+  border: 1px solid $color-border;
+  border-radius: $radius-lg;
+  font-size: $font-size-sm;
+  color: $color-text;
+  outline: none;
+  transition: border-color $transition-fast;
+  font-family: $font-family-sans;
+  resize: none;
+  min-height: 36px;
+  max-height: 100px;
+  line-height: $line-height-normal;
+
+  &::placeholder {
+    color: $color-slate-400;
+  }
+
+  &:focus {
+    border-color: $color-primary-400;
+  }
+}
+
+.send_btn {
+  width: 36px;
+  height: 36px;
+  border-radius: $radius-md;
+  background: $color-primary-600;
+  color: $color-white;
+  border: none;
+  cursor: pointer;
+  @include flex-center;
+  font-size: 14px;
+  transition: all $transition-fast;
+  flex-shrink: 0;
+
+  &:hover:not(:disabled) {
+    background: $color-primary-700;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+// ── Typing indicator ──
+.typing {
+  display: flex;
+  gap: $space-2;
+  align-items: flex-end;
+}
+
+.typing__dots {
+  display: flex;
+  gap: 4px;
+  background: $color-slate-100;
+  border-radius: $radius-lg;
+  padding: $space-2 $space-3;
+}
+
+.typing__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: $radius-full;
+  background: $color-slate-400;
+  animation: typingBounce 1.2s ease-in-out infinite;
+
+  &:nth-child(2) { animation-delay: 0.15s; }
+  &:nth-child(3) { animation-delay: 0.3s; }
+}
+
+@keyframes typingBounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30%           { transform: translateY(-4px); opacity: 1; }
+}

@@ -10,6 +10,7 @@ import { OverviewTab } from './components/OverviewTab';
 import { ContentPerformanceTab } from './components/ContentPerformanceTab';
 import { AudienceTab } from './components/AudienceTab';
 import { ReportsTab } from './components/ReportsTab';
+import { PostAnalyticsTab } from './components/PostAnalyticsTab';
 
 export function AnalyticsPage() {
   const [period, setPeriod] = useState<Period>('week');
@@ -51,6 +52,11 @@ export function AnalyticsPage() {
       key: 'reports',
       label: 'Reports',
       children: <ReportsTab />,
+    },
+    {
+      key: 'post',
+      label: 'Post Drill-down',
+      children: <PostAnalyticsTab />,
     },
   ];
 

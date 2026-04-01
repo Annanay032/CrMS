@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faMagnifyingGlass, faChevronDown, faCheck, faRightLeft, faUser } from '@fortawesome/free-solid-svg-icons';
+import { faMagnifyingGlass, faChevronDown, faCheck, faRightLeft, faUser, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { AiActivityIndicator } from '@/components/ai';
 import { NotificationCenter } from './NotificationCenter';
 import { useAppSelector, useAppDispatch } from '@/hooks/store';
@@ -14,8 +15,10 @@ export function TopBar() {
   const user = useAppSelector((s) => s.auth.user);
   const activeTeam = useAppSelector((s) => s.auth.activeTeam);
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -27,6 +30,18 @@ export function TopBar() {
     if (dropdownOpen) document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [dropdownOpen]);
+
+  // ⌘K to focus search
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        searchRef.current?.focus();
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const handleSwitch = useCallback((team: UserTeam | null) => {
     dispatch(switchTeam(team));
@@ -40,11 +55,18 @@ export function TopBar() {
   return (
     <header className={styles.topbar}>
       <div className={styles.topbar__search}>
-        <FontAwesomeIcon icon={faMagnifyingGlass} style={{ color: '#94a3b8', fontSize: 14 }} />
-        <input type="text" placeholder="Search campaigns, creators, content..." />
+        <FontAwesomeIcon icon={faMagnifyingGlass} className={styles.topbar__search_icon} />
+        <input ref={searchRef} type="text" placeholder="Search campaigns, creators, content..." />
+        <kbd className={styles.topbar__kbd}>⌘K</kbd>
       </div>
 
       <div className={styles.topbar__actions}>
+        <button className={styles.topbar__quick_create} onClick={() => navigate('/studio')} title="Quick Create">
+          <FontAwesomeIcon icon={faPlus} />
+        </button>
+
+        <div className={styles.topbar__divider} />
+
         <AiActivityIndicator />
 
         <div className={styles.topbar__divider} />

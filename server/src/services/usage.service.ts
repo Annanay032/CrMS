@@ -14,6 +14,22 @@ const TIER_LIMITS: Record<string, number> = {
   ENTERPRISE: 1_000_000,
 };
 
+// Cost per 1K tokens (USD) — approximate pricing
+const COST_PER_1K: Record<string, { input: number; output: number }> = {
+  'gpt-4':      { input: 0.03, output: 0.06 },
+  'gpt-4o':     { input: 0.005, output: 0.015 },
+  'gpt-4o-mini': { input: 0.00015, output: 0.0006 },
+};
+
+/** Calculate estimated cost for a token count on a given model. */
+export function estimateCost(tokens: number, model: string): number {
+  const rates = COST_PER_1K[model] ?? COST_PER_1K['gpt-4o-mini'];
+  // Approximate: assume 60% input, 40% output ratio
+  const inputTokens = tokens * 0.6;
+  const outputTokens = tokens * 0.4;
+  return (inputTokens / 1000) * rates.input + (outputTokens / 1000) * rates.output;
+}
+
 export function getModelForAgent(agentType: string): string {
   return HIGH_VALUE_AGENTS.has(agentType) ? 'gpt-4' : 'gpt-4o-mini';
 }
@@ -85,11 +101,28 @@ export async function getUsageSummary(userId: string) {
   startOfDay.setHours(0, 0, 0, 0);
 
   const breakdown = await prisma.agentUsageLog.groupBy({
-    by: ['agentType'],
+    by: ['agentType', 'model'],
     where: { userId, date: { gte: startOfDay } },
     _sum: { tokensUsed: true },
     _count: true,
   });
+
+  // Aggregate by agent type (with cost)
+  const agentMap = new Map<string, { tokensUsed: number; calls: number; cost: number }>();
+  let totalCost = 0;
+  for (const b of breakdown) {
+    const tokens = b._sum.tokensUsed ?? 0;
+    const cost = estimateCost(tokens, b.model);
+    totalCost += cost;
+    const existing = agentMap.get(b.agentType);
+    if (existing) {
+      existing.tokensUsed += tokens;
+      existing.calls += b._count;
+      existing.cost += cost;
+    } else {
+      agentMap.set(b.agentType, { tokensUsed: tokens, calls: b._count, cost });
+    }
+  }
 
   return {
     tier: budget.tier,
@@ -97,10 +130,12 @@ export async function getUsageSummary(userId: string) {
     usedToday: budget.tokensUsedToday,
     remaining: Math.max(0, budget.dailyTokenLimit - budget.tokensUsedToday),
     resetAt: budget.resetAt.toISOString(),
-    breakdown: breakdown.map((b) => ({
-      agentType: b.agentType,
-      tokensUsed: b._sum.tokensUsed ?? 0,
-      calls: b._count,
+    costToday: Math.round(totalCost * 10000) / 10000, // USD, 4 decimal places
+    breakdown: Array.from(agentMap.entries()).map(([agentType, data]) => ({
+      agentType,
+      tokensUsed: data.tokensUsed,
+      calls: data.calls,
+      cost: Math.round(data.cost * 10000) / 10000,
     })),
   };
 }
@@ -116,13 +151,19 @@ export async function getUsageHistory(userId: string, days = 30) {
   });
 
   // Group by date
-  const daily: Record<string, { tokens: number; calls: number }> = {};
+  const daily: Record<string, { tokens: number; calls: number; cost: number }> = {};
   for (const log of logs) {
     const key = log.date.toISOString().slice(0, 10);
-    if (!daily[key]) daily[key] = { tokens: 0, calls: 0 };
+    if (!daily[key]) daily[key] = { tokens: 0, calls: 0, cost: 0 };
     daily[key].tokens += log.tokensUsed;
     daily[key].calls += 1;
+    daily[key].cost += estimateCost(log.tokensUsed, log.model);
   }
 
-  return Object.entries(daily).map(([date, data]) => ({ date, ...data }));
+  return Object.entries(daily).map(([date, data]) => ({
+    date,
+    tokens: data.tokens,
+    calls: data.calls,
+    cost: Math.round(data.cost * 10000) / 10000,
+  }));
 }

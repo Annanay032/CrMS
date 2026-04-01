@@ -178,3 +178,104 @@ export async function getPostROI(creatorProfileId: string) {
       publishedAt: p.publishedAt,
     }));
 }
+
+// ─── Revenue Trends (Charts) ────────────────────────────────
+
+export async function getRevenueTrends(creatorProfileId: string, months: number = 12) {
+  const since = new Date();
+  since.setMonth(since.getMonth() - months);
+
+  const streams = await prisma.revenueStream.findMany({
+    where: { creatorProfileId, createdAt: { gte: since } },
+    orderBy: { createdAt: 'asc' },
+  });
+
+  // Group by month
+  const monthly: Record<string, { revenue: number; byType: Record<string, number> }> = {};
+  for (const s of streams) {
+    const key = s.period ?? `${s.createdAt.getFullYear()}-${String(s.createdAt.getMonth() + 1).padStart(2, '0')}`;
+    if (!monthly[key]) monthly[key] = { revenue: 0, byType: {} };
+    monthly[key].revenue += s.amount;
+    monthly[key].byType[s.type] = (monthly[key].byType[s.type] || 0) + s.amount;
+  }
+
+  // Also include deal payments marked as PAID
+  const paidDeals = await prisma.brandDeal.findMany({
+    where: { creatorProfileId, status: 'PAID', updatedAt: { gte: since } },
+  });
+  for (const d of paidDeals) {
+    const key = `${d.updatedAt.getFullYear()}-${String(d.updatedAt.getMonth() + 1).padStart(2, '0')}`;
+    if (!monthly[key]) monthly[key] = { revenue: 0, byType: {} };
+    monthly[key].revenue += d.dealValue;
+    monthly[key].byType['BRAND_DEAL'] = (monthly[key].byType['BRAND_DEAL'] || 0) + d.dealValue;
+  }
+
+  return Object.entries(monthly)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([month, data]) => ({ month, ...data }));
+}
+
+// ─── Pipeline Summary (Deal Stages) ────────────────────────
+
+export async function getPipelineSummary(creatorProfileId: string) {
+  const deals = await prisma.brandDeal.findMany({
+    where: { creatorProfileId },
+    include: { contact: true },
+    orderBy: { updatedAt: 'desc' },
+  });
+
+  const byStatus: Record<string, typeof deals> = {};
+  let openPipelineValue = 0;
+  let wonValue = 0;
+  let lostValue = 0;
+
+  for (const d of deals) {
+    if (!byStatus[d.status]) byStatus[d.status] = [];
+    byStatus[d.status].push(d);
+
+    if (['PROSPECT', 'CONTACTED', 'LEAD', 'NEGOTIATING', 'CONFIRMED', 'IN_PROGRESS'].includes(d.status)) {
+      openPipelineValue += d.dealValue;
+    } else if (['DELIVERED', 'PAID'].includes(d.status)) {
+      wonValue += d.dealValue;
+    } else if (d.status === 'LOST') {
+      lostValue += d.dealValue;
+    }
+  }
+
+  const weightedPipeline = deals
+    .filter((d) => !['PAID', 'CANCELLED', 'LOST', 'DELIVERED'].includes(d.status))
+    .reduce((sum, d) => sum + d.dealValue * (d.probability / 100), 0);
+
+  return {
+    byStatus,
+    totalDeals: deals.length,
+    openPipelineValue,
+    wonValue,
+    lostValue,
+    weightedPipeline,
+  };
+}
+
+// ─── Invoice Stats ──────────────────────────────────────────
+
+export async function getInvoiceStats(creatorProfileId: string) {
+  const invoices = await prisma.invoice.findMany({
+    where: { creatorProfileId },
+    include: { brandDeal: true },
+  });
+
+  const totalInvoiced = invoices.reduce((sum, i) => sum + i.amount, 0);
+  const paidAmount = invoices.filter((i) => i.status === 'PAID').reduce((sum, i) => sum + i.amount, 0);
+  const pendingAmount = invoices.filter((i) => ['DRAFT', 'SENT'].includes(i.status)).reduce((sum, i) => sum + i.amount, 0);
+  const overdueAmount = invoices.filter((i) => i.status === 'OVERDUE').reduce((sum, i) => sum + i.amount, 0);
+  const overdueCount = invoices.filter((i) => i.status === 'OVERDUE').length;
+
+  return {
+    totalInvoiced,
+    paidAmount,
+    pendingAmount,
+    overdueAmount,
+    overdueCount,
+    totalCount: invoices.length,
+  };
+}

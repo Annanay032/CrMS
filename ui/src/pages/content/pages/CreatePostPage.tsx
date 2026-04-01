@@ -22,6 +22,7 @@ import { TemplateDrawer } from '@/components/content/TemplateDrawer';
 import { IdeasSidePanel } from '@/components/content/IdeasSidePanel';
 import { ThumbnailPicker } from '@/components/content/ThumbnailPicker';
 import { ThreadComposer } from '@/components/content/ThreadComposer';
+import type { ThreadPart } from '@/components/content/ThreadComposer';
 import { MediaCropper } from '@/components/content/MediaCropper';
 
 const { Title, Text } = Typography;
@@ -73,12 +74,12 @@ export function CreatePostPage() {
   const [validation, setValidation] = useState<ValidationResult | null>(null);
   const [templateOpen, setTemplateOpen] = useState(false);
   const [ideasOpen, setIdeasOpen] = useState(false);
-  const [draftPostId, setDraftPostId] = useState<string | undefined>();
-  const [threadParts, setThreadParts] = useState<string[]>([]);
+  const [draftPostId, _setDraftPostId] = useState<string | undefined>();
+  const [threadParts, setThreadParts] = useState<ThreadPart[]>([]);
   const [mediaUrls, setMediaUrls] = useState<string[]>([]);
   const [cropperOpen, setCropperOpen] = useState(false);
   const [cropTargetIdx, setCropTargetIdx] = useState(0);
-  const autosaveTimer = useRef<ReturnType<typeof setTimeout>>();
+  const autosaveTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const { control, handleSubmit, watch, setValue, getValues, formState: { errors } } = useForm<PostForm>({
     resolver: zodResolver(postSchema),

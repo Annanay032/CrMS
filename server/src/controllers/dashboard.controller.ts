@@ -20,12 +20,14 @@ function getEmptyStats(role: string) {
       totalFollowers: 0, avgEngagement: 0, scheduledPosts: 0,
       activeCampaigns: 0, pendingInteractions: 0, growthRate: 0,
       recentPosts: [], platformStats: [], snapshots: [],
+      totalRevenue: 0, activePipelineValue: 0, newSignals: [], upcomingPosts: [],
     };
   }
   if (role === 'BRAND') {
     return {
       activeCampaigns: 0, totalCampaigns: 0, totalMatches: 0,
       acceptedMatches: 0, avgMatchScore: 0, recentCampaigns: [],
+      totalBudget: 0, totalSpent: 0, budgetUtilization: 0, statusBreakdown: {},
     };
   }
   return {};
@@ -143,6 +145,53 @@ async function getOrCreateProfile(userId: string) {
     where: { userId },
     update: {},
     create: { userId, niche: [], languages: ['en'] },
+  });
+}
+
+/* ── Per-Post Analytics ──────────────────────────────────── */
+
+export async function getPostAnalytics(req: AuthRequest, res: Response) {
+  const postId = req.params.id as string;
+  const profile = await getOrCreateProfile(req.user!.userId);
+
+  const post = await prisma.contentPost.findFirst({
+    where: { id: postId, creatorProfileId: profile.id },
+    include: {
+      analytics: true,
+      communityInteractions: {
+        orderBy: { createdAt: 'desc' },
+        take: 10,
+        select: { id: true, type: true, authorName: true, content: true, createdAt: true },
+      },
+    },
+  });
+
+  if (!post) {
+    res.status(404).json({ success: false, message: 'Post not found' });
+    return;
+  }
+
+  // Revenue attribution from brand deals linked via tags/metadata
+  const revenueStreams = await prisma.revenueStream.findMany({
+    where: { creatorProfileId: profile.id, metadata: { path: ['postId'], equals: postId } },
+  });
+  const attributedRevenue = revenueStreams.reduce((s, r) => s + r.amount, 0);
+
+  res.json({
+    success: true,
+    data: {
+      id: post.id,
+      caption: post.caption,
+      platform: post.platform,
+      postType: post.postType,
+      status: post.status,
+      publishedAt: post.publishedAt,
+      scheduledAt: post.scheduledAt,
+      mediaUrls: post.mediaUrls,
+      analytics: post.analytics,
+      recentComments: post.communityInteractions,
+      attributedRevenue,
+    },
   });
 }
 

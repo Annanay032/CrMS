@@ -1,14 +1,28 @@
 import { useState, useEffect } from 'react';
-import { Card, Button, Row, Col, Typography, Spin, Select, Modal, Tag, Space } from 'antd';
+import { Button, Select, Modal, Tag, Spin } from 'antd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowTrendUp, faWandMagicSparkles, faShareNodes, faPenToSquare } from '@fortawesome/free-solid-svg-icons';
+import { faArrowTrendUp, faShareNodes, faPenToSquare } from '@fortawesome/free-solid-svg-icons';
 import { useGetTrendsMutation, useRunAgentMutation } from '@/store/endpoints/agents';
 import type { Trend } from '@/types';
 import { TrendCard } from './components/TrendCard';
 import { PLATFORM_OPTIONS } from '@/pages/content/constants';
 import { useNavigate } from 'react-router-dom';
+import s from './styles/Trends.module.scss';
 
-const { Title, Paragraph, Text } = Typography;
+const NICHE_OPTIONS = [
+  { value: 'general', label: 'General' },
+  { value: 'tech', label: 'Tech' },
+  { value: 'fashion', label: 'Fashion' },
+  { value: 'food', label: 'Food & Cooking' },
+  { value: 'fitness', label: 'Fitness & Health' },
+  { value: 'travel', label: 'Travel' },
+  { value: 'gaming', label: 'Gaming' },
+  { value: 'beauty', label: 'Beauty' },
+  { value: 'music', label: 'Music' },
+  { value: 'business', label: 'Business' },
+  { value: 'education', label: 'Education' },
+  { value: 'entertainment', label: 'Entertainment' },
+];
 
 export function TrendsPage() {
   const navigate = useNavigate();
@@ -16,6 +30,7 @@ export function TrendsPage() {
   const [runAgent, { isLoading: agentLoading }] = useRunAgentMutation();
   const [trends, setTrends] = useState<Trend[]>([]);
   const [summary, setSummary] = useState('');
+  const [niches, setNiches] = useState<string[]>(['general']);
   const [platforms, setPlatforms] = useState<string[]>(['INSTAGRAM', 'YOUTUBE', 'TIKTOK']);
   const [correlation, setCorrelation] = useState<Record<string, unknown> | null>(null);
   const [draftModal, setDraftModal] = useState<{ open: boolean; trend: Trend | null; draft: Record<string, unknown> | null }>({ open: false, trend: null, draft: null });
@@ -23,7 +38,7 @@ export function TrendsPage() {
 
   const fetchTrends = async () => {
     try {
-      const result = await getTrends({ niche: ['general'], platforms }).unwrap();
+      const result = await getTrends({ niche: niches, platforms }).unwrap();
       setTrends((result.data?.trends as unknown as Trend[]) ?? []);
       setSummary((result.data?.summary as string) ?? '');
     } catch { /* */ }
@@ -76,7 +91,7 @@ export function TrendsPage() {
           action: 'auto_draft',
           trend: { title: trend.title, category: trend.category, description: trend.description, contentIdea: trend.contentIdea },
           platform: Array.isArray(trend.platform) ? trend.platform[0] : trend.platform,
-          creatorNiche: ['general'],
+          creatorNiche: niches,
         },
       }).unwrap();
       setDraftModal((p) => ({ ...p, draft: result.data as Record<string, unknown> }));
@@ -85,18 +100,12 @@ export function TrendsPage() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-        <Title level={2} style={{ margin: 0 }}>Trending Now</Title>
-        <Space>
-          <Select
-            mode="multiple"
-            value={platforms}
-            onChange={setPlatforms}
-            options={PLATFORM_OPTIONS}
-            style={{ minWidth: 250 }}
-            maxTagCount="responsive"
-            placeholder="Platforms"
-          />
+      <div className={s.page_header}>
+        <div>
+          <h1 className={s.page_title}>Trending Now</h1>
+          <p className={s.page_subtitle}>Discover what&apos;s trending and turn insights into content</p>
+        </div>
+        <div className={s.header_actions}>
           <Button type="primary" icon={<FontAwesomeIcon icon={faArrowTrendUp} />} onClick={fetchTrends} loading={isLoading}>
             Refresh
           </Button>
@@ -108,60 +117,81 @@ export function TrendsPage() {
           >
             Cross-Platform Analysis
           </Button>
-        </Space>
+        </div>
       </div>
 
-      {summary && (
-        <Card style={{ marginBottom: 24 }}>
-          <Paragraph style={{ margin: 0 }}>{summary}</Paragraph>
-        </Card>
-      )}
+      <div className={s.filter_row}>
+        <span className={s.filter_label}>Niche:</span>
+        <Select
+          mode="multiple"
+          value={niches}
+          onChange={setNiches}
+          options={NICHE_OPTIONS}
+          style={{ minWidth: 220 }}
+          maxTagCount="responsive"
+          placeholder="Select niches"
+        />
+        <span className={s.filter_label}>Platforms:</span>
+        <Select
+          mode="multiple"
+          value={platforms}
+          onChange={setPlatforms}
+          options={PLATFORM_OPTIONS}
+          style={{ minWidth: 250 }}
+          maxTagCount="responsive"
+          placeholder="Select platforms"
+        />
+      </div>
 
-      {/* Cross-platform correlation */}
+      {summary && <div className={s.summary_banner}>{summary}</div>}
+
       {correlation && (
-        <Card title="Cross-Platform Correlation" style={{ marginBottom: 24 }}>
+        <div className={s.correlation_panel}>
+          <h3 className={s.correlation_title}>Cross-Platform Correlation</h3>
           {(correlation.crossPlatformTrends as Array<{ title?: string; platformPresence?: string[] }>)?.length > 0 && (
-            <div style={{ marginBottom: 16 }}>
-              <Text strong>Trends Spanning Multiple Platforms</Text>
-              <div style={{ marginTop: 8 }}>
+            <div>
+              <div className={s.section_label}>Trends Spanning Multiple Platforms</div>
+              <div className={s.cross_platform_list}>
                 {(correlation.crossPlatformTrends as Array<{ title?: string; platformPresence?: string[] }>).map((t, i) => (
-                  <Tag key={i} color="purple" style={{ marginBottom: 4 }}>
-                    {t.title} — {t.platformPresence?.join(', ')}
-                  </Tag>
+                  <Tag key={i} color="purple">{t.title} — {t.platformPresence?.join(', ')}</Tag>
                 ))}
               </div>
             </div>
           )}
           {(correlation.recommendedFocus as Array<{ trend?: string; reason?: string }> | undefined)?.length ? (
             <div>
-              <Text strong>Recommended Focus</Text>
-              <ul style={{ paddingLeft: 20, margin: '8px 0 0' }}>
+              <div className={s.section_label}>Recommended Focus</div>
+              <ul className={s.focus_list}>
                 {(correlation.recommendedFocus as Array<{ trend?: string; reason?: string }>).map((r, i) => (
-                  <li key={i}><Text strong>{r.trend}</Text>: {r.reason}</li>
+                  <li key={i}><strong>{r.trend}</strong>: {r.reason}</li>
                 ))}
               </ul>
             </div>
           ) : null}
-          {correlation.correlationInsights && (
-            <Paragraph type="secondary" style={{ marginTop: 12 }}>{correlation.correlationInsights as string}</Paragraph>
-          )}
-        </Card>
+          {correlation.correlationInsights ? (
+            <p className={s.correlation_insights}>{String(correlation.correlationInsights)}</p>
+          ) : null}
+        </div>
       )}
 
       {isLoading && trends.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: 48 }}><Spin size="large" /></div>
+        <div className={s.loading_container}><Spin size="large" /></div>
+      ) : trends.length === 0 ? (
+        <div className={s.empty_state}>
+          <FontAwesomeIcon icon={faArrowTrendUp} className={s.empty_state__icon} />
+          <p className={s.empty_state__text}>No trends found. Try adjusting your niche or platform filters.</p>
+        </div>
       ) : (
-        <Row gutter={[16, 16]}>
+        <div className={s.trend_grid}>
           {trends.map((t, i) => (
-            <Col key={i} xs={24} md={12}>
-              <TrendCard
-                trend={t}
-                onScore={() => handleScoreOpportunity(t)}
-                onDraft={() => handleAutoDraft(t)}
-              />
-            </Col>
+            <TrendCard
+              key={i}
+              trend={t}
+              onScore={() => handleScoreOpportunity(t)}
+              onDraft={() => handleAutoDraft(t)}
+            />
           ))}
-        </Row>
+        </div>
       )}
 
       {/* Opportunity Score Modal */}
@@ -173,35 +203,38 @@ export function TrendsPage() {
         width={500}
       >
         {!scoreModal.score ? (
-          <div style={{ textAlign: 'center', padding: 24 }}><Spin size="large" /></div>
+          <div className={s.loading_container}><Spin size="large" /></div>
         ) : (
           <div>
-            <Row gutter={16} style={{ marginBottom: 16 }}>
-              <Col span={8}>
-                <Card size="small"><Text type="secondary">Overall</Text><div style={{ fontSize: 24, fontWeight: 700, color: '#6366f1' }}>{scoreModal.score.overallScore as number}/100</div></Card>
-              </Col>
-              <Col span={8}>
-                <Card size="small"><Text type="secondary">Relevance</Text><div style={{ fontSize: 24, fontWeight: 700 }}>{scoreModal.score.relevanceScore as number}/100</div></Card>
-              </Col>
-              <Col span={8}>
-                <Card size="small"><Text type="secondary">Timing</Text><div style={{ fontSize: 24, fontWeight: 700 }}>{scoreModal.score.timingScore as number}/100</div></Card>
-              </Col>
-            </Row>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
+            <div className={s.score_grid}>
+              <div className={s.score_card}>
+                <div className={s.score_card__label}>Overall</div>
+                <div className={s.score_card__value}>{Number(scoreModal.score.overallScore)}/100</div>
+              </div>
+              <div className={s.score_card}>
+                <div className={s.score_card__label}>Relevance</div>
+                <div className={s.score_card__value}>{Number(scoreModal.score.relevanceScore)}/100</div>
+              </div>
+              <div className={s.score_card}>
+                <div className={s.score_card__label}>Timing</div>
+                <div className={s.score_card__value}>{Number(scoreModal.score.timingScore)}/100</div>
+              </div>
+            </div>
+            <div className={s.score_tags}>
               <Tag color={scoreModal.score.recommendation === 'pursue' ? 'green' : scoreModal.score.recommendation === 'consider' ? 'orange' : 'red'}>
                 {(scoreModal.score.recommendation as string)?.toUpperCase()}
               </Tag>
-              <Tag>Effort: {scoreModal.score.effortLevel as string}</Tag>
-              <Tag>ROI: {scoreModal.score.expectedROI as string}</Tag>
-              <Tag>Risk: {scoreModal.score.riskLevel as string}</Tag>
+              <Tag>Effort: {String(scoreModal.score.effortLevel)}</Tag>
+              <Tag>ROI: {String(scoreModal.score.expectedROI)}</Tag>
+              <Tag>Risk: {String(scoreModal.score.riskLevel)}</Tag>
             </div>
-            <Paragraph>{scoreModal.score.reasoning as string}</Paragraph>
-            {scoreModal.score.suggestedApproach && (
-              <Card size="small" style={{ background: '#eef2ff' }}>
-                <Text strong style={{ color: '#4f46e5' }}>Suggested Approach</Text>
-                <Paragraph style={{ margin: '4px 0 0' }}>{scoreModal.score.suggestedApproach as string}</Paragraph>
-              </Card>
-            )}
+            <p>{String(scoreModal.score.reasoning)}</p>
+            {scoreModal.score.suggestedApproach ? (
+              <div className={s.approach_card}>
+                <div className={s.approach_label}>Suggested Approach</div>
+                <p className={s.approach_text}>{String(scoreModal.score.suggestedApproach)}</p>
+              </div>
+            ) : null}
           </div>
         )}
       </Modal>
@@ -225,30 +258,30 @@ export function TrendsPage() {
         width={600}
       >
         {!draftModal.draft ? (
-          <div style={{ textAlign: 'center', padding: 24 }}><Spin size="large" /></div>
+          <div className={s.loading_container}><Spin size="large" /></div>
         ) : (
           <div>
-            {draftModal.draft.hook && (
-              <Card size="small" style={{ marginBottom: 12, background: '#fef3c7' }}>
-                <Text strong>Hook:</Text> {draftModal.draft.hook as string}
-              </Card>
-            )}
-            <Card size="small" style={{ marginBottom: 12 }}>
-              <Text strong>Caption</Text>
-              <Paragraph style={{ margin: '8px 0 0', whiteSpace: 'pre-wrap' }}>{draftModal.draft.caption as string}</Paragraph>
-            </Card>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
-              {draftModal.draft.postType && <Tag color="blue">{draftModal.draft.postType as string}</Tag>}
+            {draftModal.draft.hook ? (
+              <div className={s.hook_card}>
+                <strong>Hook:</strong> {String(draftModal.draft.hook)}
+              </div>
+            ) : null}
+            <div className={s.draft_section}>
+              <strong>Caption</strong>
+              <p className={s.draft_caption}>{String(draftModal.draft.caption)}</p>
+            </div>
+            <div className={s.score_tags}>
+              {draftModal.draft.postType ? <Tag color="blue">{String(draftModal.draft.postType)}</Tag> : null}
               {(draftModal.draft.hashtags as string[])?.map((h, i) => <Tag key={i}>#{h}</Tag>)}
             </div>
-            {draftModal.draft.callToAction && <Paragraph><Text strong>CTA:</Text> {draftModal.draft.callToAction as string}</Paragraph>}
-            {draftModal.draft.firstComment && <Paragraph><Text strong>First Comment:</Text> {draftModal.draft.firstComment as string}</Paragraph>}
-            {draftModal.draft.mediaDescription && (
-              <Card size="small" style={{ background: '#eef2ff' }}>
-                <Text strong style={{ color: '#4f46e5' }}>Media Direction</Text>
-                <Paragraph style={{ margin: '4px 0 0' }}>{draftModal.draft.mediaDescription as string}</Paragraph>
-              </Card>
-            )}
+            {draftModal.draft.callToAction ? <p><strong>CTA:</strong> {String(draftModal.draft.callToAction)}</p> : null}
+            {draftModal.draft.firstComment ? <p><strong>First Comment:</strong> {String(draftModal.draft.firstComment)}</p> : null}
+            {draftModal.draft.mediaDescription ? (
+              <div className={s.media_direction}>
+                <div className={s.media_direction__label}>Media Direction</div>
+                <p className={s.media_direction__text}>{String(draftModal.draft.mediaDescription)}</p>
+              </div>
+            ) : null}
           </div>
         )}
       </Modal>

@@ -1,0 +1,28 @@
+FROM node:22-alpine AS builder
+
+WORKDIR /app
+COPY package.json package-lock.json* ./
+RUN npm ci --production=false
+COPY . .
+RUN npx prisma generate --schema=src/prisma/schema
+RUN npm run build
+
+FROM node:22-alpine
+
+WORKDIR /app
+RUN addgroup -S crms && adduser -S crms -G crms
+
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./
+COPY --from=builder /app/src/prisma ./src/prisma
+
+RUN mkdir -p uploads && chown crms:crms uploads
+
+USER crms
+EXPOSE 3001
+
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
+  CMD wget -qO- http://localhost:3001/health || exit 1
+
+CMD ["node", "dist/index.js"]

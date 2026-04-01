@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Card, Button, Input, Typography, Row, Col, Upload, Spin, Empty, message } from 'antd';
+import { Button, Input, Typography, Upload, Spin, Empty, message } from 'antd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faWandMagicSparkles, faImage, faUpload, faExpand,
@@ -8,7 +8,7 @@ import {
 import { useStudioGenerateImageMutation } from '@/store/endpoints/studio';
 import styles from './StudioMediaLab.module.scss';
 
-const { Text, Title } = Typography;
+const { Text } = Typography;
 const { TextArea } = Input;
 
 type MediaTool = 'generate' | 'remove-bg' | 'upscale' | 'expand' | 'effects';
@@ -64,8 +64,6 @@ export function StudioMediaLab() {
       setProcessing(false);
     }
   };
-
-  const needsUpload = activeTool !== 'generate';
 
   return (
     <div className={styles.medialab}>

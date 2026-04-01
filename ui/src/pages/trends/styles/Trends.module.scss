@@ -1,0 +1,349 @@
+@use '../../../styles/abstracts' as *;
+
+// ── Page header ──
+.page_header {
+  @include flex-between;
+  margin-bottom: $space-6;
+  flex-wrap: wrap;
+  gap: $space-4;
+}
+
+.page_title {
+  font-size: $font-size-2xl;
+  font-weight: $font-weight-bold;
+  color: $color-text-heading;
+  margin: 0;
+}
+
+.page_subtitle {
+  font-size: $font-size-base;
+  color: $color-text-secondary;
+  margin: $space-1 0 0;
+}
+
+.header_actions {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  flex-wrap: wrap;
+}
+
+// ── Summary banner ──
+.summary_banner {
+  @include card;
+  padding: $space-5;
+  margin-bottom: $space-6;
+  border-left: 4px solid $color-primary-500;
+  font-size: $font-size-base;
+  color: $color-text;
+  line-height: $line-height-relaxed;
+}
+
+// ── Niche filter row ──
+.filter_row {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  margin-bottom: $space-6;
+  flex-wrap: wrap;
+}
+
+.filter_label {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $color-text-secondary;
+  white-space: nowrap;
+}
+
+// ── Trend grid ──
+.trend_grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $space-4;
+
+  @include bp(md) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @include bp(xl) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+// ── Trend card ──
+.trend_card {
+  @include card;
+  padding: $space-5;
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow $transition-normal, transform $transition-normal;
+
+  &:hover {
+    box-shadow: $shadow-lg;
+    transform: translateY(-2px);
+  }
+}
+
+.trend_card__header {
+  @include flex-between;
+  margin-bottom: $space-2;
+  gap: $space-3;
+}
+
+.trend_card__title {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-heading;
+  @include truncate;
+  flex: 1;
+}
+
+.trend_card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-1;
+  margin-bottom: $space-3;
+}
+
+.trend_card__description {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  @include line-clamp(2);
+  margin-bottom: $space-3;
+}
+
+.trend_card__idea {
+  background: $color-primary-50;
+  border-radius: $radius-md;
+  padding: $space-3;
+  margin-bottom: $space-3;
+  flex: 1;
+}
+
+.trend_card__idea_label {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  color: $color-primary-600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: $space-1;
+}
+
+.trend_card__idea_text {
+  font-size: $font-size-sm;
+  color: $color-text;
+  line-height: $line-height-normal;
+}
+
+.trend_card__relevance {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  margin-bottom: $space-3;
+}
+
+.relevance_label {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  white-space: nowrap;
+}
+
+.relevance_bar {
+  flex: 1;
+  height: 6px;
+  border-radius: $radius-full;
+  background: $color-slate-100;
+  overflow: hidden;
+}
+
+.relevance_fill {
+  height: 100%;
+  border-radius: $radius-full;
+  background: $gradient-primary;
+  transition: width $transition-normal;
+}
+
+.relevance_value {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  color: $color-primary-600;
+  min-width: 32px;
+  text-align: right;
+}
+
+.trend_card__actions {
+  display: flex;
+  gap: $space-2;
+  margin-top: auto;
+  padding-top: $space-3;
+  border-top: 1px solid $color-border;
+}
+
+// ── Correlation panel ──
+.correlation_panel {
+  @include card;
+  padding: $space-5;
+  margin-bottom: $space-6;
+}
+
+.correlation_title {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-heading;
+  margin-bottom: $space-4;
+}
+
+.cross_platform_list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-2;
+  margin-bottom: $space-4;
+}
+
+.focus_list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+
+  li {
+    padding: $space-2 0;
+    font-size: $font-size-base;
+    color: $color-text;
+    border-bottom: 1px solid $color-slate-100;
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+}
+
+.correlation_insights {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  margin-top: $space-3;
+  line-height: $line-height-relaxed;
+}
+
+// ── Section titles ──
+.section_label {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-text-heading;
+  margin-bottom: $space-2;
+}
+
+// ── Loading state ──
+.loading_container {
+  @include flex-center;
+  padding: $space-12;
+}
+
+// ── Empty state ──
+.empty_state {
+  @include flex-center;
+  @include flex-col;
+  padding: $space-16;
+  text-align: center;
+}
+
+.empty_state__icon {
+  font-size: $font-size-4xl;
+  color: $color-slate-300;
+  margin-bottom: $space-4;
+}
+
+.empty_state__text {
+  font-size: $font-size-md;
+  color: $color-text-secondary;
+}
+
+// ── Modal improvements ──
+.score_grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: $space-3;
+  margin-bottom: $space-4;
+}
+
+.score_card {
+  @include card($radius-md);
+  padding: $space-3;
+  text-align: center;
+}
+
+.score_card__label {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  margin-bottom: $space-1;
+}
+
+.score_card__value {
+  font-size: $font-size-2xl;
+  font-weight: $font-weight-bold;
+  color: $color-primary-500;
+}
+
+.score_tags {
+  display: flex;
+  gap: $space-2;
+  flex-wrap: wrap;
+  margin-bottom: $space-3;
+}
+
+.approach_card {
+  background: $color-primary-50;
+  border-radius: $radius-md;
+  padding: $space-4;
+}
+
+.approach_label {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-primary-600;
+}
+
+.approach_text {
+  font-size: $font-size-base;
+  color: $color-text;
+  margin-top: $space-1;
+}
+
+// ── Draft modal ──
+.hook_card {
+  background: $color-warning-100;
+  border-radius: $radius-md;
+  padding: $space-3;
+  margin-bottom: $space-3;
+}
+
+.draft_section {
+  @include card($radius-md);
+  padding: $space-4;
+  margin-bottom: $space-3;
+}
+
+.draft_caption {
+  white-space: pre-wrap;
+  font-size: $font-size-base;
+  color: $color-text;
+  line-height: $line-height-relaxed;
+  margin-top: $space-2;
+}
+
+.media_direction {
+  background: $color-primary-50;
+  border-radius: $radius-md;
+  padding: $space-4;
+}
+
+.media_direction__label {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-primary-600;
+}
+
+.media_direction__text {
+  font-size: $font-size-base;
+  color: $color-text;
+  margin-top: $space-1;
+}

@@ -1,5 +1,6 @@
 import type { Response } from 'express';
 import * as revenueService from '../services/revenue.service.js';
+import { generateInvoicePdf } from '../utils/invoice-pdf.js';
 import { prisma } from '../config/index.js';
 import type { AuthRequest } from '../types/common.js';
 
@@ -105,4 +106,34 @@ export async function getPostROI(req: AuthRequest, res: Response) {
   const creatorProfileId = await getCreatorProfileId(req.user!.userId);
   const posts = await revenueService.getPostROI(creatorProfileId);
   res.json({ success: true, data: posts });
+}
+
+// ─── Revenue Trends ──────────────────────────────────────────
+
+export async function getRevenueTrends(req: AuthRequest, res: Response) {
+  const creatorProfileId = await getCreatorProfileId(req.user!.userId);
+  const months = Number(req.query.months) || 12;
+  const trends = await revenueService.getRevenueTrends(creatorProfileId, months);
+  res.json({ success: true, data: trends });
+}
+
+export async function getPipelineSummary(req: AuthRequest, res: Response) {
+  const creatorProfileId = await getCreatorProfileId(req.user!.userId);
+  const pipeline = await revenueService.getPipelineSummary(creatorProfileId);
+  res.json({ success: true, data: pipeline });
+}
+
+export async function getInvoiceStats(req: AuthRequest, res: Response) {
+  const creatorProfileId = await getCreatorProfileId(req.user!.userId);
+  const stats = await revenueService.getInvoiceStats(creatorProfileId);
+  res.json({ success: true, data: stats });
+}
+
+// ─── Invoice PDF ─────────────────────────────────────────────
+
+export async function downloadInvoicePdf(req: AuthRequest, res: Response) {
+  const pdfBuffer = await generateInvoicePdf(req.params.id);
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Disposition', `attachment; filename="invoice-${req.params.id}.pdf"`);
+  res.send(pdfBuffer);
 }

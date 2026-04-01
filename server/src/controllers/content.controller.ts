@@ -234,3 +234,25 @@ export async function reorderScheduledPosts(req: AuthRequest, res: Response) {
   const result = await contentService.reorderScheduledPosts(creatorProfileId, postIds);
   res.json({ success: true, data: result });
 }
+
+export async function bulkUpdatePosts(req: AuthRequest, res: Response) {
+  const creatorProfileId = await getCreatorProfileId(req.user!.userId);
+  const { postIds, action, status } = req.body as { postIds: string[]; action: 'delete' | 'status'; status?: string };
+  if (!postIds?.length || !action) {
+    res.status(400).json({ success: false, error: 'postIds and action are required' });
+    return;
+  }
+  const result = await contentService.bulkUpdatePosts(creatorProfileId, postIds, action, status);
+  res.json({ success: true, data: result });
+}
+
+export async function reschedulePost(req: AuthRequest, res: Response) {
+  const creatorProfileId = await getCreatorProfileId(req.user!.userId);
+  const { scheduledAt } = req.body as { scheduledAt: string };
+  if (!scheduledAt) {
+    res.status(400).json({ success: false, error: 'scheduledAt is required' });
+    return;
+  }
+  const result = await contentService.reschedulePost(req.params.id, creatorProfileId, new Date(scheduledAt));
+  res.json({ success: true, data: result });
+}

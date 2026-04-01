@@ -1,7 +1,7 @@
 import { Outlet, NavLink, useParams, Navigate } from 'react-router-dom';
 import { Typography, Space, Tag, Spin } from 'antd';
 import {
-  DashboardOutlined, UnorderedListOutlined, BarChartOutlined,
+  DashboardOutlined, UnorderedListOutlined, BarChartOutlined, RobotOutlined,
 } from '@ant-design/icons';
 import { useGetConnectedAccountsQuery } from '@/store/endpoints/accounts';
 
@@ -24,6 +24,7 @@ const navItems = [
   { to: '', label: 'Overview', icon: <DashboardOutlined />, end: true },
   { to: 'posts', label: 'Posts', icon: <UnorderedListOutlined /> },
   { to: 'analytics', label: 'Analytics', icon: <BarChartOutlined /> },
+  { to: 'insights', label: 'AI Insights', icon: <RobotOutlined /> },
 ];
 
 export function ChannelLayout() {

@@ -1,5 +1,22 @@
 // ─── Revenue OS ──────────────────────────────────────────────
 
+enum ContactType {
+  BRAND
+  FAN
+  CREATOR
+  AGENCY
+  OTHER
+}
+
+enum ContactSource {
+  DM
+  COMMENT
+  MENTION
+  EMAIL
+  IMPORT
+  MANUAL
+}
+
 enum RevenueType {
   BRAND_DEAL
   YOUTUBE_ADSENSE
@@ -17,6 +34,8 @@ enum InvoiceStatus {
 }
 
 enum DealStatus {
+  PROSPECT
+  CONTACTED
   LEAD
   NEGOTIATING
   CONFIRMED
@@ -24,6 +43,34 @@ enum DealStatus {
   DELIVERED
   PAID
   CANCELLED
+  LOST
+}
+
+model Contact {
+  id                String        @id @default(cuid())
+  userId            String
+  name              String
+  handle            String?
+  platform          Platform?
+  email             String?
+  type              ContactType   @default(OTHER)
+  source            ContactSource @default(MANUAL)
+  tags              Json          @default("[]") // string[]
+  relationshipScore Int           @default(0) // 0-100
+  avatarUrl         String?
+  notes             String?
+  lastInteractionAt DateTime?
+  sourceMentionId   String?       // link back to the mention that created this
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  brandDeals BrandDeal[]
+
+  @@index([userId, type])
+  @@index([userId, relationshipScore])
+  @@index([handle, platform])
+  @@map("contacts")
 }
 
 model RevenueStream {
@@ -73,12 +120,15 @@ model Invoice {
 model BrandDeal {
   id               String     @id @default(cuid())
   creatorProfileId String
+  contactId        String?
   brandName        String
   contactEmail     String?
   dealValue        Float
   currency         String     @default("INR")
   deliverables     String[]   // e.g. ["1 Reel", "2 Stories"]
-  status           DealStatus @default(LEAD)
+  status           DealStatus @default(PROSPECT)
+  probability      Int        @default(0) // 0-100 likelihood of closing
+  expectedValue    Float?     // dealValue * probability / 100
   startDate        DateTime?
   endDate          DateTime?
   notes            String?
@@ -86,8 +136,44 @@ model BrandDeal {
   updatedAt        DateTime   @updatedAt
 
   creatorProfile CreatorProfile @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
+  contact        Contact?       @relation(fields: [contactId], references: [id], onDelete: SetNull)
   invoices       Invoice[]
+  contracts      Contract[]
 
   @@index([creatorProfileId, status])
+  @@index([contactId])
   @@map("brand_deals")
+}
+
+// ─── Contracts ───────────────────────────────────────────────
+
+enum ContractStatus {
+  DRAFT
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+model Contract {
+  id               String         @id @default(cuid())
+  creatorProfileId String
+  brandDealId      String?
+  title            String
+  terms            String?        @db.Text
+  deliverables     Json           @default("[]") // { title: string, dueDate: string, completed: boolean }[]
+  paymentSchedule  Json           @default("[]") // { amount: number, dueDate: string, paid: boolean }[]
+  status           ContractStatus @default(DRAFT)
+  startDate        DateTime?
+  endDate          DateTime?
+  totalValue       Float          @default(0)
+  notes            String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  creatorProfile CreatorProfile @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
+  brandDeal      BrandDeal?     @relation(fields: [brandDealId], references: [id], onDelete: SetNull)
+
+  @@index([creatorProfileId, status])
+  @@index([brandDealId])
+  @@map("contracts")
 }

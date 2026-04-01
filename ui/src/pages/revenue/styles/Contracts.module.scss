@@ -1,0 +1,115 @@
+@use '../../../styles/abstracts' as *;
+
+.page_header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $space-6;
+}
+
+.page_title {
+  margin: 0;
+  font-size: $font-size-xl;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+
+  &__icon {
+    color: $color-primary-500;
+  }
+}
+
+.summary_row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: $space-4;
+  margin-bottom: $space-6;
+
+  @include bp(lg) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @include bp(sm) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.status_tag {
+  &--draft {
+    color: $color-neutral-600;
+  }
+
+  &--active {
+    color: $color-success-600;
+  }
+
+  &--completed {
+    color: $color-primary-600;
+  }
+
+  &--cancelled {
+    color: $color-danger-600;
+  }
+}
+
+.deliverable_list {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.deliverable_item {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  font-size: $font-size-sm;
+
+  &--done {
+    text-decoration: line-through;
+    color: $color-neutral-400;
+  }
+}
+
+.payment_list {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+}
+
+.payment_item {
+  display: flex;
+  justify-content: space-between;
+  font-size: $font-size-sm;
+
+  &__amount {
+    font-weight: 600;
+  }
+
+  &--paid {
+    color: $color-success-600;
+  }
+
+  &--pending {
+    color: $color-warning-600;
+  }
+}
+
+.dynamic_rows {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+}
+
+.dynamic_row {
+  display: flex;
+  gap: $space-2;
+  align-items: center;
+}
+
+.remove_btn {
+  flex-shrink: 0;
+}

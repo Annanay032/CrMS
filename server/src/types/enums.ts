@@ -121,6 +121,58 @@ export enum Sentiment {
   QUESTION = 'QUESTION',
 }
 
+export enum MentionIntent {
+  BUYING = 'BUYING',
+  QUESTION = 'QUESTION',
+  COMPLAINT = 'COMPLAINT',
+  PRAISE = 'PRAISE',
+  COLLAB = 'COLLAB',
+  OTHER = 'OTHER',
+}
+
+export enum SignalType {
+  TREND = 'TREND',
+  LEAD = 'LEAD',
+  RISK = 'RISK',
+  VIRAL_POST = 'VIRAL_POST',
+}
+
+export enum SignalStatus {
+  NEW = 'NEW',
+  ACTIONED = 'ACTIONED',
+  IGNORED = 'IGNORED',
+}
+
+export enum ContactType {
+  BRAND = 'BRAND',
+  FAN = 'FAN',
+  CREATOR = 'CREATOR',
+  AGENCY = 'AGENCY',
+  OTHER = 'OTHER',
+}
+
+export enum ContactSource {
+  DM = 'DM',
+  COMMENT = 'COMMENT',
+  MENTION = 'MENTION',
+  EMAIL = 'EMAIL',
+  IMPORT = 'IMPORT',
+  MANUAL = 'MANUAL',
+}
+
+export enum DealStatus {
+  PROSPECT = 'PROSPECT',
+  CONTACTED = 'CONTACTED',
+  LEAD = 'LEAD',
+  NEGOTIATING = 'NEGOTIATING',
+  CONFIRMED = 'CONFIRMED',
+  IN_PROGRESS = 'IN_PROGRESS',
+  DELIVERED = 'DELIVERED',
+  PAID = 'PAID',
+  CANCELLED = 'CANCELLED',
+  LOST = 'LOST',
+}
+
 export enum OAuthProvider {
   GOOGLE = 'GOOGLE',
   INSTAGRAM = 'INSTAGRAM',

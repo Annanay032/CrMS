@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Button, Typography, Tag, Spin, Popconfirm, message, Space, Tooltip, Empty, Table, Switch } from 'antd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faLink, faLinkSlash, faRotate, faPlug, faTriangleExclamation, faPlus, faPause, faPlay, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faLink, faRotate, faPlug, faTriangleExclamation, faPlus, faPause, faTrash } from '@fortawesome/free-solid-svg-icons';
 import {
   useGetConnectedAccountsQuery,
   useLazyInitiateOAuthQuery,

@@ -21,6 +21,10 @@ import {
   faSeedling,
   faFilm,
   faList,
+  faAddressBook,
+  faFunnelDollar,
+  faSatelliteDish,
+  faFileContract,
 } from '@fortawesome/free-solid-svg-icons';
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import type { UserRole, UsageTier, TeamRole } from '@/types';
@@ -61,6 +65,10 @@ const creatorGroups: NavGroup[] = [
     label: 'Monetization',
     items: [
       { to: '/revenue', icon: faIndianRupeeSign, label: 'Revenue', minTier: 'PRO' },
+      { to: '/contracts', icon: faFileContract, label: 'Contracts', minTier: 'PRO' },
+      { to: '/crm/contacts', icon: faAddressBook, label: 'CRM', minTier: 'PRO' },
+      { to: '/crm/pipeline', icon: faFunnelDollar, label: 'Pipeline', minTier: 'PRO' },
+      { to: '/crm/signals', icon: faSatelliteDish, label: 'Signals', minTier: 'PRO' },
       { to: '/campaigns/my', icon: faBullhorn, label: 'My Campaigns' },
       { to: '/bio', icon: faLink, label: 'Link-in-Bio', minTier: 'PRO' },
     ],
@@ -91,7 +99,8 @@ const creatorGroups: NavGroup[] = [
   {
     label: 'Account',
     items: [
-      { to: '/settings/team', icon: faUserGroup, label: 'Team' },
+      { to: '/settings/team', icon: faUserGroup, label: 'Team Settings' },
+      { to: '/teams', icon: faUsers, label: 'Teams' },
       { to: '/settings', icon: faGear, label: 'Settings' },
     ],
   },

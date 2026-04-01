@@ -1,10 +1,9 @@
-import { Card, Tag, Typography, Progress, Button } from 'antd';
+import { Tag, Button } from 'antd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBolt, faClock, faWandMagicSparkles, faPenToSquare } from '@fortawesome/free-solid-svg-icons';
 import type { Trend } from '@/types';
 import { URGENCY_COLORS, REACH_COLORS } from '../constants';
-
-const { Text, Paragraph } = Typography;
+import s from '../styles/Trends.module.scss';
 
 interface TrendCardProps {
   trend: Trend;
@@ -16,40 +15,43 @@ export function TrendCard({ trend, onScore, onDraft }: TrendCardProps) {
   const urgencyIcon = trend.urgency === 'act-now' ? faBolt : trend.urgency === 'this-week' ? faClock : undefined;
 
   return (
-    <Card>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-        <Text strong>{trend.title}</Text>
+    <div className={s.trend_card}>
+      <div className={s.trend_card__header}>
+        <span className={s.trend_card__title}>{trend.title}</span>
         <Tag color={URGENCY_COLORS[trend.urgency] ?? 'blue'} icon={urgencyIcon ? <FontAwesomeIcon icon={urgencyIcon} /> : undefined}>
           {trend.urgency}
         </Tag>
       </div>
 
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 8 }}>
+      <div className={s.trend_card__tags}>
         <Tag color="blue">{trend.category}</Tag>
         <Tag>{Array.isArray(trend.platform) ? trend.platform.join(', ') : trend.platform}</Tag>
         <Tag color={REACH_COLORS[trend.estimatedReach] ?? 'default'}>{trend.estimatedReach} reach</Tag>
       </div>
 
-      <Text type="secondary" style={{ fontSize: 12 }}>{trend.description}</Text>
+      <p className={s.trend_card__description}>{trend.description}</p>
 
-      <div style={{ marginTop: 12, padding: 8, borderRadius: 8, background: '#eef2ff' }}>
-        <Text style={{ fontSize: 12, fontWeight: 500, color: '#4f46e5' }}>Content Idea</Text>
-        <Paragraph style={{ margin: '4px 0 0', fontSize: 13 }}>{trend.contentIdea}</Paragraph>
+      <div className={s.trend_card__idea}>
+        <div className={s.trend_card__idea_label}>Content Idea</div>
+        <div className={s.trend_card__idea_text}>{trend.contentIdea}</div>
       </div>
 
-      <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
-        <Text type="secondary" style={{ fontSize: 12 }}>Relevance:</Text>
-        <Progress percent={trend.relevanceScore} size="small" style={{ flex: 1, margin: 0 }} />
+      <div className={s.trend_card__relevance}>
+        <span className={s.relevance_label}>Relevance</span>
+        <div className={s.relevance_bar}>
+          <div className={s.relevance_fill} style={{ width: `${trend.relevanceScore}%` }} />
+        </div>
+        <span className={s.relevance_value}>{trend.relevanceScore}%</span>
       </div>
 
-      <div style={{ marginTop: 12, display: 'flex', gap: 8 }}>
+      <div className={s.trend_card__actions}>
         <Button size="small" icon={<FontAwesomeIcon icon={faWandMagicSparkles} />} onClick={onScore}>
-          Score Opportunity
+          Score
         </Button>
         <Button size="small" type="primary" icon={<FontAwesomeIcon icon={faPenToSquare} />} onClick={onDraft}>
           Create Post
         </Button>
       </div>
-    </Card>
+    </div>
   );
 }

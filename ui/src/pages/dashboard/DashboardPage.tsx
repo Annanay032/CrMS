@@ -1,20 +1,18 @@
-import { Typography } from 'antd';
 import { useAppSelector } from '@/hooks/store';
 import { CreatorDashboard } from './components/CreatorDashboard';
 import { BrandDashboard } from './components/BrandDashboard';
-
-const { Title, Text } = Typography;
+import s from './styles/Dashboard.module.scss';
 
 export function DashboardPage() {
   const user = useAppSelector((s) => s.auth.user);
 
   return (
     <div>
-      <div style={{ marginBottom: 24 }}>
-        <Title level={2} style={{ margin: 0 }}>Welcome back, {user?.name?.split(' ')[0]}</Title>
-        <Text type="secondary">
+      <div className={s.page_header}>
+        <h1 className={s.page_title}>Welcome back, {user?.name?.split(' ')[0]}</h1>
+        <p className={s.page_subtitle}>
           Here&apos;s what&apos;s happening with your {user?.role === 'BRAND' ? 'campaigns' : 'content'} today.
-        </Text>
+        </p>
       </div>
       {user?.role === 'BRAND' ? <BrandDashboard /> : <CreatorDashboard />}
     </div>

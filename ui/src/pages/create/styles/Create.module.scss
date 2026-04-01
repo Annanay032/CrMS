@@ -1,0 +1,308 @@
+@use '../../../styles/abstracts' as *;
+
+// ── Page header ──
+.page_header {
+  @include flex-between;
+  margin-bottom: $space-6;
+  flex-wrap: wrap;
+  gap: $space-4;
+}
+
+.page_title {
+  font-size: $font-size-2xl;
+  font-weight: $font-weight-bold;
+  color: $color-text-heading;
+  margin: 0;
+}
+
+.page_subtitle {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  margin: $space-1 0 0;
+}
+
+.header_actions {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+}
+
+// ── Tag filter bar ──
+.tag_bar {
+  display: flex;
+  gap: $space-2;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: $space-4;
+}
+
+.tag_bar__icon {
+  color: $color-text-secondary;
+}
+
+// ── Kanban board ──
+.kanban_board {
+  display: grid;
+  gap: $space-4;
+  min-height: 400px;
+  // grid-template-columns set inline based on stage count
+}
+
+.kanban_column {
+  background: $color-slate-50;
+  border-radius: $radius-lg;
+  padding: $space-3;
+  min-height: 300px;
+}
+
+.kanban_column__header {
+  @include flex-between;
+  margin-bottom: $space-3;
+}
+
+.kanban_column__title_row {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+}
+
+.kanban_column__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: $radius-full;
+}
+
+.kanban_column__title {
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  color: $color-text-heading;
+}
+
+.kanban_column__items {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+}
+
+// ── Idea card ──
+.idea_card {
+  @include card;
+  padding: $space-3;
+  transition: box-shadow $transition-normal, transform $transition-normal;
+
+  &:hover {
+    box-shadow: $shadow-lg;
+    transform: translateY(-1px);
+  }
+}
+
+.idea_card__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: $space-2;
+}
+
+.idea_card__grip {
+  color: $color-slate-300;
+  margin-top: 4px;
+  cursor: grab;
+  flex-shrink: 0;
+}
+
+.idea_card__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.idea_card__title {
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  color: $color-text-heading;
+  margin-bottom: 2px;
+}
+
+.idea_card__body {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  @include line-clamp(2);
+}
+
+.idea_card__tags {
+  display: flex;
+  gap: $space-1;
+  flex-wrap: wrap;
+  margin-top: $space-2;
+}
+
+.idea_card__actions {
+  display: flex;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+// ── AI ideation modal ──
+.ai_input_row {
+  display: flex;
+  gap: $space-2;
+  margin-bottom: $space-4;
+}
+
+.ai_results {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+}
+
+.ai_result_card {
+  @include card;
+  padding: $space-4;
+}
+
+.ai_result_card__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: $space-3;
+}
+
+.ai_result_card__content {
+  flex: 1;
+}
+
+.ai_result_card__title {
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  color: $color-text-heading;
+}
+
+.ai_result_card__body {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  margin-top: $space-1;
+}
+
+.ai_result_card__tags {
+  display: flex;
+  gap: $space-1;
+  flex-wrap: wrap;
+  margin-top: $space-2;
+}
+
+.ai_result_card__actions {
+  display: flex;
+  gap: $space-2;
+  flex-shrink: 0;
+}
+
+// ── Stage manager drawer ──
+.stage_manager {
+  padding: $space-4;
+}
+
+.stage_manager__add {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  margin-bottom: $space-4;
+  padding-bottom: $space-4;
+  border-bottom: 1px solid $color-border;
+}
+
+.stage_manager__input {
+  flex: 1;
+}
+
+.stage_manager__color_swatch {
+  width: 28px;
+  height: 28px;
+  border-radius: $radius-md;
+  flex-shrink: 0;
+  position: relative;
+  cursor: pointer;
+}
+
+.stage_manager__color_btn {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+.stage_manager__color_dot {
+  width: 12px;
+  height: 12px;
+  border-radius: $radius-full;
+  flex-shrink: 0;
+}
+
+.stage_manager__list {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+}
+
+.stage_manager__item {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  padding: $space-2 $space-3;
+  border-radius: $radius-md;
+  background: $color-surface;
+  border: 1px solid $color-border;
+  transition: box-shadow $transition-normal, background $transition-normal;
+  cursor: grab;
+
+  &:hover {
+    box-shadow: $shadow-sm;
+  }
+
+  &--dragging {
+    opacity: 0.5;
+    box-shadow: $shadow-md;
+  }
+}
+
+.stage_manager__grip {
+  color: $color-slate-300;
+  cursor: grab;
+  flex-shrink: 0;
+}
+
+.stage_manager__name {
+  flex: 1;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $color-text;
+}
+
+.stage_manager__count {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  background: $color-slate-100;
+  padding: 1px 8px;
+  border-radius: $radius-full;
+}
+
+.stage_manager__empty {
+  padding: $space-6 0;
+}
+
+.stage_manager__hint {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  margin-top: $space-4;
+  text-align: center;
+}
+
+// ── Empty state ──
+.empty_state {
+  @include flex-center;
+  @include flex-col;
+  padding: $space-8;
+  text-align: center;
+}

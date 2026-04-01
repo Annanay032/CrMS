@@ -100,6 +100,38 @@ export async function createTemplate(req: AuthRequest, res: Response) {
   res.status(201).json({ success: true, data: template });
 }
 
+// ─── Stages ─────────────────────────────────────────────────
+
+export async function getStages(req: AuthRequest, res: Response) {
+  const cpId = await getCreatorProfileId(req.user!.userId);
+  const stages = await ideaService.getStages(cpId);
+  res.json({ success: true, data: stages });
+}
+
+export async function createStage(req: AuthRequest, res: Response) {
+  const cpId = await getCreatorProfileId(req.user!.userId);
+  const stage = await ideaService.createStage(cpId, req.body);
+  res.status(201).json({ success: true, data: stage });
+}
+
+export async function updateStage(req: AuthRequest, res: Response) {
+  const cpId = await getCreatorProfileId(req.user!.userId);
+  const stage = await ideaService.updateStage(req.params.id as string, cpId, req.body);
+  res.json({ success: true, data: stage });
+}
+
+export async function reorderStages(req: AuthRequest, res: Response) {
+  const cpId = await getCreatorProfileId(req.user!.userId);
+  const stages = await ideaService.reorderStages(cpId, req.body.stageIds);
+  res.json({ success: true, data: stages });
+}
+
+export async function deleteStage(req: AuthRequest, res: Response) {
+  const cpId = await getCreatorProfileId(req.user!.userId);
+  await ideaService.deleteStage(req.params.id as string, cpId, req.body?.moveToStageId);
+  res.json({ success: true, message: 'Stage deleted' });
+}
+
 // ─── Quick Capture (browser extension) ──────────────────────
 
 export async function quickCapture(req: AuthRequest, res: Response) {

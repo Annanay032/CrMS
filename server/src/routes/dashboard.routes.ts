@@ -22,6 +22,9 @@ router.post('/hashtags/refresh', authenticate, dashboardController.refreshHashta
 // Organic vs Boosted
 router.get('/organic-vs-boosted', authenticate, dashboardController.getOrganicVsBoosted);
 
+// Per-post analytics
+router.get('/posts/:id/analytics', authenticate, dashboardController.getPostAnalytics);
+
 // Reports CRUD
 router.get('/reports', authenticate, dashboardController.getReports);
 router.post('/reports', authenticate, dashboardController.createReport);

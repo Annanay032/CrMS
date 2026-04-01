@@ -583,3 +583,40 @@ export async function reorderScheduledPosts(
 
   return { reordered: orderedPostIds.length };
 }
+
+/** Bulk update status or delete multiple posts */
+export async function bulkUpdatePosts(
+  creatorProfileId: string,
+  postIds: string[],
+  action: 'delete' | 'status',
+  status?: string,
+) {
+  if (action === 'delete') {
+    const result = await prisma.contentPost.deleteMany({
+      where: { id: { in: postIds }, creatorProfileId },
+    });
+    return { affected: result.count };
+  }
+
+  if (action === 'status' && status) {
+    const result = await prisma.contentPost.updateMany({
+      where: { id: { in: postIds }, creatorProfileId },
+      data: { status: status as PostStatus },
+    });
+    return { affected: result.count };
+  }
+
+  return { affected: 0 };
+}
+
+/** Reschedule a post to a new date/time */
+export async function reschedulePost(
+  postId: string,
+  creatorProfileId: string,
+  scheduledAt: Date,
+) {
+  return prisma.contentPost.update({
+    where: { id: postId, creatorProfileId },
+    data: { scheduledAt, status: 'SCHEDULED' },
+  });
+}

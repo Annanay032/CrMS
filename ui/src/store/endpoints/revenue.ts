@@ -60,6 +60,30 @@ interface PostROI {
   publishedAt: string;
 }
 
+interface RevenueTrend {
+  month: string;
+  revenue: number;
+  byType: Record<string, number>;
+}
+
+interface PipelineSummaryData {
+  byStatus: Record<string, BrandDeal[]>;
+  totalDeals: number;
+  openPipelineValue: number;
+  wonValue: number;
+  lostValue: number;
+  weightedPipeline: number;
+}
+
+interface InvoiceStatsData {
+  totalInvoiced: number;
+  paidAmount: number;
+  pendingAmount: number;
+  overdueAmount: number;
+  overdueCount: number;
+  totalCount: number;
+}
+
 export const revenueApi = api.injectEndpoints({
   endpoints: (build) => ({
     getRevenueSummary: build.query<ApiResponse<RevenueSummary>, { period?: string }>({
@@ -132,6 +156,20 @@ export const revenueApi = api.injectEndpoints({
       query: (id) => ({ url: `/revenue/invoices/${id}`, method: 'DELETE' }),
       invalidatesTags: ['Revenue'],
     }),
+
+    // Trends & Pipeline
+    getRevenueTrends: build.query<ApiResponse<RevenueTrend[]>, { months?: number }>({
+      query: ({ months } = {}) => `/revenue/trends${months ? `?months=${months}` : ''}`,
+      providesTags: ['Revenue'],
+    }),
+    getPipelineSummary: build.query<ApiResponse<PipelineSummaryData>, void>({
+      query: () => '/revenue/pipeline-summary',
+      providesTags: ['Revenue'],
+    }),
+    getInvoiceStats: build.query<ApiResponse<InvoiceStatsData>, void>({
+      query: () => '/revenue/invoice-stats',
+      providesTags: ['Revenue'],
+    }),
   }),
 });
 
@@ -149,4 +187,7 @@ export const {
   useCreateInvoiceMutation,
   useUpdateInvoiceMutation,
   useDeleteInvoiceMutation,
+  useGetRevenueTrendsQuery,
+  useGetPipelineSummaryQuery,
+  useGetInvoiceStatsQuery,
 } = revenueApi;

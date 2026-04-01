@@ -145,15 +145,15 @@ export function ReportsTab() {
             <div key={report.id as string} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 0', borderBottom: '1px solid #f1f5f9' }}>
               <div style={{ flex: 1 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <Text strong>{report.title as string}</Text>
-                  <Tag color={STATUS_COLORS[report.status as string] ?? 'default'}>{report.status as string}</Tag>
-                  <Tag>{report.format as string}</Tag>
+                  <Text strong>{String(report.title)}</Text>
+                  <Tag color={STATUS_COLORS[report.status as string] ?? 'default'}>{String(report.status)}</Tag>
+                  <Tag>{String(report.format)}</Tag>
                 </div>
-                {report.description && <Text type="secondary" style={{ fontSize: 12 }}>{report.description as string}</Text>}
+                {report.description ? <Text type="secondary" style={{ fontSize: 12 }}>{String(report.description)}</Text> : null}
                 <br />
                 <Text type="secondary" style={{ fontSize: 11 }}>
                   {new Date(report.dateRangeStart as string).toLocaleDateString()} — {new Date(report.dateRangeEnd as string).toLocaleDateString()}
-                  {report.lastGeneratedAt && ` · Generated ${new Date(report.lastGeneratedAt as string).toLocaleString()}`}
+                  {report.lastGeneratedAt ? ` · Generated ${new Date(report.lastGeneratedAt as string).toLocaleString()}` : ''}
                 </Text>
               </div>
               <Space>
@@ -231,21 +231,21 @@ function ReportViewer({ reportId, onClose }: { reportId: string; onClose: () => 
         <Empty description="No generated data" />
       ) : (
         <div>
-          {generated.executiveSummary && (
+          {generated.executiveSummary ? (
             <Card size="small" title="Executive Summary" style={{ marginBottom: 12 }}>
-              <Paragraph>{generated.executiveSummary as string}</Paragraph>
+              <Paragraph>{String(generated.executiveSummary)}</Paragraph>
             </Card>
-          )}
+          ) : null}
 
-          {(generated.highlights as string[])?.length > 0 && (
+          {(generated.highlights as string[])?.length > 0 ? (
             <Card size="small" title="Highlights" style={{ marginBottom: 12 }}>
               {(generated.highlights as string[]).map((h, i) => (
                 <div key={i} style={{ padding: '4px 0', fontSize: 13 }}>✓ {h}</div>
               ))}
             </Card>
-          )}
+          ) : null}
 
-          {generated.engagementSummary && (
+          {generated.engagementSummary ? (
             <Card size="small" title="Engagement Summary" style={{ marginBottom: 12 }}>
               {Object.entries(generated.engagementSummary as Record<string, number>).map(([key, val]) => (
                 <div key={key} style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0' }}>
@@ -254,15 +254,15 @@ function ReportViewer({ reportId, onClose }: { reportId: string; onClose: () => 
                 </div>
               ))}
             </Card>
-          )}
+          ) : null}
 
-          {(generated.areasForImprovement as string[])?.length > 0 && (
+          {(generated.areasForImprovement as string[])?.length > 0 ? (
             <Card size="small" title="Areas for Improvement" style={{ marginBottom: 12 }}>
               {(generated.areasForImprovement as string[]).map((a, i) => (
                 <div key={i} style={{ padding: '4px 0', fontSize: 13, color: '#dc2626' }}>• {a}</div>
               ))}
             </Card>
-          )}
+          ) : null}
         </div>
       )}
     </Modal>

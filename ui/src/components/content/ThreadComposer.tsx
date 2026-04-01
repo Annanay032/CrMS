@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Card, Button, Input, Space, Typography, Tooltip } from 'antd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus, faTrash, faGripVertical, faMagicWandSparkles, faScissors } from '@fortawesome/free-solid-svg-icons';
+import { faPlus, faTrash, faGripVertical, faScissors } from '@fortawesome/free-solid-svg-icons';
 
 const { Text } = Typography;
 const { TextArea } = Input;

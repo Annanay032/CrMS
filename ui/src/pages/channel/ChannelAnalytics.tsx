@@ -7,7 +7,9 @@ import {
   BookOutlined, LinkOutlined, DollarOutlined,
 } from '@ant-design/icons';
 import { useGetChannelAnalyticsQuery } from '@/store/endpoints/channels';
-import type { PostAnalytics } from '@/types';
+import type { ChannelAnalyticsData } from '@/store/endpoints/channels';
+
+type TopPost = ChannelAnalyticsData['topPosts'][number];
 
 const { Text } = Typography;
 
@@ -152,7 +154,7 @@ export function ChannelAnalytics() {
 
       {/* Top Performing Posts */}
       <Card title={<><TrophyOutlined style={{ marginRight: 8 }} />Top Performing Posts</>} size="small">
-        <Table
+        <Table<TopPost>
           dataSource={analytics.topPosts}
           rowKey="id"
           pagination={false}
@@ -160,7 +162,7 @@ export function ChannelAnalytics() {
           columns={[
             {
               title: 'Caption', dataIndex: 'caption', key: 'caption', ellipsis: true,
-              render: (caption: string, post: { id: string }) => (
+              render: (caption, post) => (
                 <Link to={`/posts/${post.id}`}>
                   {caption || <Text type="secondary">No caption</Text>}
                 </Link>
@@ -169,27 +171,27 @@ export function ChannelAnalytics() {
             { title: 'Type', dataIndex: 'postType', key: 'postType', width: 80, render: (t: string) => <Tag>{t}</Tag> },
             {
               title: 'Views', key: 'views', width: 90,
-              render: (_: unknown, r: { analytics?: PostAnalytics }) => (r.analytics?.videoViews || r.analytics?.impressions)?.toLocaleString() ?? '—',
+              render: (_, r) => (r.analytics?.videoViews || r.analytics?.impressions)?.toLocaleString() ?? '—',
             },
             {
               title: 'Likes', key: 'likes', width: 80,
-              render: (_: unknown, r: { analytics?: PostAnalytics }) => r.analytics?.likes?.toLocaleString() ?? '—',
+              render: (_, r) => r.analytics?.likes?.toLocaleString() ?? '—',
             },
             {
               title: 'Comments', key: 'comments', width: 100,
-              render: (_: unknown, r: { analytics?: PostAnalytics }) => r.analytics?.comments?.toLocaleString() ?? '—',
+              render: (_, r) => r.analytics?.comments?.toLocaleString() ?? '—',
             },
             {
               title: 'Shares', key: 'shares', width: 80,
-              render: (_: unknown, r: { analytics?: PostAnalytics }) => r.analytics?.shares?.toLocaleString() ?? '—',
+              render: (_, r) => r.analytics?.shares?.toLocaleString() ?? '—',
             },
             {
               title: 'Saves', key: 'saves', width: 80,
-              render: (_: unknown, r: { analytics?: PostAnalytics }) => r.analytics?.saves?.toLocaleString() ?? '—',
+              render: (_, r) => r.analytics?.saves?.toLocaleString() ?? '—',
             },
             {
               title: 'Published', key: 'publishedAt', width: 100,
-              render: (_: unknown, r: { publishedAt?: string }) =>
+              render: (_, r) =>
                 r.publishedAt ? new Date(r.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—',
             },
           ]}

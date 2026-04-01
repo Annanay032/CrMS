@@ -1,9 +1,8 @@
-import { Drawer, Button, Form, Input, Slider, Tag, Typography, Descriptions, Empty, Space } from 'antd';
+import { Drawer, Button, Form, Input, Slider, Tag, Descriptions, Empty } from 'antd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faMicrophone, faSave } from '@fortawesome/free-solid-svg-icons';
 import { useGetVoiceProfileQuery, useUpsertVoiceProfileMutation } from '@/store/endpoints/community';
 
-const { Text, Paragraph } = Typography;
 
 interface VoiceProfileDrawerProps {
   open: boolean;

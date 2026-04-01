@@ -1,0 +1,11 @@
+@use '../../../styles/abstracts' as *;
+
+.page {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: $space-6;
+
+  &__title {
+    margin-bottom: $space-4 !important;
+  }
+}

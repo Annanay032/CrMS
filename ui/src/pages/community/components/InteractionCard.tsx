@@ -1,4 +1,4 @@
-import { Card, Tag, Button, Typography, Avatar, Checkbox, Space, Select, Tooltip } from 'antd';
+import { Card, Tag, Button, Typography, Avatar, Checkbox, Select, Tooltip } from 'antd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faRobot, faPaperPlane, faPen, faCheck, faCircle, faFlag } from '@fortawesome/free-solid-svg-icons';
 import type { Interaction } from '../types';

@@ -1,0 +1,335 @@
+@use '../../../styles/abstracts' as *;
+
+// ── Page Layout ──
+.page_header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $space-6;
+}
+
+.page_title {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  font-size: $font-size-2xl;
+  font-weight: $font-weight-bold;
+  color: $color-text;
+  margin: 0;
+}
+
+.page_title__icon {
+  color: $color-primary-500;
+}
+
+// ── Two-Column Layout ──
+.layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: $space-6;
+
+  @include bp(lg) {
+    grid-template-columns: 1fr;
+  }
+}
+
+// ── Query Sidebar ──
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+}
+
+.sidebar__title {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-text-secondary;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: $space-1;
+}
+
+.query_card {
+  @include card;
+  padding: $space-3;
+  cursor: pointer;
+  transition: all $transition-fast;
+  border: 2px solid transparent;
+
+  &:hover {
+    box-shadow: $shadow-md;
+  }
+
+  &--active {
+    border-color: $color-primary-500;
+    background: $color-primary-50;
+  }
+}
+
+.query_card__name {
+  font-weight: $font-weight-semibold;
+  font-size: $font-size-sm;
+  color: $color-text;
+  margin-bottom: $space-1;
+}
+
+.query_card__keywords {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  @include truncate;
+}
+
+.query_card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: $space-2;
+}
+
+.query_card__count {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  color: $color-primary-600;
+  background: $color-primary-100;
+  padding: 2px 8px;
+  border-radius: $radius-full;
+}
+
+.query_card__actions {
+  display: flex;
+  gap: $space-1;
+}
+
+// ── Main content ──
+.main {
+  min-width: 0;
+}
+
+// ── Stats Row ──
+.stats_row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: $space-4;
+  margin-bottom: $space-6;
+
+  @include bp(md) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.stat_card {
+  @include card;
+  padding: $space-4;
+  text-align: center;
+
+  &__label {
+    font-size: $font-size-xs;
+    color: $color-text-secondary;
+    margin-bottom: $space-1;
+  }
+
+  &__value {
+    font-size: $font-size-xl;
+    font-weight: $font-weight-bold;
+    color: $color-text;
+  }
+}
+
+// ── Signals Section ──
+.signals_section {
+  margin-bottom: $space-6;
+}
+
+.signals_title {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text;
+  margin-bottom: $space-4;
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+}
+
+.signals_grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: $space-4;
+}
+
+.signal_card {
+  @include card;
+  padding: $space-4;
+  border-left: 4px solid $color-slate-300;
+  transition: all $transition-fast;
+
+  &:hover {
+    box-shadow: $shadow-md;
+  }
+
+  &--LEAD {
+    border-left-color: $color-primary-500;
+  }
+
+  &--RISK {
+    border-left-color: $color-red-500;
+  }
+
+  &--TREND {
+    border-left-color: $color-success-500;
+  }
+
+  &--VIRAL_POST {
+    border-left-color: $color-warning-500;
+  }
+}
+
+.signal_card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $space-2;
+}
+
+.signal_card__type {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.signal_card__score {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-bold;
+  padding: 2px 8px;
+  border-radius: $radius-full;
+  background: $color-primary-100;
+  color: $color-primary-700;
+}
+
+.signal_card__title {
+  font-weight: $font-weight-semibold;
+  font-size: $font-size-sm;
+  color: $color-text;
+  margin-bottom: $space-1;
+}
+
+.signal_card__desc {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  @include line-clamp(2);
+  margin-bottom: $space-3;
+}
+
+.signal_card__actions {
+  display: flex;
+  gap: $space-2;
+}
+
+// ── Chart Section ──
+.chart_section {
+  @include card;
+  padding: $space-4;
+  margin-bottom: $space-6;
+}
+
+.chart_title {
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  color: $color-text;
+  margin-bottom: $space-4;
+}
+
+// ── Mentions Filter ──
+.mentions_header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $space-4;
+  flex-wrap: wrap;
+  gap: $space-3;
+}
+
+.mentions_title {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text;
+}
+
+.mentions_filters {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+}
+
+// ── Intent Tabs ──
+.intent_bar {
+  display: flex;
+  gap: $space-1;
+  padding: $space-1;
+  background: $color-slate-100;
+  border-radius: $radius-lg;
+  margin-bottom: $space-4;
+  overflow-x: auto;
+}
+
+.intent_btn {
+  padding: $space-1 $space-3;
+  border: none;
+  border-radius: $radius-md;
+  background: transparent;
+  color: $color-text-secondary;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all $transition-fast;
+
+  &:hover {
+    background: $color-white;
+  }
+
+  &--active {
+    background: $color-white;
+    color: $color-primary-600;
+    box-shadow: $shadow-sm;
+  }
+}
+
+// ── Crisis Alert ──
+.crisis_alert {
+  padding: $space-4;
+  border-radius: $radius-lg;
+  background: rgba($color-red-500, 0.05);
+  border: 1px solid rgba($color-red-500, 0.2);
+  margin-bottom: $space-4;
+}
+
+.crisis_alert__header {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  margin-bottom: $space-2;
+  font-weight: $font-weight-semibold;
+  color: $color-red-500;
+}
+
+.crisis_alert__desc {
+  font-size: $font-size-sm;
+  color: $color-text;
+  margin-bottom: $space-2;
+}
+
+.crisis_alert__list {
+  margin: 0;
+  padding-left: $space-5;
+  font-size: $font-size-sm;
+  color: $color-slate-700;
+}
+
+// ── Empty ──
+.empty_state {
+  @include card;
+  padding: $space-12;
+  text-align: center;
+  color: $color-text-secondary;
+}

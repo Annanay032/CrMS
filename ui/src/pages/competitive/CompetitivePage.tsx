@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import {
-  Card, Button, Row, Col, Typography, Tag, Modal, Form, Input, Select,
-  Statistic, Space, Empty, Spin, Table, Popconfirm, Descriptions, Tooltip,
+  Button, Tag, Modal, Form, Input, Select,
+  Empty, Spin, Popconfirm,
 } from 'antd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-  faBinoculars, faPlus, faTrash, faChartColumn, faArrowUp, faArrowDown, faMinus,
+  faBinoculars, faPlus, faTrash, faChartColumn, faArrowUp, faArrowDown,
 } from '@fortawesome/free-solid-svg-icons';
 import {
   useGetCompetitorsQuery,
@@ -16,8 +16,7 @@ import {
 import { useRunAgentMutation } from '@/store/endpoints/agents';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as ChartTooltip, ResponsiveContainer, Legend } from 'recharts';
 import { PLATFORM_OPTIONS } from '@/pages/content/constants';
-
-const { Title, Text } = Typography;
+import s from './styles/Competitive.module.scss';
 
 export function CompetitivePage() {
   const [showCreate, setShowCreate] = useState(false);
@@ -29,7 +28,6 @@ export function CompetitivePage() {
   const [createCompetitor, { isLoading: creating }] = useCreateCompetitorMutation();
   const [deleteCompetitor] = useDeleteCompetitorMutation();
   const [runAgent, { isLoading: agentLoading }] = useRunAgentMutation();
-
   const { data: benchmarkData } = useGetBenchmarkDataQuery({ platform: benchmarkPlatform });
 
   const competitors = competitorsData?.data ?? [];
@@ -39,7 +37,7 @@ export function CompetitivePage() {
     if (!form.name) return;
     const handlesObj: Record<string, string> = {};
     form.handles.split(',').map((h) => h.trim()).filter(Boolean).forEach((h) => {
-      const [platform, handle] = h.includes(':') ? h.split(':').map((s) => s.trim()) : ['INSTAGRAM', h];
+      const [platform, handle] = h.includes(':') ? h.split(':').map((v) => v.trim()) : ['INSTAGRAM', h];
       handlesObj[platform] = handle;
     });
     await createCompetitor({
@@ -79,214 +77,194 @@ export function CompetitivePage() {
       'Posts/Week': b.latestSnapshot!.postFrequency,
     }));
 
-  const competitorColumns = [
-    { title: 'Name', dataIndex: 'name', key: 'name', render: (n: string) => <Text strong>{n}</Text> },
-    {
-      title: 'Platforms',
-      dataIndex: 'platforms',
-      key: 'platforms',
-      render: (platforms: string[]) => platforms.map((p) => <Tag key={p}>{p}</Tag>),
-    },
-    {
-      title: 'Handles',
-      dataIndex: 'handles',
-      key: 'handles',
-      render: (handles: Record<string, string>) =>
-        Object.entries(handles).map(([p, h]) => (
-          <Tag key={p} color="blue">{p}: {h}</Tag>
-        )),
-    },
-    {
-      title: 'Snapshots',
-      dataIndex: '_count',
-      key: 'snapshots',
-      width: 100,
-      render: (c: { snapshots: number } | undefined) => c?.snapshots ?? 0,
-    },
-    {
-      title: 'Latest',
-      dataIndex: 'snapshots',
-      key: 'latest',
-      render: (snaps: Array<{ followers: number; engagementRate: number }>) => {
-        if (!snaps?.length) return <Text type="secondary">No data</Text>;
-        const s = snaps[0];
-        return (
-          <Space>
-            <Tooltip title="Followers"><Text>{s.followers.toLocaleString()}</Text></Tooltip>
-            <Tooltip title="Engagement Rate"><Tag color="green">{(s.engagementRate * 100).toFixed(1)}%</Tag></Tooltip>
-          </Space>
-        );
-      },
-    },
-    {
-      title: '',
-      key: 'actions',
-      width: 60,
-      render: (_: unknown, record: { id: string }) => (
-        <Popconfirm title="Remove competitor?" onConfirm={() => deleteCompetitor(record.id)}>
-          <Button type="text" size="small" danger icon={<FontAwesomeIcon icon={faTrash} />} />
-        </Popconfirm>
-      ),
-    },
-  ];
+  // Generate gap analysis items from report
+  const gapItems: Array<{ title: string; desc: string }> = [];
+  if (report?.keyFindings) {
+    (report.keyFindings as string[]).forEach((f) => {
+      gapItems.push({ title: 'Finding', desc: f });
+    });
+  }
+
+  const healthScore = (report?.overallHealthScore as number) ?? 0;
 
   return (
     <div>
-      <Row justify="space-between" align="middle" style={{ marginBottom: 24 }}>
-        <Title level={2} style={{ margin: 0 }}>
-          <FontAwesomeIcon icon={faBinoculars} style={{ marginRight: 12, color: '#6366f1' }} />
+      {/* Header */}
+      <div className={s.page_header}>
+        <h1 className={s.page_title}>
+          <FontAwesomeIcon icon={faBinoculars} className={s.page_title__icon} />
           Competitive Intelligence
-        </Title>
+        </h1>
         <Button type="primary" icon={<FontAwesomeIcon icon={faPlus} />} onClick={() => setShowCreate(true)}>
           Add Competitor
         </Button>
-      </Row>
+      </div>
 
-      {/* Competitors Table */}
-      <Card title="Tracked Competitors" style={{ marginBottom: 24 }}>
-        {isLoading ? (
-          <Spin />
-        ) : competitors.length === 0 ? (
-          <Empty description="No competitors tracked yet. Add your first competitor to start benchmarking." />
+      {/* Competitors Grid */}
+      <div className={s.section}>
+        <div className={s.section_header}>
+          <span className={s.section_title}>Tracked Competitors</span>
+        </div>
+        {isLoading ? <Spin /> : competitors.length === 0 ? (
+          <div className={s.empty_state}>
+            <Empty description="No competitors tracked yet. Add your first competitor to start benchmarking." />
+          </div>
         ) : (
-          <Table dataSource={competitors} columns={competitorColumns} rowKey="id" size="small" pagination={false} />
+          <div className={s.competitors_grid}>
+            {competitors.map((c) => {
+              const snap = c.snapshots?.[0];
+              return (
+                <div key={c.id} className={s.competitor_card}>
+                  <div className={s.competitor_card__header}>
+                    <span className={s.competitor_card__name}>{c.name}</span>
+                    <Popconfirm title="Remove competitor?" onConfirm={() => deleteCompetitor(c.id)}>
+                      <Button type="text" size="small" danger icon={<FontAwesomeIcon icon={faTrash} />} />
+                    </Popconfirm>
+                  </div>
+                  <div className={s.competitor_card__platforms}>
+                    {c.platforms.map((p: string) => <Tag key={p}>{p}</Tag>)}
+                  </div>
+                  {snap && (
+                    <div className={s.competitor_card__stats}>
+                      <div className={s.competitor_stat}>
+                        <div className={s.competitor_stat__value}>{snap.followers?.toLocaleString() ?? '—'}</div>
+                        <div className={s.competitor_stat__label}>Followers</div>
+                      </div>
+                      <div className={s.competitor_stat}>
+                        <div className={s.competitor_stat__value}>{((snap.engagementRate ?? 0) * 100).toFixed(1)}%</div>
+                        <div className={s.competitor_stat__label}>Engagement</div>
+                      </div>
+                      <div className={s.competitor_stat}>
+                        <div className={s.competitor_stat__value}>{snap.postFrequency ?? '—'}</div>
+                        <div className={s.competitor_stat__label}>Posts/Wk</div>
+                      </div>
+                    </div>
+                  )}
+                  <div className={s.competitor_card__handles}>
+                    {Object.entries(c.handles as Record<string, string>).map(([p, h]) => (
+                      <Tag key={p} color="blue">{p}: {h}</Tag>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         )}
-      </Card>
+      </div>
 
-      {/* Benchmark Section */}
-      <Card
-        title="Benchmark Comparison"
-        extra={
-          <Space>
-            <Select
-              value={benchmarkPlatform}
-              onChange={setBenchmarkPlatform}
-              options={PLATFORM_OPTIONS}
-              style={{ width: 150 }}
-            />
-            <Button
-              icon={<FontAwesomeIcon icon={faChartColumn} />}
-              onClick={handleGenerateReport}
-              loading={agentLoading}
-            >
-              AI Report
-            </Button>
-          </Space>
-        }
-        style={{ marginBottom: 24 }}
-      >
-        {benchmarkChartData.length > 0 ? (
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={benchmarkChartData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" fontSize={12} />
-              <YAxis fontSize={12} />
-              <ChartTooltip />
-              <Legend />
-              <Bar dataKey="Followers" fill="#6366f1" />
-              <Bar dataKey="Engagement" fill="#22c55e" />
-              <Bar dataKey="Posts/Week" fill="#f59e0b" />
-            </BarChart>
-          </ResponsiveContainer>
-        ) : (
-          <Empty description="No benchmark data available. Add competitor snapshot data to see comparisons." />
-        )}
-      </Card>
+      {/* Benchmark Chart */}
+      <div className={s.section}>
+        <div className={s.benchmark_card}>
+          <div className={s.benchmark_header}>
+            <span className={s.benchmark_title}>Benchmark Comparison</span>
+            <div className={s.benchmark_controls}>
+              <Select value={benchmarkPlatform} onChange={setBenchmarkPlatform} options={PLATFORM_OPTIONS} style={{ width: 150 }} />
+              <Button icon={<FontAwesomeIcon icon={faChartColumn} />} onClick={handleGenerateReport} loading={agentLoading}>
+                AI Report
+              </Button>
+            </div>
+          </div>
+          {benchmarkChartData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={benchmarkChartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" fontSize={12} />
+                <YAxis fontSize={12} />
+                <ChartTooltip />
+                <Legend />
+                <Bar dataKey="Followers" fill="#6366f1" />
+                <Bar dataKey="Engagement" fill="#22c55e" />
+                <Bar dataKey="Posts/Week" fill="#f59e0b" />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <Empty description="No benchmark data. Add competitor snapshots to see comparisons." />
+          )}
+        </div>
+      </div>
 
       {/* AI Report */}
       {report && (
-        <Card title={report.title as string || 'Competitive Report'} style={{ marginBottom: 24 }}>
-          <Descriptions column={2} bordered size="small" style={{ marginBottom: 16 }}>
-            <Descriptions.Item label="Health Score" span={2}>
-              <Statistic
-                value={report.overallHealthScore as number ?? 0}
-                suffix="/100"
-                valueStyle={{ color: (report.overallHealthScore as number ?? 0) >= 70 ? '#22c55e' : '#ef4444' }}
-              />
-            </Descriptions.Item>
-          </Descriptions>
+        <div className={s.section}>
+          <div className={s.report_card}>
+            <div className={s.report_title}>{(report.title as string) || 'Competitive Report'}</div>
 
-          <Text strong>Executive Summary</Text>
-          <p>{report.executiveSummary as string}</p>
+            <div className={`${s.report_health} ${healthScore >= 70 ? s['report_health--good'] : s['report_health--bad']}`}>
+              {healthScore}
+            </div>
 
-          {(report.keyFindings as string[])?.length > 0 && (
-            <>
-              <Text strong>Key Findings</Text>
-              <ul style={{ paddingLeft: 20 }}>
-                {(report.keyFindings as string[]).map((f, i) => <li key={i}>{f}</li>)}
-              </ul>
-            </>
-          )}
+            {report.executiveSummary ? (
+              <p className={s.report_summary}>{String(report.executiveSummary)}</p>
+            ) : null}
 
-          {(report.strategicRecommendations as string[])?.length > 0 && (
-            <>
-              <Text strong>Strategic Recommendations</Text>
-              <ul style={{ paddingLeft: 20 }}>
-                {(report.strategicRecommendations as string[]).map((r, i) => <li key={i}>{r}</li>)}
-              </ul>
-            </>
-          )}
-
-          <Row gutter={16} style={{ marginTop: 16 }}>
-            {(report.opportunities as string[])?.length > 0 && (
-              <Col span={12}>
-                <Card size="small" title={<><FontAwesomeIcon icon={faArrowUp} style={{ color: '#22c55e', marginRight: 8 }} />Opportunities</>}>
-                  <ul style={{ paddingLeft: 20, margin: 0 }}>
+            <div className={s.report_columns}>
+              {(report.opportunities as string[])?.length > 0 && (
+                <div className={s.report_block}>
+                  <div className={s.report_block__title}>
+                    <FontAwesomeIcon icon={faArrowUp} style={{ color: '#22c55e' }} /> Opportunities
+                  </div>
+                  <ul className={s.report_block__list}>
                     {(report.opportunities as string[]).map((o, i) => <li key={i}>{o}</li>)}
                   </ul>
-                </Card>
-              </Col>
-            )}
-            {(report.threats as string[])?.length > 0 && (
-              <Col span={12}>
-                <Card size="small" title={<><FontAwesomeIcon icon={faArrowDown} style={{ color: '#ef4444', marginRight: 8 }} />Threats</>}>
-                  <ul style={{ paddingLeft: 20, margin: 0 }}>
+                </div>
+              )}
+              {(report.threats as string[])?.length > 0 && (
+                <div className={s.report_block}>
+                  <div className={s.report_block__title}>
+                    <FontAwesomeIcon icon={faArrowDown} style={{ color: '#ef4444' }} /> Threats
+                  </div>
+                  <ul className={s.report_block__list}>
                     {(report.threats as string[]).map((t, i) => <li key={i}>{t}</li>)}
                   </ul>
-                </Card>
-              </Col>
+                </div>
+              )}
+            </div>
+
+            {(report.strategicRecommendations as string[])?.length > 0 && (
+              <div style={{ marginTop: 16 }}>
+                <div className={s.report_block}>
+                  <div className={s.report_block__title}>Strategic Recommendations</div>
+                  <ul className={s.report_block__list}>
+                    {(report.strategicRecommendations as string[]).map((r, i) => <li key={i}>{r}</li>)}
+                  </ul>
+                </div>
+              </div>
             )}
-          </Row>
-        </Card>
+          </div>
+        </div>
+      )}
+
+      {/* Gap Analysis */}
+      {gapItems.length > 0 && (
+        <div className={s.gap_section}>
+          <div className={s.section_header}>
+            <span className={s.section_title}>Gap Analysis</span>
+          </div>
+          <div className={s.gap_grid}>
+            {gapItems.map((g, i) => (
+              <div key={i} className={s.gap_card}>
+                <div className={s.gap_card__title}>{g.title}</div>
+                <p className={s.gap_card__desc}>{g.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
       )}
 
       {/* Create Competitor Modal */}
-      <Modal
-        title="Add Competitor"
-        open={showCreate}
-        onCancel={() => setShowCreate(false)}
-        onOk={handleCreate}
-        confirmLoading={creating}
-      >
+      <Modal title="Add Competitor" open={showCreate} onCancel={() => setShowCreate(false)} onOk={handleCreate} confirmLoading={creating}>
         <Form layout="vertical">
           <Form.Item label="Competitor Name">
-            <Input
-              value={form.name}
-              onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
-              placeholder="e.g. Nike Running"
-            />
+            <Input value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))} placeholder="e.g. Nike Running" />
           </Form.Item>
           <Form.Item label="Handles (PLATFORM:@handle, comma separated)">
-            <Input
-              value={form.handles}
-              onChange={(e) => setForm((p) => ({ ...p, handles: e.target.value }))}
-              placeholder="INSTAGRAM:@nikerunning, TIKTOK:@nikerunning"
-            />
+            <Input value={form.handles} onChange={(e) => setForm((p) => ({ ...p, handles: e.target.value }))} placeholder="INSTAGRAM:@nikerunning, TIKTOK:@nikerunning" />
           </Form.Item>
           <Form.Item label="Platforms">
-            <Select
-              mode="multiple"
-              value={form.platforms}
-              onChange={(v) => setForm((p) => ({ ...p, platforms: v }))}
-              options={PLATFORM_OPTIONS}
-            />
+            <Select mode="multiple" value={form.platforms} onChange={(v) => setForm((p) => ({ ...p, platforms: v }))} options={PLATFORM_OPTIONS} />
           </Form.Item>
           <Form.Item label="Notes (optional)">
-            <Input
-              value={form.notes}
-              onChange={(e) => setForm((p) => ({ ...p, notes: e.target.value }))}
-              placeholder="Internal notes about this competitor"
-            />
+            <Input value={form.notes} onChange={(e) => setForm((p) => ({ ...p, notes: e.target.value }))} placeholder="Internal notes about this competitor" />
           </Form.Item>
         </Form>
       </Modal>

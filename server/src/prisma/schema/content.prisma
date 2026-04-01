@@ -28,21 +28,40 @@ enum IdeaStatus {
   ARCHIVED
 }
 
+model IdeaStage {
+  id               String   @id @default(cuid())
+  creatorProfileId String
+  name             String
+  color            String   @default("#6366f1")
+  position         Int      @default(0)
+  createdAt        DateTime @default(now())
+
+  creatorProfile CreatorProfile @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
+  ideas          ContentIdea[]
+
+  @@unique([creatorProfileId, name])
+  @@index([creatorProfileId, position])
+  @@map("idea_stages")
+}
+
 model ContentIdea {
   id               String     @id @default(cuid())
   creatorProfileId String
   title            String
   body             String?
   status           IdeaStatus @default(SPARK)
+  stageId          String?
   source           String?    // manual | ai | rss | trend
   mediaUrls        String[]
   createdAt        DateTime   @default(now())
   updatedAt        DateTime   @updatedAt
 
   creatorProfile CreatorProfile @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
+  stage          IdeaStage?     @relation(fields: [stageId], references: [id])
   tags           ContentIdeaTag[]
 
   @@index([creatorProfileId, status])
+  @@index([creatorProfileId, stageId])
   @@map("content_ideas")
 }
 

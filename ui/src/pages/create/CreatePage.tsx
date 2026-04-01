@@ -1,36 +1,40 @@
 import { useState, useCallback } from 'react';
-import { Card, Button, Typography, Input, Tag, Modal, Form, Select, Empty, Tooltip, Popconfirm } from 'antd';
+import { Button, Input, Tag, Modal, Form, Select, Empty, Tooltip, Popconfirm } from 'antd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus, faLightbulb, faRobot, faTrash, faEdit, faTags, faGripVertical } from '@fortawesome/free-solid-svg-icons';
+import { faPlus, faLightbulb, faRobot, faTrash, faEdit, faTags, faGripVertical, faPenToSquare, faSlidersH } from '@fortawesome/free-solid-svg-icons';
 import {
   useGetIdeasQuery,
   useCreateIdeaMutation,
   useUpdateIdeaMutation,
   useDeleteIdeaMutation,
   useGetTagsQuery,
-  useCreateTagMutation,
+  useGetStagesQuery,
 } from '@/store/endpoints/ideas';
 import { useRunAgentMutation } from '@/store/endpoints/agents';
-import type { ContentIdea, IdeaStatus } from '@/types';
-import { IDEA_COLUMNS, TAG_COLORS } from './constants';
+import { useNavigate } from 'react-router-dom';
+import type { ContentIdea, IdeaStage } from '@/types';
+import { StageManagerDrawer } from './components/StageManagerDrawer';
+import s from './styles/Create.module.scss';
 
-const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
 
 export function CreatePage() {
-  const { data: ideasResp, isLoading } = useGetIdeasQuery({ limit: 200 });
+  const { data: ideasResp } = useGetIdeasQuery({ limit: 200 });
   const { data: tagsResp } = useGetTagsQuery();
+  const { data: stagesResp } = useGetStagesQuery();
   const [createIdea] = useCreateIdeaMutation();
   const [updateIdea] = useUpdateIdeaMutation();
   const [deleteIdea] = useDeleteIdeaMutation();
-  const [createTag] = useCreateTagMutation();
   const [runAgent, { isLoading: aiLoading }] = useRunAgentMutation();
+  const navigate = useNavigate();
 
   const ideas = ideasResp?.data ?? [];
   const tags = tagsResp?.data ?? [];
+  const stages = stagesResp?.data ?? [];
 
   const [newIdeaModal, setNewIdeaModal] = useState(false);
   const [aiModal, setAiModal] = useState(false);
+  const [stageDrawer, setStageDrawer] = useState(false);
   const [editIdea, setEditIdea] = useState<ContentIdea | null>(null);
   const [aiTopic, setAiTopic] = useState('');
   const [aiResults, setAiResults] = useState<Array<{ title: string; body: string; suggestedTags?: string[] }>>([]);
@@ -38,9 +42,9 @@ export function CreatePage() {
 
   const [form] = Form.useForm();
 
-  const getIdeasForColumn = useCallback(
-    (status: string) => {
-      let filtered = ideas.filter((i) => i.status === status);
+  const getIdeasForStage = useCallback(
+    (stageId: string) => {
+      let filtered = ideas.filter((i) => i.stageId === stageId);
       if (filterTag) {
         filtered = filtered.filter((i) => i.tags.some((t) => t.tag.id === filterTag));
       }
@@ -49,21 +53,24 @@ export function CreatePage() {
     [ideas, filterTag],
   );
 
-  const handleCreateIdea = async (values: { title: string; body?: string; status?: IdeaStatus; tagIds?: string[] }) => {
-    await createIdea({ ...values, status: values.status || 'SPARK' });
+  // Ideas with no stage (legacy or unassigned)
+  const unstaged = ideas.filter((i) => !i.stageId);
+
+  const handleCreateIdea = async (values: { title: string; body?: string; stageId?: string; tagIds?: string[] }) => {
+    await createIdea({ ...values, stageId: values.stageId || stages[0]?.id });
     form.resetFields();
     setNewIdeaModal(false);
   };
 
-  const handleMoveIdea = async (idea: ContentIdea, newStatus: IdeaStatus) => {
-    await updateIdea({ id: idea.id, data: { status: newStatus } });
+  const handleMoveIdea = async (idea: ContentIdea, newStageId: string) => {
+    await updateIdea({ id: idea.id, data: { stageId: newStageId } });
   };
 
   const handleAiIdeate = async () => {
     if (!aiTopic.trim()) return;
     try {
       const result = await runAgent({ agentType: 'CONTENT_GENERATION', input: { action: 'ideate', topic: aiTopic, count: 5 } }).unwrap();
-      const output = result.data?.output as { ideas?: Array<{ title: string; body: string; suggestedTags?: string[] }> };
+      const output = (result.data as Record<string, unknown>)?.output as { ideas?: Array<{ title: string; body: string; suggestedTags?: string[] }> } | undefined;
       setAiResults(output?.ideas ?? []);
     } catch {
       setAiResults([]);
@@ -71,7 +78,17 @@ export function CreatePage() {
   };
 
   const handleSaveAiIdea = async (aiIdea: { title: string; body: string }) => {
-    await createIdea({ title: aiIdea.title, body: aiIdea.body, source: 'ai', status: 'SPARK' });
+    await createIdea({ title: aiIdea.title, body: aiIdea.body, source: 'ai', stageId: stages[0]?.id });
+  };
+
+  const handleConvertToPost = (idea: ContentIdea) => {
+    const caption = idea.body ? `${idea.title}\n\n${idea.body}` : idea.title;
+    navigate(`/studio/compose?caption=${encodeURIComponent(caption)}`);
+  };
+
+  const handleConvertAiToPost = (aiIdea: { title: string; body: string }) => {
+    const caption = aiIdea.body ? `${aiIdea.title}\n\n${aiIdea.body}` : aiIdea.title;
+    navigate(`/studio/compose?caption=${encodeURIComponent(caption)}`);
   };
 
   const handleEditIdea = (idea: ContentIdea) => {
@@ -79,13 +96,13 @@ export function CreatePage() {
     form.setFieldsValue({
       title: idea.title,
       body: idea.body,
-      status: idea.status,
+      stageId: idea.stageId,
       tagIds: idea.tags.map((t) => t.tag.id),
     });
     setNewIdeaModal(true);
   };
 
-  const handleUpdateIdea = async (values: { title: string; body?: string; status?: IdeaStatus; tagIds?: string[] }) => {
+  const handleUpdateIdea = async (values: { title: string; body?: string; stageId?: string; tagIds?: string[] }) => {
     if (!editIdea) return;
     await updateIdea({ id: editIdea.id, data: values });
     form.resetFields();
@@ -93,20 +110,18 @@ export function CreatePage() {
     setNewIdeaModal(false);
   };
 
-  const handleCreateQuickTag = async (name: string) => {
-    const color = TAG_COLORS[tags.length % TAG_COLORS.length];
-    await createTag({ name, color });
-  };
-
   return (
     <div>
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+      <div className={s.page_header}>
         <div>
-          <Title level={2} style={{ margin: 0 }}>Create</Title>
-          <Text type="secondary">Your content scratchpad — ideas from spark to ready</Text>
+          <h1 className={s.page_title}>Create</h1>
+          <p className={s.page_subtitle}>Your content scratchpad — ideas from spark to ready</p>
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div className={s.header_actions}>
+          <Button icon={<FontAwesomeIcon icon={faSlidersH} />} onClick={() => setStageDrawer(true)}>
+            Manage Stages
+          </Button>
           <Button icon={<FontAwesomeIcon icon={faRobot} />} onClick={() => setAiModal(true)}>
             AI Ideate
           </Button>
@@ -118,8 +133,8 @@ export function CreatePage() {
 
       {/* Tag filter bar */}
       {tags.length > 0 && (
-        <div style={{ marginBottom: 16, display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-          <FontAwesomeIcon icon={faTags} style={{ color: '#64748b' }} />
+        <div className={s.tag_bar}>
+          <FontAwesomeIcon icon={faTags} className={s.tag_bar__icon} />
           <Tag
             style={{ cursor: 'pointer' }}
             color={!filterTag ? 'blue' : undefined}
@@ -141,31 +156,32 @@ export function CreatePage() {
       )}
 
       {/* Kanban board */}
-      <div style={{ display: 'grid', gridTemplateColumns: `repeat(${IDEA_COLUMNS.length}, 1fr)`, gap: 16, minHeight: 400 }}>
-        {IDEA_COLUMNS.map((col) => {
-          const colIdeas = getIdeasForColumn(col.id);
+      <div className={s.kanban_board} style={{ gridTemplateColumns: `repeat(${stages.length || 1}, 1fr)` }}>
+        {stages.map((stage) => {
+          const colIdeas = getIdeasForStage(stage.id);
           return (
-            <div key={col.id} style={{ background: '#f8fafc', borderRadius: 12, padding: 12, minHeight: 300 }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <div style={{ width: 10, height: 10, borderRadius: '50%', background: col.color }} />
-                  <Text strong>{col.title}</Text>
+            <div key={stage.id} className={s.kanban_column}>
+              <div className={s.kanban_column__header}>
+                <div className={s.kanban_column__title_row}>
+                  <div className={s.kanban_column__dot} style={{ background: stage.color }} />
+                  <span className={s.kanban_column__title}>{stage.name}</span>
                   <Tag>{colIdeas.length}</Tag>
                 </div>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div className={s.kanban_column__items}>
                 {colIdeas.length === 0 && (
-                  <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No ideas yet" style={{ margin: '20px 0' }} />
+                  <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No ideas yet" className={s.empty_state} />
                 )}
                 {colIdeas.map((idea) => (
                   <IdeaCard
                     key={idea.id}
                     idea={idea}
-                    columns={IDEA_COLUMNS}
+                    stages={stages}
                     onMove={handleMoveIdea}
                     onEdit={handleEditIdea}
                     onDelete={deleteIdea}
+                    onConvert={handleConvertToPost}
                   />
                 ))}
               </div>
@@ -173,6 +189,32 @@ export function CreatePage() {
           );
         })}
       </div>
+
+      {/* Unstaged ideas (legacy) */}
+      {unstaged.length > 0 && (
+        <div className={s.kanban_column} style={{ marginTop: 16 }}>
+          <div className={s.kanban_column__header}>
+            <div className={s.kanban_column__title_row}>
+              <div className={s.kanban_column__dot} style={{ background: '#94a3b8' }} />
+              <span className={s.kanban_column__title}>Unsorted</span>
+              <Tag>{unstaged.length}</Tag>
+            </div>
+          </div>
+          <div className={s.kanban_column__items}>
+            {unstaged.map((idea) => (
+              <IdeaCard
+                key={idea.id}
+                idea={idea}
+                stages={stages}
+                onMove={handleMoveIdea}
+                onEdit={handleEditIdea}
+                onDelete={deleteIdea}
+                onConvert={handleConvertToPost}
+              />
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* New/Edit Idea Modal */}
       <Modal
@@ -189,8 +231,8 @@ export function CreatePage() {
           <Form.Item name="body" label="Details">
             <TextArea rows={4} placeholder="Flesh out the idea..." />
           </Form.Item>
-          <Form.Item name="status" label="Status" initialValue="SPARK">
-            <Select options={IDEA_COLUMNS.map((c) => ({ value: c.id, label: c.title }))} />
+          <Form.Item name="stageId" label="Stage" initialValue={stages[0]?.id}>
+            <Select options={stages.map((st) => ({ value: st.id, label: st.name }))} />
           </Form.Item>
           <Form.Item name="tagIds" label="Tags">
             <Select
@@ -218,7 +260,7 @@ export function CreatePage() {
         footer={null}
         width={640}
       >
-        <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+        <div className={s.ai_input_row}>
           <Input
             placeholder="Enter a topic to brainstorm ideas about..."
             value={aiTopic}
@@ -231,32 +273,35 @@ export function CreatePage() {
         </div>
 
         {aiResults.length > 0 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div className={s.ai_results}>
             {aiResults.map((idea, i) => (
-              <Card key={i} size="small" hoverable>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <div style={{ flex: 1 }}>
-                    <Text strong>{idea.title}</Text>
-                    <Paragraph type="secondary" style={{ margin: '4px 0 0', fontSize: 13 }}>
-                      {idea.body}
-                    </Paragraph>
+              <div key={i} className={s.ai_result_card}>
+                <div className={s.ai_result_card__row}>
+                  <div className={s.ai_result_card__content}>
+                    <div className={s.ai_result_card__title}>{idea.title}</div>
+                    <p className={s.ai_result_card__body}>{idea.body}</p>
                     {idea.suggestedTags && (
-                      <div style={{ marginTop: 4 }}>
+                      <div className={s.ai_result_card__tags}>
                         {idea.suggestedTags.map((tag) => (
-                          <Tag key={tag} size="small">{tag}</Tag>
+                          <Tag key={tag}>{tag}</Tag>
                         ))}
                       </div>
                     )}
                   </div>
-                  <Button size="small" type="primary" onClick={() => handleSaveAiIdea(idea)}>
-                    Save
-                  </Button>
+                  <div className={s.ai_result_card__actions}>
+                    <Button size="small" onClick={() => handleSaveAiIdea(idea)}>Save</Button>
+                    <Tooltip title="Open in Studio">
+                      <Button size="small" type="primary" icon={<FontAwesomeIcon icon={faPenToSquare} />} onClick={() => handleConvertAiToPost(idea)} />
+                    </Tooltip>
+                  </div>
                 </div>
-              </Card>
+              </div>
             ))}
           </div>
         )}
       </Modal>
+
+      <StageManagerDrawer open={stageDrawer} onClose={() => setStageDrawer(false)} />
     </div>
   );
 }
@@ -265,35 +310,35 @@ export function CreatePage() {
 
 function IdeaCard({
   idea,
-  columns,
+  stages,
   onMove,
   onEdit,
   onDelete,
+  onConvert,
 }: {
   idea: ContentIdea;
-  columns: typeof IDEA_COLUMNS;
-  onMove: (idea: ContentIdea, status: IdeaStatus) => void;
+  stages: IdeaStage[];
+  onMove: (idea: ContentIdea, stageId: string) => void;
   onEdit: (idea: ContentIdea) => void;
   onDelete: (id: string) => void;
+  onConvert: (idea: ContentIdea) => void;
 }) {
-  const otherColumns = columns.filter((c) => c.id !== idea.status);
+  const otherStages = stages.filter((st) => st.id !== idea.stageId);
+  const currentStage = stages.find((st) => st.id === idea.stageId);
 
   return (
-    <Card
-      size="small"
-      hoverable
-      style={{ borderLeft: `3px solid ${columns.find((c) => c.id === idea.status)?.color ?? '#6366f1'}` }}
+    <div
+      className={s.idea_card}
+      style={{ borderLeft: `3px solid ${currentStage?.color ?? '#6366f1'}` }}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
-        <FontAwesomeIcon icon={faGripVertical} style={{ color: '#cbd5e1', marginTop: 4, cursor: 'grab' }} />
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <Text strong style={{ display: 'block', marginBottom: 2 }}>{idea.title}</Text>
+      <div className={s.idea_card__row}>
+        <FontAwesomeIcon icon={faGripVertical} className={s.idea_card__grip} />
+        <div className={s.idea_card__content}>
+          <div className={s.idea_card__title}>{idea.title}</div>
           {idea.body && (
-            <Text type="secondary" style={{ fontSize: 12, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-              {idea.body}
-            </Text>
+            <p className={s.idea_card__body}>{idea.body}</p>
           )}
-          <div style={{ marginTop: 6, display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+          <div className={s.idea_card__tags}>
             {idea.tags?.map((t) => (
               <Tag key={t.tag.id} color={t.tag.color} style={{ fontSize: 11, lineHeight: '18px', margin: 0 }}>
                 {t.tag.name}
@@ -305,8 +350,10 @@ function IdeaCard({
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: 2, flexShrink: 0 }}>
-          {/* Move actions */}
+        <div className={s.idea_card__actions}>
+          <Tooltip title="Create Post">
+            <Button type="text" size="small" icon={<FontAwesomeIcon icon={faPenToSquare} />} onClick={() => onConvert(idea)} />
+          </Tooltip>
           <Tooltip title="Move to...">
             <Select
               size="small"
@@ -314,8 +361,8 @@ function IdeaCard({
               placeholder="→"
               style={{ width: 40 }}
               popupMatchSelectWidth={120}
-              options={otherColumns.map((c) => ({ value: c.id, label: c.title }))}
-              onChange={(val) => onMove(idea, val as IdeaStatus)}
+              options={otherStages.map((st) => ({ value: st.id, label: st.name }))}
+              onChange={(val) => onMove(idea, val)}
               value={null as unknown as string}
             />
           </Tooltip>
@@ -327,6 +374,6 @@ function IdeaCard({
           </Popconfirm>
         </div>
       </div>
-    </Card>
+    </div>
   );
 }

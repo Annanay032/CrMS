@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { Modal, Button, Select, Space, Typography, Segmented, Tooltip } from 'antd';
+import { Modal, Button, Space, Typography, Segmented, Tooltip } from 'antd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCrop, faExpand, faRotate } from '@fortawesome/free-solid-svg-icons';
+import { faCrop, faExpand } from '@fortawesome/free-solid-svg-icons';
 
 const { Text } = Typography;
 

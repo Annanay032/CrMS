@@ -4,7 +4,7 @@ import { BaseAgent } from './base.js';
 import type { AgentInput, AgentResult } from './base.js';
 import { AgentType } from '../types/enums.js';
 
-type ListeningAction = 'analyze_mentions' | 'detect_crisis' | 'summarize' | 'sentiment_breakdown';
+type ListeningAction = 'analyze_mentions' | 'detect_crisis' | 'summarize' | 'sentiment_breakdown' | 'analyze_intent';
 
 export class SocialListeningAgent extends BaseAgent {
   readonly agentType = AgentType.LISTENING;
@@ -20,6 +20,8 @@ export class SocialListeningAgent extends BaseAgent {
         return this.generateSummary(input);
       case 'sentiment_breakdown':
         return this.sentimentBreakdown(input);
+      case 'analyze_intent':
+        return this.analyzeIntent(input);
       default:
         return this.analyzeMentions(input);
     }
@@ -160,6 +162,48 @@ Return JSON with "results" array (index, sentiment: POSITIVE/NEGATIVE/NEUTRAL/MI
     });
 
     const content = response.choices[0]?.message?.content ?? '{"results":[],"themes":{}}';
+    return {
+      output: JSON.parse(content),
+      tokensUsed: response.usage?.total_tokens,
+    };
+  }
+
+  private async analyzeIntent(input: AgentInput): Promise<AgentResult> {
+    const { mentions } = input as {
+      mentions: Array<{ id: string; content: string; platform: string; source?: string; authorFollowers?: number }>;
+    };
+
+    const response = await openai.chat.completions.create({
+      model: env.OPENAI_MODEL,
+      messages: [
+        {
+          role: 'system',
+          content: `You are an AI that classifies social media messages for a creator's Signal Engine. Analyze each message and determine intent, urgency, and business opportunity. Return JSON.`,
+        },
+        {
+          role: 'user',
+          content: `Analyze the following social media mentions and classify each one:
+
+${mentions.map((m, i) => `${i + 1}. [${m.platform}] @${m.source ?? 'unknown'} (${m.authorFollowers ?? 0} followers): "${m.content}"`).join('\n')}
+
+For each mention return:
+- index (0-based)
+- intent: one of BUYING, QUESTION, COMPLAINT, PRAISE, COLLAB, OTHER
+- sentiment: POSITIVE, NEGATIVE, NEUTRAL, or MIXED
+- urgencyScore: 0-100 (how time-sensitive is this)
+- influenceScore: 0-100 (based on follower count and message quality)
+- opportunityScore: 0-100 (overall business opportunity value)
+- reason: one sentence explaining the classification
+- suggestedAction: brief recommended response action
+
+Return JSON with "results" array.`,
+        },
+      ],
+      response_format: { type: 'json_object' },
+      temperature: 0.2,
+    });
+
+    const content = response.choices[0]?.message?.content ?? '{"results":[]}';
     return {
       output: JSON.parse(content),
       tokensUsed: response.usage?.total_tokens,

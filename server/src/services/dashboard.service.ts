@@ -25,6 +25,38 @@ export async function getDashboardStats(userId: string, role: string) {
       prisma.communityInteraction.count({ where: { creatorProfileId: profile.id, respondedAt: null } }),
     ]);
 
+    // Revenue + Signals + upcoming posts for enhanced dashboard
+    const [
+      revenueTotal, activeDealValue, newSignals, upcomingPosts,
+    ] = await Promise.all([
+      prisma.revenueStream.aggregate({
+        where: { creatorProfileId: profile.id },
+        _sum: { amount: true },
+      }),
+      prisma.brandDeal.aggregate({
+        where: {
+          creatorProfileId: profile.id,
+          status: { in: ['LEAD', 'NEGOTIATING', 'CONFIRMED', 'IN_PROGRESS'] },
+        },
+        _sum: { dealValue: true },
+      }),
+      prisma.signal.findMany({
+        where: { userId, status: 'NEW' },
+        orderBy: { createdAt: 'desc' },
+        take: 5,
+      }),
+      prisma.contentPost.findMany({
+        where: {
+          creatorProfileId: profile.id,
+          status: 'SCHEDULED',
+          scheduledAt: { gte: new Date() },
+        },
+        orderBy: { scheduledAt: 'asc' },
+        take: 5,
+        select: { id: true, caption: true, platform: true, postType: true, scheduledAt: true },
+      }),
+    ]);
+
     // Growth data (last 14 days)
     const twoWeeksAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
     const snapshots = await prisma.creatorAnalyticsSnapshot.findMany({
@@ -46,6 +78,11 @@ export async function getDashboardStats(userId: string, role: string) {
       recentPosts,
       platformStats: profile.platformStats,
       snapshots,
+      // Enhanced dashboard data
+      totalRevenue: revenueTotal._sum.amount ?? 0,
+      activePipelineValue: activeDealValue._sum.dealValue ?? 0,
+      newSignals,
+      upcomingPosts,
     };
   }
 
@@ -76,6 +113,20 @@ export async function getDashboardStats(userId: string, role: string) {
       _avg: { matchScore: true },
     });
 
+    // Budget utilization
+    const allCampaigns = await prisma.campaign.findMany({
+      where: { brandProfileId: brandProfile.id },
+      select: { budget: true, spent: true, status: true },
+    });
+    const totalBudget = allCampaigns.reduce((s, c) => s + (c.budget ?? 0), 0);
+    const totalSpent = allCampaigns.reduce((s, c) => s + (c.spent ?? 0), 0);
+
+    // Campaign status breakdown
+    const statusBreakdown: Record<string, number> = {};
+    for (const c of allCampaigns) {
+      statusBreakdown[c.status] = (statusBreakdown[c.status] ?? 0) + 1;
+    }
+
     return {
       activeCampaigns,
       totalCampaigns,
@@ -83,6 +134,10 @@ export async function getDashboardStats(userId: string, role: string) {
       acceptedMatches,
       avgMatchScore: Math.round((avgMatchScore._avg.matchScore ?? 0) * 100) / 100,
       recentCampaigns,
+      totalBudget,
+      totalSpent,
+      budgetUtilization: totalBudget > 0 ? Math.round((totalSpent / totalBudget) * 100) : 0,
+      statusBreakdown,
     };
   }
 

@@ -1,0 +1,218 @@
+@use '../../../styles/abstracts' as *;
+
+// ── Page header ──
+.page_header {
+  @include flex-between;
+  margin-bottom: $space-6;
+  flex-wrap: wrap;
+  gap: $space-4;
+}
+
+.page_title {
+  font-size: $font-size-2xl;
+  font-weight: $font-weight-bold;
+  color: $color-text-heading;
+  margin: 0;
+}
+
+.page_subtitle {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  margin: $space-1 0 0;
+}
+
+.header_actions {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+}
+
+// ── Filters bar ──
+.filter_bar {
+  @include card;
+  padding: $space-3 $space-4;
+  margin-bottom: $space-4;
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  flex-wrap: wrap;
+}
+
+// ── View toggle ──
+.view_toggle {
+  display: flex;
+  background: $color-slate-100;
+  border-radius: $radius-md;
+  padding: 2px;
+}
+
+.view_toggle__btn {
+  padding: $space-1 $space-3;
+  border: none;
+  background: transparent;
+  border-radius: $radius-sm;
+  cursor: pointer;
+  color: $color-text-secondary;
+  font-size: $font-size-sm;
+  transition: all $transition-fast;
+  display: flex;
+  align-items: center;
+  gap: $space-1;
+
+  &--active {
+    background: $color-surface;
+    color: $color-primary-600;
+    box-shadow: $shadow-sm;
+    font-weight: $font-weight-medium;
+  }
+}
+
+// ── Bulk action bar ──
+.bulk_bar {
+  @include card;
+  padding: $space-3 $space-4;
+  margin-bottom: $space-4;
+  @include flex-between;
+  background: $color-primary-50;
+  border-color: $color-primary-200;
+}
+
+.bulk_bar__info {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $color-primary-700;
+}
+
+.bulk_bar__actions {
+  display: flex;
+  gap: $space-2;
+}
+
+// ── Grid view ──
+.content_grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: $space-4;
+
+  @include bp(md) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  @include bp(xl) {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.grid_card {
+  @include card;
+  overflow: hidden;
+  cursor: pointer;
+  transition: box-shadow $transition-normal, transform $transition-normal;
+  position: relative;
+
+  &:hover {
+    box-shadow: $shadow-lg;
+    transform: translateY(-2px);
+  }
+
+  &--selected {
+    border-color: $color-primary-500;
+    box-shadow: 0 0 0 2px rgba($color-primary-500, 0.2);
+  }
+}
+
+.grid_card__select {
+  position: absolute;
+  top: $space-2;
+  left: $space-2;
+  z-index: 2;
+}
+
+.grid_card__media {
+  width: 100%;
+  aspect-ratio: 1;
+  background: $color-slate-100;
+  overflow: hidden;
+  position: relative;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.grid_card__placeholder {
+  @include flex-center;
+  width: 100%;
+  height: 100%;
+  color: $color-slate-300;
+  font-size: $font-size-3xl;
+}
+
+.grid_card__platform_badge {
+  position: absolute;
+  top: $space-2;
+  right: $space-2;
+  background: rgba(0, 0, 0, 0.6);
+  color: $color-white;
+  border-radius: $radius-full;
+  width: 28px;
+  height: 28px;
+  @include flex-center;
+  font-size: $font-size-sm;
+}
+
+.grid_card__body {
+  padding: $space-3;
+}
+
+.grid_card__caption {
+  font-size: $font-size-sm;
+  color: $color-text;
+  @include line-clamp(2);
+  margin-bottom: $space-2;
+}
+
+.grid_card__meta {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  flex-wrap: wrap;
+}
+
+.grid_card__stats {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  padding: $space-2 $space-3;
+  border-top: 1px solid $color-border;
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+}
+
+.grid_card__stat {
+  display: flex;
+  align-items: center;
+  gap: $space-1;
+}
+
+// ── Empty state ──
+.empty_state {
+  @include flex-center;
+  @include flex-col;
+  padding: $space-16;
+  text-align: center;
+}
+
+.empty_state__icon {
+  font-size: $font-size-4xl;
+  color: $color-slate-300;
+  margin-bottom: $space-4;
+}
+
+.empty_state__text {
+  font-size: $font-size-md;
+  color: $color-text-secondary;
+  margin-bottom: $space-4;
+}

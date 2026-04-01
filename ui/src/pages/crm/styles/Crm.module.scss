@@ -1,0 +1,342 @@
+@use '../../../styles/abstracts' as *;
+
+// ─── CRM Shared Styles ─────────────────────────────────────
+
+.page_header {
+  @include flex-between;
+  margin-bottom: $space-6;
+}
+
+.page_title {
+  margin: 0;
+  font-size: $font-size-2xl;
+  font-weight: $font-weight-bold;
+  color: $color-text-heading;
+
+  &__icon {
+    margin-right: $space-3;
+    color: $color-primary-500;
+  }
+}
+
+// ─── Contacts ───────────────────────────────────────────────
+
+.filters_bar {
+  @include flex-between;
+  margin-bottom: $space-4;
+  gap: $space-3;
+  flex-wrap: wrap;
+}
+
+.filters_left {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  flex-wrap: wrap;
+}
+
+.contact_avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: $radius-full;
+  background: $color-primary-100;
+  color: $color-primary-600;
+  @include flex-center;
+  font-weight: $font-weight-semibold;
+  font-size: $font-size-sm;
+  flex-shrink: 0;
+}
+
+.contact_name_cell {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+}
+
+.contact_name_text {
+  @include flex-col;
+}
+
+.contact_handle {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+}
+
+.score_badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  padding: $space-1 $space-2;
+  border-radius: $radius-full;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+
+  &--high {
+    background: $color-success-100;
+    color: $color-success-700;
+  }
+
+  &--medium {
+    background: $color-warning-100;
+    color: $color-warning-600;
+  }
+
+  &--low {
+    background: $color-slate-100;
+    color: $color-slate-500;
+  }
+}
+
+// ─── Contact Detail ─────────────────────────────────────────
+
+.detail_layout {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: $space-6;
+
+  @include bp(lg) {
+    grid-template-columns: 320px 1fr;
+  }
+}
+
+.profile_card {
+  @include card;
+  padding: $space-6;
+  text-align: center;
+}
+
+.profile_avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: $radius-full;
+  background: $color-primary-100;
+  color: $color-primary-600;
+  @include flex-center;
+  font-size: $font-size-2xl;
+  font-weight: $font-weight-bold;
+  margin: 0 auto $space-4;
+}
+
+.profile_name {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-heading;
+}
+
+.profile_handle {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  margin-bottom: $space-4;
+}
+
+.profile_meta {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+  text-align: left;
+  margin-top: $space-4;
+  padding-top: $space-4;
+  border-top: 1px solid $color-border;
+}
+
+.profile_meta_item {
+  @include flex-between;
+  font-size: $font-size-sm;
+}
+
+.profile_meta_label {
+  color: $color-text-secondary;
+}
+
+.profile_meta_value {
+  color: $color-text-heading;
+  font-weight: $font-weight-medium;
+}
+
+.notes_area {
+  margin-top: $space-4;
+  padding-top: $space-4;
+  border-top: 1px solid $color-border;
+}
+
+// ─── Pipeline ───────────────────────────────────────────────
+
+.pipeline_summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: $space-4;
+  margin-bottom: $space-6;
+
+  @media (max-width: $bp-md) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.pipeline_board {
+  display: flex;
+  gap: $space-4;
+  overflow-x: auto;
+  padding-bottom: $space-4;
+  min-height: 400px;
+}
+
+.pipeline_column {
+  flex: 0 0 280px;
+  @include flex-col;
+  background: $color-slate-50;
+  border-radius: $radius-lg;
+  padding: $space-3;
+}
+
+.pipeline_column_header {
+  @include flex-between;
+  padding: $space-2 $space-3;
+  margin-bottom: $space-3;
+}
+
+.pipeline_column_title {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-text-heading;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.pipeline_column_count {
+  background: $color-slate-200;
+  color: $color-slate-600;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  padding: $space-1 $space-2;
+  border-radius: $radius-full;
+}
+
+.pipeline_cards {
+  @include flex-col;
+  gap: $space-2;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.deal_card {
+  @include card($radius-md);
+  padding: $space-3;
+  cursor: pointer;
+  transition: box-shadow $transition-fast;
+
+  &:hover {
+    box-shadow: $shadow-lg;
+  }
+}
+
+.deal_card__brand {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-text-heading;
+  margin-bottom: $space-1;
+}
+
+.deal_card__value {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
+  color: $color-primary-600;
+  margin-bottom: $space-2;
+}
+
+.deal_card__meta {
+  display: flex;
+  gap: $space-2;
+  flex-wrap: wrap;
+}
+
+.deal_card__probability {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+}
+
+// ─── Signals Dashboard ──────────────────────────────────────
+
+.signals_summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: $space-4;
+  margin-bottom: $space-6;
+
+  @media (max-width: $bp-md) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.signal_card {
+  @include card;
+  padding: $space-4;
+  transition: box-shadow $transition-fast;
+  cursor: pointer;
+
+  &:hover {
+    box-shadow: $shadow-lg;
+  }
+
+  &--lead {
+    border-left: 3px solid $color-success-500;
+  }
+
+  &--risk {
+    border-left: 3px solid $color-danger-500;
+  }
+
+  &--trend {
+    border-left: 3px solid $color-primary-500;
+  }
+
+  &--viral {
+    border-left: 3px solid $color-accent-500;
+  }
+}
+
+.signal_card__header {
+  @include flex-between;
+  margin-bottom: $space-2;
+}
+
+.signal_card__title {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-text-heading;
+}
+
+.signal_card__score {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-bold;
+  padding: $space-1 $space-2;
+  border-radius: $radius-full;
+  background: $color-primary-50;
+  color: $color-primary-700;
+}
+
+.signal_card__description {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  @include line-clamp(2);
+  margin-bottom: $space-3;
+}
+
+.signal_card__footer {
+  @include flex-between;
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+}
+
+.signal_list {
+  @include flex-col;
+  gap: $space-3;
+}
+
+.empty_state {
+  @include flex-center;
+  @include flex-col;
+  padding: $space-16 $space-6;
+  text-align: center;
+  color: $color-text-secondary;
+}

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Modal, Form, Input, Typography, message, Select } from 'antd';
+import { Modal, Form, Input, Typography, message } from 'antd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faInstagram, faYoutube, faTiktok, faRedditAlien, faXTwitter,

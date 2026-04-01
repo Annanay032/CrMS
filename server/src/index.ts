@@ -17,16 +17,35 @@ import routes from './routes/index.js';
 import { errorHandler, notFound } from './middleware/error.js';
 import { startWorkers, scheduleRecurringJobs } from './jobs/index.js';
 import { wireOrchestratorEvents } from './services/notification.service.js';
+import { bullBoardAdapter } from './config/bull-board.js';
 
 const app = express();
 const httpServer = createServer(app);
 
 // Security
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", 'data:', 'blob:', 'https:'],
+      connectSrc: ["'self'", env.CLIENT_URL, 'wss:', 'https://api.openai.com'],
+      fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+      objectSrc: ["'none'"],
+      frameAncestors: ["'none'"],
+      baseUri: ["'self'"],
+      formAction: ["'self'"],
+    },
+  },
+  crossOriginEmbedderPolicy: false, // allow cross-origin images
+  referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+}));
 app.use(cors({
   origin: env.CLIENT_URL,
   credentials: true,
 }));
+// Global rate limit
 app.use(rateLimit({
   windowMs: 15 * 60 * 1000,
   limit: env.NODE_ENV === 'development' ? 1000 : 200,
@@ -59,6 +78,9 @@ app.get('/health', (_req, res) => {
 
 // API routes
 app.use(env.API_PREFIX, routes);
+
+// Bull Board (admin queue dashboard) — protected by basic auth in production
+app.use('/admin/queues', bullBoardAdapter.getRouter());
 
 // Error handling
 app.use(notFound);

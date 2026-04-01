@@ -19,4 +19,4 @@ export interface ContentTypeBreakdown {
   avgEngRate: number;
 }
 
-export type AnalyticsTab = 'overview' | 'content' | 'audience' | 'reports';
+export type AnalyticsTab = 'overview' | 'content' | 'audience' | 'reports' | 'post';

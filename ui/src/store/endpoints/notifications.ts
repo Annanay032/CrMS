@@ -26,7 +26,7 @@ export const notificationsApi = api.injectEndpoints({
       invalidatesTags: ['Notifications'],
     }),
 
-    chatWithAgent: build.mutation<ApiResponse<import('@/types').ChatResponse>, { message: string }>({
+    chatWithAgent: build.mutation<ApiResponse<import('@/types').ChatResponse>, { message: string; history?: Array<{ role: 'user' | 'ai'; content: string }> }>({
       query: (body) => ({ url: '/agents/chat', method: 'POST', body }),
       invalidatesTags: ['Agents'],
     }),

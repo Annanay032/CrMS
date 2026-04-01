@@ -1,12 +1,13 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { Controller } from 'react-hook-form';
-import { Input, Typography, Tag, Segmented, Button } from 'antd';
+import { Input, Typography, Tag, Segmented, Button, message } from 'antd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faPenToSquare, faImage, faSliders, faRobot, faBrain, faStar, faCheck,
 } from '@fortawesome/free-solid-svg-icons';
 import { CHANNEL_META } from '@/pages/settings/components/ChannelConnectModal';
 import { MediaCropper } from '@/components/content/MediaCropper';
+import { useCreateTemplateMutation } from '@/store/endpoints/content';
 import { useComposeForm } from './useComposeForm';
 import { ComposeToolbar, MediaZone, ChatPanel, IntelPanel, SettingsPanel } from './components';
 import { PLATFORM_LIMITS, PLATFORM_OPTIONS, PLATFORM_POST_TYPES } from './constants';
@@ -22,6 +23,7 @@ const MIN_PANEL = 320;
 
 export function StudioComposeView() {
   const ctx = useComposeForm();
+  const [createTemplate] = useCreateTemplateMutation();
   const [editorTab, setEditorTab] = useState<EditorTab>('write');
   const [panelWidth, setPanelWidth] = useState(380);
   const [activePlatform, setActivePlatform] = useState<string>(ctx.platform);
@@ -90,6 +92,28 @@ export function StudioComposeView() {
     }
   }, [ctx, handleChatMediaUpload]);
 
+  /* ── Save as Template ── */
+  const handleSaveAsTemplate = useCallback(async () => {
+    const caption = ctx.form.getValues('caption') || '';
+    const hashtags = ctx.form.getValues('hashtags') || '';
+    if (!caption.trim()) {
+      message.warning('Write some content before saving as a template');
+      return;
+    }
+    try {
+      await createTemplate({
+        name: caption.slice(0, 60),
+        body: caption,
+        hashtags,
+        platform: ctx.platform,
+        category: ctx.postType,
+      }).unwrap();
+      message.success('Template saved');
+    } catch {
+      message.error('Failed to save template');
+    }
+  }, [ctx.form, ctx.platform, ctx.postType, createTemplate]);
+
   /* ── Resize drag ── */
   const onDragStart = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -143,6 +167,7 @@ export function StudioComposeView() {
           onValidate={ctx.handleValidate}
           onToggleFirstComment={() => ctx.setShowFirstComment((p) => !p)}
           onToggleSchedule={() => ctx.setShowSchedule((p) => !p)}
+          onSaveAsTemplate={handleSaveAsTemplate}
         />
 
         {/* Platform strip — shown when per-platform mode is active */}

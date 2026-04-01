@@ -1,0 +1,181 @@
+@use '../../../styles/abstracts' as *;
+
+// ── Page Layout ──
+.page_header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $space-6;
+}
+
+.page_title {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  font-size: $font-size-2xl;
+  font-weight: $font-weight-bold;
+  color: $color-text;
+  margin: 0;
+}
+
+.page_title__icon {
+  color: $color-primary-500;
+}
+
+// ── Stats Row ──
+.stats_row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: $space-4;
+  margin-bottom: $space-6;
+
+  @include bp(lg) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.stat_card {
+  @include card;
+  padding: $space-5;
+  text-align: center;
+}
+
+.stat_card__value {
+  font-size: $font-size-2xl;
+  font-weight: $font-weight-bold;
+  color: $color-text;
+}
+
+.stat_card__label {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  margin-top: $space-1;
+}
+
+.stat_card__sub {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  margin-top: $space-2;
+}
+
+// ── Budget Bar ──
+.budget_section {
+  @include card;
+  padding: $space-5;
+  margin-bottom: $space-6;
+}
+
+.budget_header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $space-3;
+}
+
+.budget_title {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text;
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+}
+
+.budget_bar {
+  height: 12px;
+  background: $color-slate-200;
+  border-radius: $radius-full;
+  overflow: hidden;
+  margin-bottom: $space-2;
+}
+
+.budget_bar__fill {
+  height: 100%;
+  border-radius: $radius-full;
+  transition: width $transition-fast;
+  background: $color-primary-500;
+
+  &--warn {
+    background: $color-warning-500;
+  }
+
+  &--danger {
+    background: $color-red-500;
+  }
+}
+
+.budget_meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+}
+
+// ── Breakdown ──
+.breakdown_section {
+  @include card;
+  padding: $space-5;
+  margin-bottom: $space-6;
+}
+
+.section_title {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text;
+  margin-bottom: $space-4;
+}
+
+.breakdown_grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: $space-3;
+}
+
+.agent_card {
+  padding: $space-4;
+  border-radius: $radius-md;
+  background: $color-slate-50;
+  border-left: 3px solid $color-primary-500;
+}
+
+.agent_card__name {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-text;
+  margin-bottom: $space-2;
+}
+
+.agent_card__stats {
+  display: flex;
+  gap: $space-4;
+}
+
+.agent_card__stat {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+
+  span {
+    font-weight: $font-weight-semibold;
+    color: $color-text;
+  }
+}
+
+// ── Chart ──
+.chart_section {
+  @include card;
+  padding: $space-5;
+}
+
+.chart_header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $space-4;
+}
+
+// ── Empty ──
+.empty_state {
+  padding: $space-8;
+  text-align: center;
+  color: $color-text-secondary;
+}

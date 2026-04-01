@@ -13,6 +13,7 @@ const createIdeaSchema = z.object({
   title: z.string().min(1).max(500),
   body: z.string().max(5000).optional(),
   status: z.enum(['SPARK', 'DEVELOPING', 'READY', 'ARCHIVED']).optional(),
+  stageId: z.string().optional(),
   source: z.string().max(50).optional(),
   mediaUrls: z.array(z.string()).optional(),
   tagIds: z.array(z.string()).optional(),
@@ -22,6 +23,7 @@ const updateIdeaSchema = z.object({
   title: z.string().min(1).max(500).optional(),
   body: z.string().max(5000).optional(),
   status: z.enum(['SPARK', 'DEVELOPING', 'READY', 'ARCHIVED']).optional(),
+  stageId: z.string().optional(),
   source: z.string().max(50).optional(),
   mediaUrls: z.array(z.string()).optional(),
   tagIds: z.array(z.string()).optional(),
@@ -37,6 +39,23 @@ const createTagSchema = z.object({
 const updateTagSchema = z.object({
   name: z.string().min(1).max(50).optional(),
   color: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
+});
+
+// ─── Stage schemas ──────────────────────────────────────────
+
+const createStageSchema = z.object({
+  name: z.string().min(1).max(50),
+  color: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
+});
+
+const updateStageSchema = z.object({
+  name: z.string().min(1).max(50).optional(),
+  color: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
+  position: z.number().int().min(0).optional(),
+});
+
+const reorderStagesSchema = z.object({
+  stageIds: z.array(z.string()).min(1),
 });
 
 // ─── Template schemas ───────────────────────────────────────
@@ -79,5 +98,13 @@ router.delete('/tags/:id', authenticate, authorize(Role.CREATOR), ideaController
 
 router.get('/templates/all', authenticate, ideaController.getTemplates);
 router.post('/templates', authenticate, validate(createTemplateSchema), ideaController.createTemplate);
+
+// ─── Stage routes ───────────────────────────────────────────
+
+router.get('/stages/all', authenticate, authorize(Role.CREATOR), ideaController.getStages);
+router.post('/stages', authenticate, authorize(Role.CREATOR), validate(createStageSchema), ideaController.createStage);
+router.put('/stages/reorder', authenticate, authorize(Role.CREATOR), validate(reorderStagesSchema), ideaController.reorderStages);
+router.put('/stages/:id', authenticate, authorize(Role.CREATOR), validate(updateStageSchema), ideaController.updateStage);
+router.delete('/stages/:id', authenticate, authorize(Role.CREATOR), ideaController.deleteStage);
 
 export default router;

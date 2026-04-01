@@ -12,7 +12,7 @@ router.use(authenticate, requirePlan('PRO'));
 
 const revenueTypeEnum = z.enum(['BRAND_DEAL', 'YOUTUBE_ADSENSE', 'AFFILIATE', 'SPONSORSHIP', 'OTHER']);
 const invoiceStatusEnum = z.enum(['DRAFT', 'SENT', 'PAID', 'OVERDUE', 'CANCELLED']);
-const dealStatusEnum = z.enum(['LEAD', 'NEGOTIATING', 'CONFIRMED', 'IN_PROGRESS', 'DELIVERED', 'PAID', 'CANCELLED']);
+const dealStatusEnum = z.enum(['PROSPECT', 'CONTACTED', 'LEAD', 'NEGOTIATING', 'CONFIRMED', 'IN_PROGRESS', 'DELIVERED', 'PAID', 'CANCELLED', 'LOST']);
 
 const createRevenueStreamSchema = z.object({
   type: revenueTypeEnum,
@@ -72,6 +72,9 @@ const updateInvoiceSchema = z.object({
 
 router.get('/summary', revenueController.getRevenueSummary);
 router.get('/post-roi', revenueController.getPostROI);
+router.get('/trends', revenueController.getRevenueTrends);
+router.get('/pipeline-summary', revenueController.getPipelineSummary);
+router.get('/invoice-stats', revenueController.getInvoiceStats);
 
 // ─── Revenue Streams ─────────────────────────────────────────
 
@@ -92,5 +95,6 @@ router.get('/invoices', revenueController.listInvoices);
 router.post('/invoices', validate(createInvoiceSchema), revenueController.createInvoice);
 router.put('/invoices/:id', validate(updateInvoiceSchema), revenueController.updateInvoice);
 router.delete('/invoices/:id', revenueController.deleteInvoice);
+router.get('/invoices/:id/pdf', revenueController.downloadInvoicePdf);
 
 export default router;

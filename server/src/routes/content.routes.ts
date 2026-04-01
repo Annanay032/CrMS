@@ -137,4 +137,8 @@ router.delete('/templates/:id', authenticate, authorize(Role.CREATOR), contentCo
 router.get('/grid/:accountId', authenticate, authorize(Role.CREATOR), contentController.getGridPreview);
 router.patch('/reorder', authenticate, authorize(Role.CREATOR), contentController.reorderScheduledPosts);
 
+// ── Bulk Operations ──
+router.post('/bulk', authenticate, authorize(Role.CREATOR), contentController.bulkUpdatePosts);
+router.patch('/:id/reschedule', authenticate, authorize(Role.CREATOR), contentController.reschedulePost);
+
 export default router;

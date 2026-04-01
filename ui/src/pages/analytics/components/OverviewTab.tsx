@@ -70,11 +70,11 @@ export function OverviewTab({ metrics, aiInsights, onFetchInsights, aiLoading }:
             return (
               <div key={p.id as string} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid #f1f5f9' }}>
                 <div style={{ flex: 1 }}>
-                  <Text strong>{(p.caption as string) || 'Untitled'}</Text>
+                  <Text strong>{String(p.caption) || 'Untitled'}</Text>
                   <br />
                   <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
-                    <Tag color="blue">{p.platform as string}</Tag>
-                    {p.postType && <Tag>{p.postType as string}</Tag>}
+                    <Tag color="blue">{String(p.platform)}</Tag>
+                    {p.postType ? <Tag>{String(p.postType)}</Tag> : null}
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: 24, textAlign: 'right' }}>

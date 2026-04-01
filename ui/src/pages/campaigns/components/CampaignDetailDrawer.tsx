@@ -23,7 +23,7 @@ import {
   DELIVERABLE_STATUS_OPTIONS, PLATFORM_OPTIONS,
 } from '../constants';
 
-const { Text, Paragraph, Title } = Typography;
+const { Text, Paragraph } = Typography;
 
 interface CampaignDetailDrawerProps {
   campaign: Campaign | null;

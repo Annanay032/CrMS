@@ -1,0 +1,285 @@
+@use '../../../styles/abstracts' as *;
+
+// ── Page Layout ──
+.page_header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $space-6;
+}
+
+.page_title {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  font-size: $font-size-2xl;
+  font-weight: $font-weight-bold;
+  color: $color-text;
+  margin: 0;
+}
+
+.page_title__icon {
+  color: $color-primary-500;
+}
+
+// ── Tab Bar ──
+.tab_bar {
+  display: flex;
+  gap: $space-1;
+  padding: $space-1;
+  background: $color-slate-100;
+  border-radius: $radius-lg;
+  margin-bottom: $space-6;
+}
+
+.tab_btn {
+  padding: $space-2 $space-4;
+  border: none;
+  border-radius: $radius-md;
+  background: transparent;
+  color: $color-text-secondary;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  cursor: pointer;
+  transition: all $transition-fast;
+
+  &:hover {
+    color: $color-text;
+    background: $color-white;
+  }
+
+  &--active {
+    background: $color-white;
+    color: $color-primary-600;
+    box-shadow: $shadow-sm;
+  }
+}
+
+// ── Team Cards ──
+.teams_grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: $space-4;
+  margin-bottom: $space-6;
+}
+
+.team_card {
+  @include card;
+  padding: $space-5;
+  transition: all $transition-fast;
+  cursor: pointer;
+  border: 2px solid transparent;
+
+  &:hover {
+    box-shadow: $shadow-md;
+  }
+
+  &--active {
+    border-color: $color-primary-500;
+  }
+}
+
+.team_card__name {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text;
+  margin-bottom: $space-2;
+}
+
+.team_card__meta {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  margin-bottom: $space-3;
+}
+
+.team_card__members {
+  display: flex;
+  gap: -$space-2;
+}
+
+.member_avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: $radius-full;
+  background: $color-primary-100;
+  color: $color-primary-600;
+  @include flex-center;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  border: 2px solid $color-white;
+  margin-left: -8px;
+
+  &:first-child {
+    margin-left: 0;
+  }
+}
+
+// ── Members Section ──
+.members_section {
+  @include card;
+  padding: $space-5;
+  margin-bottom: $space-6;
+}
+
+.members_header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $space-4;
+}
+
+.members_title {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text;
+}
+
+.members_list {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+}
+
+.member_row {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  padding: $space-3;
+  border-radius: $radius-md;
+  background: $color-slate-50;
+}
+
+.member_row__info {
+  flex: 1;
+
+  &__name {
+    font-weight: $font-weight-semibold;
+    font-size: $font-size-sm;
+    color: $color-text;
+  }
+
+  &__email {
+    font-size: $font-size-xs;
+    color: $color-text-secondary;
+  }
+}
+
+// ── Workflows Section ──
+.workflows_section {
+  @include card;
+  padding: $space-5;
+  margin-bottom: $space-6;
+}
+
+.workflows_header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $space-4;
+}
+
+.workflow_card {
+  padding: $space-4;
+  border-radius: $radius-md;
+  background: $color-slate-50;
+  margin-bottom: $space-3;
+}
+
+.workflow_card__name {
+  font-weight: $font-weight-semibold;
+  font-size: $font-size-sm;
+  color: $color-text;
+  margin-bottom: $space-3;
+}
+
+.workflow_stages {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  flex-wrap: wrap;
+}
+
+.workflow_stage {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  padding: $space-2 $space-3;
+  border-radius: $radius-md;
+  background: $color-white;
+  border: 1px solid $color-border;
+  font-size: $font-size-xs;
+  color: $color-text;
+}
+
+.workflow_arrow {
+  color: $color-text-secondary;
+  font-size: $font-size-xs;
+}
+
+// ── Approval Queue ──
+.approval_section {
+  @include card;
+  padding: $space-5;
+}
+
+.approval_header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $space-4;
+}
+
+.approval_list {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+}
+
+.approval_card {
+  padding: $space-4;
+  border-radius: $radius-md;
+  background: $color-slate-50;
+  border-left: 4px solid $color-warning-100;
+  display: flex;
+  align-items: flex-start;
+  gap: $space-4;
+
+  &--approved {
+    border-left-color: $color-success-500;
+  }
+
+  &--rejected {
+    border-left-color: $color-red-500;
+  }
+}
+
+.approval_card__content {
+  flex: 1;
+  min-width: 0;
+
+  &__title {
+    font-weight: $font-weight-semibold;
+    font-size: $font-size-sm;
+    color: $color-text;
+    margin-bottom: $space-1;
+    @include truncate;
+  }
+
+  &__meta {
+    font-size: $font-size-xs;
+    color: $color-text-secondary;
+  }
+}
+
+.approval_card__actions {
+  display: flex;
+  gap: $space-2;
+  flex-shrink: 0;
+}
+
+// ── Empty ──
+.empty_state {
+  padding: $space-12;
+  text-align: center;
+  color: $color-text-secondary;
+}

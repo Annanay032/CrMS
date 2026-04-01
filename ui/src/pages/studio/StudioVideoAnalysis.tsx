@@ -32,7 +32,7 @@ function formatTime(sec: number): string {
 
 export function StudioVideoAnalysis() {
   const [videoUrl, setVideoUrl] = useState('');
-  const [platform, setPlatform] = useState('YOUTUBE');
+  const [_platform] = useState('YOUTUBE');
   const [retention, setRetention] = useState<RetentionPoint[]>([]);
   const [hotspots, setHotspots] = useState<RewatchHotspot[]>([]);
   const [metrics, setMetrics] = useState<Record<string, number>>({});
@@ -46,8 +46,8 @@ export function StudioVideoAnalysis() {
       return;
     }
     try {
-      const res = await analyzeApi({ videoUrl, platform }).unwrap();
-      if (res.success && res.data) {
+      const res = await analyzeApi({ videoUrl, platform: _platform }).unwrap();
+      if (res.data) {
         setRetention(res.data.retention ?? []);
         setHotspots(res.data.rewatchHotspots ?? []);
         setMetrics(res.data.engagementMetrics ?? {});

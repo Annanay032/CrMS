@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Typography, Upload, Button, Tooltip, Tag, Spin, message } from 'antd';
+import { Typography, Upload, Button, Tooltip, Spin, message } from 'antd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCrop, faTrash, faPlus, faArrowUp, faArrowDown, faPhotoFilm } from '@fortawesome/free-solid-svg-icons';
 import { MediaLibraryPicker } from './MediaLibraryPicker';

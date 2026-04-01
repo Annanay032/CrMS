@@ -243,12 +243,24 @@ export interface ApiKeyInfo {
 
 export type IdeaStatus = 'SPARK' | 'DEVELOPING' | 'READY' | 'ARCHIVED';
 
+export interface IdeaStage {
+  id: string;
+  creatorProfileId: string;
+  name: string;
+  color: string;
+  position: number;
+  createdAt: string;
+  _count?: { ideas: number };
+}
+
 export interface ContentIdea {
   id: string;
   creatorProfileId: string;
   title: string;
   body?: string;
   status: IdeaStatus;
+  stageId?: string;
+  stage?: IdeaStage;
   source?: string;
   mediaUrls: string[];
   createdAt: string;
@@ -369,9 +381,17 @@ export interface Mention {
   url?: string;
   sentiment: 'POSITIVE' | 'NEGATIVE' | 'NEUTRAL' | 'MIXED';
   reach: number;
+  intent?: MentionIntent;
+  urgencyScore: number;
+  influenceScore: number;
+  opportunityScore: number;
+  isConverted: boolean;
+  authorFollowers: number;
   createdAt: string;
   detectedAt: string;
 }
+
+export type MentionIntent = 'BUYING' | 'QUESTION' | 'COMPLAINT' | 'PRAISE' | 'COLLAB' | 'OTHER';
 
 export interface SentimentSnapshot {
   id: string;
@@ -467,7 +487,6 @@ export interface ContentTypeBreakdown {
 
 // ─── Teams & Collaboration ──────────────────────────────────
 
-export type TeamRole = 'OWNER' | 'ADMIN' | 'EDITOR' | 'CONTRIBUTOR' | 'VIEWER';
 export type ApprovalStatus = 'NONE' | 'PENDING_REVIEW' | 'CHANGES_REQUESTED' | 'APPROVED' | 'REJECTED';
 
 export interface Team {
@@ -599,13 +618,15 @@ export interface UsageSummary {
   usedToday: number;
   remaining: number;
   resetAt: string;
-  breakdown: Array<{ agentType: string; tokensUsed: number; calls: number }>;
+  costToday: number;
+  breakdown: Array<{ agentType: string; tokensUsed: number; calls: number; cost: number }>;
 }
 
 export interface UsageHistoryEntry {
   date: string;
   tokens: number;
   calls: number;
+  cost: number;
 }
 
 // ─── V2: User Settings ─────────────────────────────────────
@@ -660,4 +681,87 @@ export interface MediaAsset {
   tags: string[];
   folderId?: string;
   createdAt: string;
+}
+
+// ─── CRM ────────────────────────────────────────────────────
+
+export type ContactType = 'BRAND' | 'FAN' | 'CREATOR' | 'AGENCY' | 'OTHER';
+export type ContactSource = 'DM' | 'COMMENT' | 'MENTION' | 'EMAIL' | 'IMPORT' | 'MANUAL';
+export type DealStatus = 'PROSPECT' | 'CONTACTED' | 'LEAD' | 'NEGOTIATING' | 'CONFIRMED' | 'IN_PROGRESS' | 'DELIVERED' | 'PAID' | 'CANCELLED' | 'LOST';
+
+export interface Contact {
+  id: string;
+  userId: string;
+  name: string;
+  handle?: string;
+  platform?: string;
+  email?: string;
+  type: ContactType;
+  source: ContactSource;
+  tags: string[];
+  relationshipScore: number;
+  avatarUrl?: string;
+  notes?: string;
+  lastInteractionAt?: string;
+  sourceMentionId?: string;
+  createdAt: string;
+  updatedAt: string;
+  _count?: { brandDeals: number };
+  brandDeals?: CrmBrandDeal[];
+}
+
+export interface CrmBrandDeal {
+  id: string;
+  creatorProfileId: string;
+  contactId?: string;
+  brandName: string;
+  contactEmail?: string;
+  dealValue: number;
+  currency: string;
+  deliverables: string[];
+  status: DealStatus;
+  probability: number;
+  expectedValue?: number;
+  startDate?: string;
+  endDate?: string;
+  notes?: string;
+  contact?: Contact;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PipelineData {
+  pipeline: Record<string, CrmBrandDeal[]>;
+  summary: {
+    totalDeals: number;
+    totalValue: number;
+    weightedPipeline: number;
+    wonValue: number;
+  };
+}
+
+// ─── Signals ────────────────────────────────────────────────
+
+export type SignalType = 'TREND' | 'LEAD' | 'RISK' | 'VIRAL_POST';
+export type SignalStatus = 'NEW' | 'ACTIONED' | 'IGNORED';
+
+export interface Signal {
+  id: string;
+  userId: string;
+  type: SignalType;
+  title: string;
+  description?: string;
+  sourceMentionId?: string;
+  opportunityScore: number;
+  status: SignalStatus;
+  metadata?: Record<string, unknown>;
+  sourceMention?: Mention;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SignalSummary {
+  byType: Record<string, number>;
+  byStatus: Record<string, number>;
+  highValueCount: number;
 }

@@ -7,6 +7,28 @@ enum MentionSentiment {
   MIXED
 }
 
+enum MentionIntent {
+  BUYING
+  QUESTION
+  COMPLAINT
+  PRAISE
+  COLLAB
+  OTHER
+}
+
+enum SignalType {
+  TREND
+  LEAD
+  RISK
+  VIRAL_POST
+}
+
+enum SignalStatus {
+  NEW
+  ACTIONED
+  IGNORED
+}
+
 model ListeningQuery {
   id         String   @id @default(cuid())
   userId     String
@@ -26,23 +48,54 @@ model ListeningQuery {
 }
 
 model Mention {
-  id         String           @id @default(cuid())
-  queryId    String
-  platform   Platform
-  source     String?          // username or account handle
-  content    String
-  url        String?
-  sentiment  MentionSentiment @default(NEUTRAL)
-  reach      Int              @default(0)
-  createdAt  DateTime         @default(now())
-  detectedAt DateTime         @default(now())
+  id              String           @id @default(cuid())
+  queryId         String
+  platform        Platform
+  source          String?          // username or account handle
+  content         String
+  url             String?
+  sentiment       MentionSentiment @default(NEUTRAL)
+  reach           Int              @default(0)
+  intent          MentionIntent?
+  urgencyScore    Int              @default(0) // 0-100
+  influenceScore  Int              @default(0) // 0-100
+  opportunityScore Int             @default(0) // 0-100
+  isConverted     Boolean          @default(false) // moved to CRM
+  authorFollowers Int              @default(0)
+  createdAt       DateTime         @default(now())
+  detectedAt      DateTime         @default(now())
 
-  query ListeningQuery @relation(fields: [queryId], references: [id], onDelete: Cascade)
+  query   ListeningQuery @relation(fields: [queryId], references: [id], onDelete: Cascade)
+  signals Signal[]
 
   @@index([queryId, sentiment])
   @@index([queryId, platform])
+  @@index([queryId, intent])
   @@index([detectedAt])
+  @@index([opportunityScore])
   @@map("mentions")
+}
+
+model Signal {
+  id               String       @id @default(cuid())
+  userId           String
+  type             SignalType
+  title            String
+  description      String?
+  sourceMentionId  String?
+  opportunityScore Int          @default(0) // 0-100
+  status           SignalStatus @default(NEW)
+  metadata         Json?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sourceMention Mention? @relation(fields: [sourceMentionId], references: [id], onDelete: SetNull)
+
+  @@index([userId, status])
+  @@index([userId, type])
+  @@index([opportunityScore])
+  @@map("signals")
 }
 
 model SentimentSnapshot {

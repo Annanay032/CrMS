@@ -22,7 +22,7 @@ export function StudioTemplates() {
 
   const templates = (data?.data ?? []) as Array<{
     id: string;
-    title: string;
+    name: string;
     body: string;
     platform?: string;
     category?: string;
@@ -31,7 +31,7 @@ export function StudioTemplates() {
 
   const filtered = templates.filter((t) => {
     const q = search.toLowerCase();
-    return (t.title ?? '').toLowerCase().includes(q) ||
+    return (t.name ?? '').toLowerCase().includes(q) ||
            (t.body ?? '').toLowerCase().includes(q);
   });
 
@@ -127,7 +127,7 @@ export function StudioTemplates() {
                 <Card
                   size="small"
                   hoverable
-                  title={<Text strong>{t.title}</Text>}
+                  title={<Text strong>{t.name}</Text>}
                   extra={
                     <Space size={4}>
                       <Button

@@ -2,6 +2,7 @@ import { prisma } from '../config/index.js';
 import { logger } from '../config/logger.js';
 import { SocialListeningAgent } from '../agents/listening.agent.js';
 import * as listeningService from '../services/listening.service.js';
+import { signalQueue } from './index.js';
 
 const listeningAgent = new SocialListeningAgent();
 
@@ -22,6 +23,29 @@ export async function pollMentions() {
 
       // Update sentiment snapshot for today
       await listeningService.upsertSentimentSnapshot(query.id);
+
+      // Enqueue unanalyzed mentions for the Signal Engine intent analysis
+      const unanalyzedMentions = await prisma.mention.findMany({
+        where: {
+          queryId: query.id,
+          intent: null,
+          detectedAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+        },
+        select: { id: true },
+        take: 50,
+      });
+
+      if (unanalyzedMentions.length > 0) {
+        await signalQueue.add('analyze-intent', {
+          mentionIds: unanalyzedMentions.map((m) => m.id),
+          queryId: query.id,
+          userId: query.user.id,
+        }, {
+          attempts: 3,
+          backoff: { type: 'exponential', delay: 5000 },
+        });
+        logger.info(`Enqueued ${unanalyzedMentions.length} mentions for intent analysis (query ${query.id})`);
+      }
 
       logger.info(`Sentiment snapshot updated for query ${query.id}`);
     } catch (err) {

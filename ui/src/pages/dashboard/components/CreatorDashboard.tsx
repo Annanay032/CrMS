@@ -1,19 +1,30 @@
-import { Row, Col, Card, Tag, Typography, Spin, Empty } from 'antd';
+import { Tag, Spin, Empty } from 'antd';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-  faUsers, faChartLine, faCalendarDays, faBullhorn, faRobot, faArrowTrendUp, faComments,
+  faUsers, faChartLine, faCalendarDays, faBullhorn,
+  faComments, faIndianRupeeSign, faFunnelDollar,
+  faSatelliteDish,
 } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
-import { StatCard, AiInsightCard } from '@/components/common';
+import {
+  AreaChart, Area, ResponsiveContainer,
+} from 'recharts';
 import { useGetDashboardStatsQuery } from '@/store/endpoints/dashboard';
 import { formatNumber } from '@/utils/format';
-
-const { Text } = Typography;
+import s from '../styles/Dashboard.module.scss';
 
 const STATUS_COLOR: Record<string, string> = {
   SCHEDULED: 'purple',
   DRAFT: 'default',
   PUBLISHED: 'green',
   REVIEW: 'orange',
+};
+
+const SIGNAL_TYPE_CLASS: Record<string, string> = {
+  LEAD: s['signal_card--lead'],
+  RISK: s['signal_card--risk'],
+  TREND: s['signal_card--trend'],
+  VIRAL_POST: s['signal_card--viral'],
 };
 
 export function CreatorDashboard() {
@@ -28,99 +39,174 @@ export function CreatorDashboard() {
   const activeCampaigns = (stats?.activeCampaigns as number) ?? 0;
   const growthRate = (stats?.growthRate as number) ?? 0;
   const pendingInteractions = (stats?.pendingInteractions as number) ?? 0;
+  const totalRevenue = (stats?.totalRevenue as number) ?? 0;
+  const activePipelineValue = (stats?.activePipelineValue as number) ?? 0;
   const recentPosts = (stats?.recentPosts as Array<Record<string, unknown>>) ?? [];
+  const newSignals = (stats?.newSignals as Array<Record<string, unknown>>) ?? [];
+  const upcomingPosts = (stats?.upcomingPosts as Array<Record<string, unknown>>) ?? [];
+  const snapshots = (stats?.snapshots as Array<Record<string, unknown>>) ?? [];
+
+  // Sparkline data from snapshots
+  const sparkData = snapshots.map((s) => ({
+    followers: s.totalFollowers as number,
+    engagement: s.totalEngagement as number,
+  }));
 
   return (
     <>
-      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-        <Col xs={24} sm={12} lg={6}>
-          <StatCard icon={faUsers} label="Total Followers" value={formatNumber(totalFollowers)} change={growthRate ? `${growthRate > 0 ? '+' : ''}${growthRate}% growth` : undefined} />
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <StatCard icon={faChartLine} label="Engagement Rate" value={`${avgEngagement}%`} />
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <StatCard icon={faCalendarDays} label="Scheduled Posts" value={String(scheduledPosts)} />
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <StatCard icon={faBullhorn} label="Active Campaigns" value={String(activeCampaigns)} />
-        </Col>
-      </Row>
+      {/* KPI Cards */}
+      <div className={s.stat_grid}>
+        <div className={s.stat_card}>
+          <div className={`${s.stat_card__icon} ${s['stat_card__icon--followers']}`}>
+            <FontAwesomeIcon icon={faUsers} />
+          </div>
+          <div className={s.stat_card__content}>
+            <div className={s.stat_card__label}>Followers</div>
+            <div className={s.stat_card__value}>
+              <span className={s.sparkline_row}>
+                {formatNumber(totalFollowers)}
+                {sparkData.length > 2 && (
+                  <ResponsiveContainer width={60} height={24}>
+                    <AreaChart data={sparkData}>
+                      <Area type="monotone" dataKey="followers" stroke="#6366f1" fill="#6366f1" fillOpacity={0.2} strokeWidth={1.5} dot={false} />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                )}
+              </span>
+            </div>
+            {growthRate !== 0 && (
+              <div className={`${s.stat_card__change} ${growthRate > 0 ? s['stat_card__change--up'] : s['stat_card__change--down']}`}>
+                {growthRate > 0 ? '+' : ''}{growthRate}% this period
+              </div>
+            )}
+          </div>
+        </div>
 
-      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-        <Col xs={24} sm={12}>
-          <StatCard icon={faComments} label="Pending Replies" value={String(pendingInteractions)} />
-        </Col>
-        <Col xs={24} sm={12}>
-          <StatCard icon={faArrowTrendUp} label="Follower Growth" value={growthRate ? `${growthRate > 0 ? '+' : ''}${growthRate}%` : '—'} />
-        </Col>
-      </Row>
+        <div className={s.stat_card}>
+          <div className={`${s.stat_card__icon} ${s['stat_card__icon--engagement']}`}>
+            <FontAwesomeIcon icon={faChartLine} />
+          </div>
+          <div className={s.stat_card__content}>
+            <div className={s.stat_card__label}>Engagement Rate</div>
+            <div className={s.stat_card__value}>{avgEngagement}%</div>
+          </div>
+        </div>
 
-      <Row gutter={[24, 24]}>
-        <Col xs={24} lg={12}>
-          <Card title="Recent Posts">
-            {recentPosts.length === 0 ? (
-              <Empty description="No posts yet. Create your first!" />
+        <div className={s.stat_card}>
+          <div className={`${s.stat_card__icon} ${s['stat_card__icon--revenue']}`}>
+            <FontAwesomeIcon icon={faIndianRupeeSign} />
+          </div>
+          <div className={s.stat_card__content}>
+            <div className={s.stat_card__label}>Total Revenue</div>
+            <div className={s.stat_card__value}>₹{totalRevenue.toLocaleString()}</div>
+          </div>
+        </div>
+
+        <div className={s.stat_card}>
+          <div className={`${s.stat_card__icon} ${s['stat_card__icon--pipeline']}`}>
+            <FontAwesomeIcon icon={faFunnelDollar} />
+          </div>
+          <div className={s.stat_card__content}>
+            <div className={s.stat_card__label}>Active Pipeline</div>
+            <div className={s.stat_card__value}>₹{activePipelineValue.toLocaleString()}</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Secondary stats row */}
+      <div className={s.stat_grid} style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
+        <div className={s.stat_card}>
+          <div className={`${s.stat_card__icon} ${s['stat_card__icon--campaigns']}`}>
+            <FontAwesomeIcon icon={faBullhorn} />
+          </div>
+          <div className={s.stat_card__content}>
+            <div className={s.stat_card__label}>Active Campaigns</div>
+            <div className={s.stat_card__value}>{activeCampaigns}</div>
+          </div>
+        </div>
+        <div className={s.stat_card}>
+          <div className={`${s.stat_card__icon} ${s['stat_card__icon--followers']}`}>
+            <FontAwesomeIcon icon={faCalendarDays} />
+          </div>
+          <div className={s.stat_card__content}>
+            <div className={s.stat_card__label}>Scheduled Posts</div>
+            <div className={s.stat_card__value}>{scheduledPosts}</div>
+          </div>
+        </div>
+        <div className={s.stat_card}>
+          <div className={`${s.stat_card__icon} ${s['stat_card__icon--engagement']}`}>
+            <FontAwesomeIcon icon={faComments} />
+          </div>
+          <div className={s.stat_card__content}>
+            <div className={s.stat_card__label}>Pending Replies</div>
+            <div className={s.stat_card__value}>{pendingInteractions}</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main content: Recent Posts + Signals + Upcoming */}
+      <div className={s.triple_panel}>
+        <div className={s.section_card}>
+          <div className={s.section_title}>
+            Recent Posts
+            <Link to="/content" className={s.view_all_link}>View all →</Link>
+          </div>
+          {recentPosts.length === 0 ? (
+            <Empty description="No posts yet. Create your first!" />
+          ) : (
+            recentPosts.map((post) => (
+              <div key={post.id as string} className={s.post_item}>
+                <div className={s.post_item__info}>
+                  <div className={s.post_item__caption}>{(post.caption as string)?.slice(0, 50) || 'Untitled'}</div>
+                  <div className={s.post_item__meta}>{post.platform as string} · {post.postType as string}</div>
+                </div>
+                <Tag color={STATUS_COLOR[post.status as string] ?? 'default'}>{post.status as string}</Tag>
+              </div>
+            ))
+          )}
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+          {/* AI Signals */}
+          <div className={s.section_card}>
+            <div className={s.section_title}>
+              <span><FontAwesomeIcon icon={faSatelliteDish} style={{ marginRight: 8, color: '#6366f1' }} />Signals</span>
+              <Link to="/crm/signals" className={s.view_all_link}>View all →</Link>
+            </div>
+            {newSignals.length === 0 ? (
+              <Empty description="No new signals" />
             ) : (
-              recentPosts.map((post) => (
-                <div
-                  key={post.id as string}
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    padding: '12px 0',
-                    borderBottom: '1px solid #f1f5f9',
-                  }}
-                >
-                  <div>
-                    <Text strong>{(post.caption as string)?.slice(0, 40) || 'Untitled'}</Text>
-                    <br />
-                    <Text type="secondary" style={{ fontSize: 12 }}>
-                      {post.platform as string} · {post.postType as string}
-                    </Text>
-                  </div>
-                  <Tag color={STATUS_COLOR[post.status as string] ?? 'default'}>
-                    {post.status as string}
-                  </Tag>
+              newSignals.slice(0, 3).map((sig) => (
+                <Link to="/crm/signals" key={sig.id as string} className={`${s.signal_card} ${SIGNAL_TYPE_CLASS[sig.type as string] ?? ''}`}>
+                  <div className={s.signal_card__title}>{sig.title as string}</div>
+                  <div className={s.signal_card__description}>{sig.description as string}</div>
+                </Link>
+              ))
+            )}
+          </div>
+
+          {/* Upcoming Posts */}
+          <div className={s.section_card}>
+            <div className={s.section_title}>
+              <span><FontAwesomeIcon icon={faCalendarDays} style={{ marginRight: 8, color: '#8b5cf6' }} />Upcoming</span>
+              <Link to="/calendar" className={s.view_all_link}>Calendar →</Link>
+            </div>
+            {upcomingPosts.length === 0 ? (
+              <Empty description="No upcoming posts" />
+            ) : (
+              upcomingPosts.map((post) => (
+                <div key={post.id as string} className={s.upcoming_item}>
+                  <span className={s.upcoming_item__time}>
+                    {new Date(post.scheduledAt as string).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                  </span>
+                  <span className={s.upcoming_item__caption}>{(post.caption as string)?.slice(0, 40) || 'Untitled'}</span>
+                  <Tag>{post.platform as string}</Tag>
                 </div>
               ))
             )}
-            <Link to="/calendar" style={{ display: 'block', marginTop: 16, fontSize: 14, fontWeight: 500 }}>
-              View full calendar →
-            </Link>
-          </Card>
-        </Col>
-
-        <Col xs={24} lg={12}>
-          <Card title="Quick Actions">
-            <AiInsightCard
-              icon={faRobot}
-              label="AI Content Ideas"
-              content="Generate AI-powered content ideas tailored to your niche and audience"
-            />
-            <AiInsightCard
-              icon={faArrowTrendUp}
-              label="Trending Now"
-              content="Discover what's trending on your platforms right now"
-              bg="#fdf2f8"
-              border="#fce7f3"
-              labelColor="#db2777"
-            />
-            <AiInsightCard
-              icon={faCalendarDays}
-              label="Schedule Optimization"
-              content="Find the best times to post based on your audience activity"
-              bg="#f0fdf4"
-              border="#dcfce7"
-              labelColor="#16a34a"
-            />
-            <Link to="/ai" style={{ display: 'block', marginTop: 16, fontSize: 14, fontWeight: 500 }}>
-              Open AI Assistant →
-            </Link>
-          </Card>
-        </Col>
-      </Row>
+          </div>
+        </div>
+      </div>
     </>
   );
 }

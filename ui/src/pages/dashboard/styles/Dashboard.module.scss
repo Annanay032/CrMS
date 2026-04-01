@@ -1,0 +1,247 @@
+@use '../../../styles/abstracts' as *;
+
+.page_header {
+  margin-bottom: $space-6;
+}
+
+.page_title {
+  margin: 0;
+  font-size: $font-size-2xl;
+  font-weight: 600;
+}
+
+.page_subtitle {
+  color: $color-neutral-500;
+  margin-top: $space-1;
+}
+
+.stat_grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: $space-4;
+  margin-bottom: $space-6;
+
+  @include bp(lg) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @include bp(sm) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.stat_card {
+  @include card;
+  display: flex;
+  align-items: center;
+  gap: $space-4;
+  padding: $space-5;
+}
+
+.stat_card__icon {
+  width: 44px;
+  height: 44px;
+  border-radius: $radius-lg;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-size-lg;
+  flex-shrink: 0;
+
+  &--followers { background: rgba($color-primary-500, 0.12); color: $color-primary-600; }
+  &--engagement { background: rgba($color-success-500, 0.12); color: $color-success-600; }
+  &--revenue { background: rgba($color-warning-500, 0.12); color: $color-warning-600; }
+  &--pipeline { background: rgba($color-info-500, 0.12); color: $color-info-600; }
+  &--campaigns { background: rgba($color-danger-500, 0.12); color: $color-danger-600; }
+  &--matches { background: rgba($color-primary-500, 0.12); color: $color-primary-600; }
+}
+
+.stat_card__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.stat_card__label {
+  font-size: $font-size-xs;
+  color: $color-neutral-500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+}
+
+.stat_card__value {
+  font-size: $font-size-xl;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.stat_card__change {
+  font-size: $font-size-xs;
+  font-weight: 500;
+
+  &--up { color: $color-success-600; }
+  &--down { color: $color-danger-600; }
+}
+
+.dual_panel {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $space-6;
+  margin-bottom: $space-6;
+
+  @include bp(lg) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.triple_panel {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: $space-6;
+  margin-bottom: $space-6;
+
+  @include bp(lg) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.section_card {
+  @include card;
+  padding: $space-5;
+}
+
+.section_title {
+  font-size: $font-size-base;
+  font-weight: 600;
+  margin: 0 0 $space-4;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.post_item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $space-3 0;
+  border-bottom: 1px solid $color-neutral-100;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.post_item__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.post_item__caption {
+  font-weight: 500;
+  font-size: $font-size-sm;
+  @include truncate;
+}
+
+.post_item__meta {
+  font-size: $font-size-xs;
+  color: $color-neutral-500;
+  margin-top: $space-1;
+}
+
+.signal_card {
+  @include card;
+  padding: $space-3 $space-4;
+  margin-bottom: $space-2;
+  border-left: 3px solid $color-primary-500;
+  cursor: pointer;
+  transition: box-shadow 0.15s;
+
+  &:hover {
+    box-shadow: $shadow-md;
+  }
+
+  &--lead { border-left-color: $color-success-500; }
+  &--risk { border-left-color: $color-danger-500; }
+  &--trend { border-left-color: $color-info-500; }
+  &--viral { border-left-color: $color-warning-500; }
+}
+
+.signal_card__title {
+  font-size: $font-size-sm;
+  font-weight: 600;
+}
+
+.signal_card__description {
+  font-size: $font-size-xs;
+  color: $color-neutral-500;
+  margin-top: $space-1;
+  @include truncate;
+}
+
+.sparkline_row {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+}
+
+.upcoming_item {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  padding: $space-2 0;
+  border-bottom: 1px solid $color-neutral-100;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.upcoming_item__time {
+  font-size: $font-size-xs;
+  color: $color-neutral-500;
+  white-space: nowrap;
+  min-width: 80px;
+}
+
+.upcoming_item__caption {
+  flex: 1;
+  font-size: $font-size-sm;
+  @include truncate;
+}
+
+.view_all_link {
+  display: block;
+  margin-top: $space-3;
+  font-size: $font-size-sm;
+  font-weight: 500;
+  color: $color-primary-600;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+// Budget utilization bar
+.budget_bar {
+  height: 8px;
+  border-radius: $radius-full;
+  background: $color-neutral-100;
+  overflow: hidden;
+  margin-top: $space-2;
+
+  &__fill {
+    height: 100%;
+    border-radius: $radius-full;
+    background: $color-primary-500;
+    transition: width 0.3s ease;
+  }
+
+  &__fill--warning {
+    background: $color-warning-500;
+  }
+
+  &__fill--danger {
+    background: $color-danger-500;
+  }
+}

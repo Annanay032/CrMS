@@ -112,6 +112,16 @@ export const contentApi = api.injectEndpoints({
     getPostActivity: build.query<ApiResponse<PostActivityLog[]> & { pagination: { total: number } }, { id: string; page?: number }>({
       query: ({ id, page = 1 }) => `/content/${id}/activity?page=${page}`,
     }),
+
+    // ── Bulk Operations ──
+    bulkUpdatePosts: build.mutation<ApiResponse<{ affected: number }>, { postIds: string[]; action: 'delete' | 'status'; status?: string }>({
+      query: (body) => ({ url: '/content/bulk', method: 'POST', body }),
+      invalidatesTags: ['Content'],
+    }),
+    reschedulePost: build.mutation<ApiResponse<ContentPost>, { id: string; scheduledAt: string }>({
+      query: ({ id, scheduledAt }) => ({ url: `/content/${id}/reschedule`, method: 'PATCH', body: { scheduledAt } }),
+      invalidatesTags: ['Content'],
+    }),
   }),
 });
 
@@ -137,4 +147,6 @@ export const {
   useListPostsQuery,
   useGetCrossplatformGroupQuery,
   useGetPostActivityQuery,
+  useBulkUpdatePostsMutation,
+  useReschedulePostMutation,
 } = contentApi;

@@ -1,0 +1,90 @@
+@use '../../../styles/abstracts' as *;
+
+.page_header {
+  @include flex-between;
+  margin-bottom: $space-6;
+}
+
+.page_title {
+  margin: 0;
+  font-size: $font-size-2xl;
+  font-weight: $font-weight-bold;
+  color: $color-text-heading;
+
+  &__icon {
+    margin-right: $space-3;
+    color: $color-primary-500;
+  }
+}
+
+.summary_grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: $space-4;
+  margin-bottom: $space-6;
+
+  @media (max-width: $bp-md) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.chart_section {
+  margin-bottom: $space-6;
+}
+
+.chart_card {
+  @include card;
+  padding: $space-4;
+}
+
+.chart_header {
+  @include flex-between;
+  margin-bottom: $space-4;
+}
+
+.chart_title {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-heading;
+}
+
+.dual_chart {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: $space-4;
+  margin-bottom: $space-6;
+
+  @media (max-width: $bp-lg) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.invoice_actions {
+  display: flex;
+  gap: $space-2;
+  align-items: center;
+}
+
+.status_dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: $radius-full;
+  margin-right: $space-2;
+
+  &--paid {
+    background: $color-success-500;
+  }
+
+  &--overdue {
+    background: $color-danger-500;
+  }
+
+  &--pending {
+    background: $color-warning-500;
+  }
+
+  &--draft {
+    background: $color-slate-400;
+  }
+}

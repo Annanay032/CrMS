@@ -8,7 +8,7 @@ import { faArrowRight, faEnvelope } from '@fortawesome/free-solid-svg-icons';
 import { useLoginMutation, useForgotPasswordMutation } from '@/store/endpoints/auth';
 import { useAppDispatch } from '@/hooks/store';
 import { setCredentials } from '@/store/auth.slice';
-import { loginSchema, forgotPasswordSchema, type LoginForm, type ForgotPasswordForm } from './constants';
+import { loginSchema, forgotPasswordSchema, type LoginForm } from './constants';
 import { BrandPanel } from './components/BrandPanel';
 import { FeatureList } from './components/FeatureList';
 import { SSOButtons } from './components/SSOButtons';

@@ -150,6 +150,7 @@ export async function getChannelPosts(creatorProfileId: string, platform: Platfo
 export async function getChannelAnalytics(creatorProfileId: string, platform: Platform, days = 30) {
   const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
   const staleThreshold = new Date(Date.now() - 60 * 60 * 1000); // 1 hour
+  const recentStaleThreshold = new Date(Date.now() - 10 * 60 * 1000); // 10 min for recent posts
   const recentPublishThreshold = new Date(Date.now() - 24 * 60 * 60 * 1000); // 24 hours
 
   // Per-post analytics for posts on this platform
@@ -174,8 +175,11 @@ export async function getChannelAnalytics(creatorProfileId: string, platform: Pl
     (p) => p.externalPostId && (
       !p.analytics ||
       (p.analytics.fetchedAt && p.analytics.fetchedAt < staleThreshold) ||
-      // Re-fetch zeros for recently published posts
-      (p.analytics.impressions === 0 && p.analytics.likes === 0 && p.analytics.comments === 0 &&
+      // Re-fetch every 10 min for posts published in the last 24h
+      (p.publishedAt && p.publishedAt >= recentPublishThreshold &&
+       p.analytics?.fetchedAt && p.analytics.fetchedAt < recentStaleThreshold) ||
+      // Re-fetch if any key metric is still 0 for recently published posts
+      ((p.analytics.impressions === 0 || p.analytics.likes === 0) &&
        p.publishedAt && p.publishedAt >= recentPublishThreshold)
     ),
   );

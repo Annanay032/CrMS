@@ -1,0 +1,331 @@
+{
+	"info": {
+		"_postman_id": "yt-api-direct-2026",
+		"name": "YouTube API (Direct) — Used by CrMS",
+		"description": "The actual YouTube Data API v3 & YouTube Analytics API endpoints that CrMS calls. Requires a valid OAuth2 access token with scopes: youtube.readonly, youtube.upload, youtube.force-ssl, yt-analytics.readonly.\n\nGet a token via Google OAuth Playground (https://developers.google.com/oauthplayground) or from your connected account in CrMS.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{access_token}}",
+				"type": "string"
+			}
+		]
+	},
+	"variable": [
+		{
+			"key": "access_token",
+			"value": "",
+			"type": "string",
+			"description": "YouTube OAuth2 access token. Get from Google OAuth Playground or CrMS DB."
+		},
+		{
+			"key": "api_key",
+			"value": "",
+			"type": "string",
+			"description": "YouTube Data API key (for public endpoints like trending)."
+		},
+		{
+			"key": "video_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "channel_id",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "OAuth & Token",
+			"description": "Get and refresh OAuth2 tokens from Google.",
+			"item": [
+				{
+					"name": "Refresh Access Token",
+					"request": {
+						"auth": { "type": "noauth" },
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/x-www-form-urlencoded" }
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{ "key": "client_id", "value": "{{client_id}}", "type": "text" },
+								{ "key": "client_secret", "value": "{{client_secret}}", "type": "text" },
+								{ "key": "refresh_token", "value": "{{refresh_token}}", "type": "text" },
+								{ "key": "grant_type", "value": "refresh_token", "type": "text" }
+							]
+						},
+						"url": {
+							"raw": "https://oauth2.googleapis.com/token",
+							"protocol": "https",
+							"host": ["oauth2", "googleapis", "com"],
+							"path": ["token"]
+						},
+						"description": "Exchange a refresh token for a new access token. Used by CrMS in token-refresh.job.ts."
+					}
+				}
+			]
+		},
+		{
+			"name": "Channel",
+			"description": "YouTube Data API v3 — Channel endpoints.",
+			"item": [
+				{
+					"name": "Get My Channel (Profile)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&mine=true",
+							"protocol": "https",
+							"host": ["www", "googleapis", "com"],
+							"path": ["youtube", "v3", "channels"],
+							"query": [
+								{ "key": "part", "value": "snippet,statistics" },
+								{ "key": "mine", "value": "true" }
+							]
+						},
+						"description": "Returns the authenticated user's channel — title, subscriber count, video count, view count, profile picture. Used by YouTubeService.getProfile()."
+					}
+				},
+				{
+					"name": "Get Channel by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://www.googleapis.com/youtube/v3/channels?part=id&mine=true",
+							"protocol": "https",
+							"host": ["www", "googleapis", "com"],
+							"path": ["youtube", "v3", "channels"],
+							"query": [
+								{ "key": "part", "value": "id" },
+								{ "key": "mine", "value": "true" }
+							]
+						},
+						"description": "Fetches just the channel ID for the authenticated user. Used by fetchYouTubeChannelId() during OAuth callback."
+					}
+				}
+			]
+		},
+		{
+			"name": "Videos & Analytics",
+			"description": "YouTube Data API v3 — Video stats, and YouTube Analytics API — detailed metrics.",
+			"item": [
+				{
+					"name": "Get Video Statistics",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://www.googleapis.com/youtube/v3/videos?part=statistics&id={{video_id}}",
+							"protocol": "https",
+							"host": ["www", "googleapis", "com"],
+							"path": ["youtube", "v3", "videos"],
+							"query": [
+								{ "key": "part", "value": "statistics" },
+								{ "key": "id", "value": "{{video_id}}" }
+							]
+						},
+						"description": "Returns view count, like count, comment count for a video. Used by YouTubeService.getAnalytics() — first call."
+					}
+				},
+				{
+					"name": "Get Video Analytics (Shares, Watch Time, Revenue)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://youtubeanalytics.googleapis.com/v2/reports?ids=channel==MINE&startDate=2020-01-01&endDate=2030-12-31&metrics=shares,averageViewDuration,estimatedMinutesWatched,estimatedRevenue&filters=video=={{video_id}}",
+							"protocol": "https",
+							"host": ["youtubeanalytics", "googleapis", "com"],
+							"path": ["v2", "reports"],
+							"query": [
+								{ "key": "ids", "value": "channel==MINE" },
+								{ "key": "startDate", "value": "2020-01-01" },
+								{ "key": "endDate", "value": "2030-12-31" },
+								{ "key": "metrics", "value": "shares,averageViewDuration,estimatedMinutesWatched,estimatedRevenue" },
+								{ "key": "filters", "value": "video=={{video_id}}" }
+							]
+						},
+						"description": "YouTube Analytics API — shares, avg watch duration, watch time, estimated revenue for a specific video. Used by YouTubeService.getAnalytics() — second call. Requires yt-analytics.readonly scope."
+					}
+				},
+				{
+					"name": "Get Channel Revenue by Day",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://youtubeanalytics.googleapis.com/v2/reports?ids=channel==MINE&startDate=2025-01-01&endDate=2025-12-31&metrics=estimatedRevenue,estimatedAdRevenue,grossRevenue&dimensions=day",
+							"protocol": "https",
+							"host": ["youtubeanalytics", "googleapis", "com"],
+							"path": ["v2", "reports"],
+							"query": [
+								{ "key": "ids", "value": "channel==MINE" },
+								{ "key": "startDate", "value": "2025-01-01", "description": "YYYY-MM-DD" },
+								{ "key": "endDate", "value": "2025-12-31", "description": "YYYY-MM-DD" },
+								{ "key": "metrics", "value": "estimatedRevenue,estimatedAdRevenue,grossRevenue" },
+								{ "key": "dimensions", "value": "day" }
+							]
+						},
+						"description": "Daily revenue breakdown for the channel. Used by YouTubeService.getChannelRevenue(). Requires yt-analytics.readonly scope."
+					}
+				}
+			]
+		},
+		{
+			"name": "Comments",
+			"description": "YouTube Data API v3 — Comment threads.",
+			"item": [
+				{
+					"name": "Get Video Comments",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://www.googleapis.com/youtube/v3/commentThreads?part=snippet&videoId={{video_id}}&maxResults=50&order=time",
+							"protocol": "https",
+							"host": ["www", "googleapis", "com"],
+							"path": ["youtube", "v3", "commentThreads"],
+							"query": [
+								{ "key": "part", "value": "snippet" },
+								{ "key": "videoId", "value": "{{video_id}}" },
+								{ "key": "maxResults", "value": "50" },
+								{ "key": "order", "value": "time" }
+							]
+						},
+						"description": "Fetches the latest 50 comment threads for a video. Used by YouTubeService.getComments()."
+					}
+				},
+				{
+					"name": "Post Comment (First Comment)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"snippet\": {\n    \"videoId\": \"{{video_id}}\",\n    \"topLevelComment\": {\n      \"snippet\": {\n        \"textOriginal\": \"Your comment text here\"\n      }\n    }\n  }\n}"
+						},
+						"url": {
+							"raw": "https://www.googleapis.com/youtube/v3/commentThreads?part=snippet",
+							"protocol": "https",
+							"host": ["www", "googleapis", "com"],
+							"path": ["youtube", "v3", "commentThreads"],
+							"query": [
+								{ "key": "part", "value": "snippet" }
+							]
+						},
+						"description": "Posts a top-level comment on a video. Used by first-comment.job.ts for the auto first-comment feature. Requires youtube.force-ssl scope."
+					}
+				}
+			]
+		},
+		{
+			"name": "Upload / Publish",
+			"description": "YouTube Data API v3 — Resumable video upload (2-step process).",
+			"item": [
+				{
+					"name": "Step 1: Initiate Resumable Upload",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json; charset=UTF-8" },
+							{ "key": "X-Upload-Content-Length", "value": "0", "description": "File size in bytes" },
+							{ "key": "X-Upload-Content-Type", "value": "video/*" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"snippet\": {\n    \"title\": \"My Video Title\",\n    \"description\": \"Video description\",\n    \"categoryId\": \"22\"\n  },\n  \"status\": {\n    \"privacyStatus\": \"public\",\n    \"selfDeclaredMadeForKids\": false\n  }\n}"
+						},
+						"url": {
+							"raw": "https://www.googleapis.com/upload/youtube/v3/videos?uploadType=resumable&part=snippet,status",
+							"protocol": "https",
+							"host": ["www", "googleapis", "com"],
+							"path": ["upload", "youtube", "v3", "videos"],
+							"query": [
+								{ "key": "uploadType", "value": "resumable" },
+								{ "key": "part", "value": "snippet,status" }
+							]
+						},
+						"description": "Initiates a resumable upload. Returns a 'Location' header with the upload URL for Step 2. Set X-Upload-Content-Length to your file's byte size. Used by YouTubeService.publish().\n\nFor scheduled uploads, set status.privacyStatus to 'private' and add status.publishAt as an ISO date."
+					}
+				},
+				{
+					"name": "Step 2: Upload Video Binary",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{ "key": "Content-Type", "value": "video/*" }
+						],
+						"body": {
+							"mode": "file",
+							"file": { "src": "" }
+						},
+						"url": {
+							"raw": "{{upload_url}}",
+							"host": ["{{upload_url}}"]
+						},
+						"description": "PUT the video binary to the upload URL returned in Step 1's Location header. Set the {{upload_url}} variable from that header. Returns the created video resource with the video ID."
+					}
+				}
+			]
+		},
+		{
+			"name": "Trending (Public)",
+			"description": "Public YouTube Data API v3 endpoints — use API key instead of OAuth.",
+			"item": [
+				{
+					"name": "Trending Videos (API Key)",
+					"request": {
+						"auth": { "type": "noauth" },
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&chart=mostPopular&regionCode=IN&maxResults=20&key={{api_key}}",
+							"protocol": "https",
+							"host": ["www", "googleapis", "com"],
+							"path": ["youtube", "v3", "videos"],
+							"query": [
+								{ "key": "part", "value": "snippet,statistics" },
+								{ "key": "chart", "value": "mostPopular" },
+								{ "key": "regionCode", "value": "IN", "description": "ISO 3166-1 alpha-2 country code" },
+								{ "key": "maxResults", "value": "20" },
+								{ "key": "key", "value": "{{api_key}}" }
+							]
+						},
+						"description": "Fetches trending videos by region. Uses API key (no OAuth needed). Used by getYouTubeTrending() in trends-data.service.ts."
+					}
+				},
+				{
+					"name": "Trending Videos (OAuth)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&chart=mostPopular&regionCode=IN&maxResults=20",
+							"protocol": "https",
+							"host": ["www", "googleapis", "com"],
+							"path": ["youtube", "v3", "videos"],
+							"query": [
+								{ "key": "part", "value": "snippet,statistics" },
+								{ "key": "chart", "value": "mostPopular" },
+								{ "key": "regionCode", "value": "IN", "description": "ISO 3166-1 alpha-2 country code" },
+								{ "key": "maxResults", "value": "20" }
+							]
+						},
+						"description": "Same trending endpoint but using Bearer token instead of API key. Used by YouTubeService.getTrendingVideos()."
+					}
+				}
+			]
+		}
+	]
+}

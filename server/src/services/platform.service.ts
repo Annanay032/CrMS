@@ -265,8 +265,9 @@ export class YouTubeService implements IPlatformService {
       let avgWatchTime = 0;
       let estimatedRevenue = 0;
       try {
+        const today = new Date().toISOString().split('T')[0];
         const analyticsRes = await fetch(
-          `https://youtubeanalytics.googleapis.com/v2/reports?ids=channel==MINE&startDate=2020-01-01&endDate=2030-12-31&metrics=shares,averageViewDuration,estimatedMinutesWatched,estimatedRevenue&filters=video==${encodeURIComponent(externalPostId)}`,
+          `https://youtubeanalytics.googleapis.com/v2/reports?ids=channel==MINE&startDate=2020-01-01&endDate=${today}&metrics=shares,averageViewDuration,estimatedMinutesWatched,estimatedRevenue&filters=video==${encodeURIComponent(externalPostId)}`,
           { headers: { Authorization: `Bearer ${accessToken}` } },
         );
         if (analyticsRes.ok) {

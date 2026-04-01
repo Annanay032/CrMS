@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { Button, Input, Tag, Modal, Form, Select, Empty, Tooltip, Popconfirm } from 'antd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faLightbulb, faRobot, faTrash, faEdit, faTags, faGripVertical, faPenToSquare, faSlidersH } from '@fortawesome/free-solid-svg-icons';
@@ -28,7 +28,7 @@ export function CreatePage() {
   const [runAgent, { isLoading: aiLoading }] = useRunAgentMutation();
   const navigate = useNavigate();
 
-  const ideas = ideasResp?.data ?? [];
+  const ideas = useMemo(() => ideasResp?.data ?? [], [ideasResp?.data]);
   const tags = tagsResp?.data ?? [];
   const stages = stagesResp?.data ?? [];
 

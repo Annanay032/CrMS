@@ -21,7 +21,7 @@ export function UsagePage() {
   const { data: summaryRes } = useGetUsageSummaryQuery();
   const { data: historyRes } = useGetUsageHistoryQuery({ days: 30 });
   const summary = summaryRes?.data;
-  const history = historyRes?.data ?? [];
+  const history = useMemo(() => historyRes?.data ?? [], [historyRes?.data]);
   const pct = summary ? Math.round((summary.usedToday / summary.dailyLimit) * 100) : 0;
 
   const totalCalls = useMemo(

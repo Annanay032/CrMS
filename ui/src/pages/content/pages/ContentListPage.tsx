@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
   Table, Tag, Space, Button, Input, Select, Tooltip, Checkbox, message,
@@ -43,7 +43,7 @@ export function ContentListPage() {
     search: search || undefined,
   });
 
-  const posts = data?.data ?? [];
+  const posts = useMemo(() => data?.data ?? [], [data?.data]);
   const total = data?.pagination?.total ?? 0;
 
   const toggleSelect = useCallback((id: string) => {

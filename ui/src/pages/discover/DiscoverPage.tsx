@@ -37,7 +37,7 @@ export function DiscoverPage() {
     trigger({ niche: '', platform: '' });
   };
 
-  useEffect(() => { trigger({ niche: '', platform: '' }); }, []);
+  useEffect(() => { trigger({ niche: '', platform: '' }); }, [trigger]);
 
   return (
     <div>

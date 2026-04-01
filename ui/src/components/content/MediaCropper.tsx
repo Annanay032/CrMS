@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { Modal, Button, Space, Typography, Segmented, Tooltip } from 'antd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCrop, faExpand } from '@fortawesome/free-solid-svg-icons';
@@ -66,8 +66,8 @@ export function MediaCropper({ open, onClose, imageUrl, platform, onCrop }: Medi
   const dragStart = useRef({ x: 0, y: 0, cropX: 0, cropY: 0 });
   const scaleRef = useRef(1);
 
-  const presets = platform ? PLATFORM_PRESETS[platform] ?? [] : [];
-  const allPresets = [{ label: 'Free form', shortLabel: 'Free', ratio: 0, width: 0, height: 0 }, ...presets];
+  const presets = useMemo(() => platform ? PLATFORM_PRESETS[platform] ?? [] : [], [platform]);
+  const allPresets = useMemo(() => [{ label: 'Free form', shortLabel: 'Free', ratio: 0, width: 0, height: 0 }, ...presets], [presets]);
   const activePreset = allPresets.find((p) => p.label === selectedPreset);
 
   // Reset state when modal opens
@@ -75,7 +75,6 @@ export function MediaCropper({ open, onClose, imageUrl, platform, onCrop }: Medi
     if (!open) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional reset when modal closes
       setLoaded(false);
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional reset when modal closes
       setSelectedPreset('Free form');
       return;
     }

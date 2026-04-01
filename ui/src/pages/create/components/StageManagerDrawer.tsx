@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { Drawer, Button, Input, ColorPicker, Popconfirm, Select, Empty } from 'antd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faGripVertical, faTrash, faCheck, faPen } from '@fortawesome/free-solid-svg-icons';
@@ -24,7 +24,7 @@ export function StageManagerDrawer({ open, onClose }: StageManagerDrawerProps) {
   const [reorderStages] = useReorderStagesMutation();
   const [deleteStage] = useDeleteStageMutation();
 
-  const stages = stagesResp?.data ?? [];
+  const stages = useMemo(() => stagesResp?.data ?? [], [stagesResp?.data]);
 
   const [newName, setNewName] = useState('');
   const [newColor, setNewColor] = useState('#6366f1');

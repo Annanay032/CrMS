@@ -61,7 +61,7 @@ export function MediaLibraryPage() {
   const [deleteAsset] = useDeleteMediaAssetMutation();
 
   const folders: MediaFolder[] = foldersRes?.data ?? [];
-  const assets: MediaAsset[] = assetsRes?.data?.items ?? [];
+  const assets: MediaAsset[] = useMemo(() => assetsRes?.data?.items ?? [], [assetsRes?.data?.items]);
 
   const totalUsed = useMemo(() => assets.reduce((sum, a) => sum + a.size, 0), [assets]);
   const pct = Math.min((totalUsed / STORAGE_LIMIT) * 100, 100);

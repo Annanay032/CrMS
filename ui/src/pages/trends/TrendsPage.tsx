@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button, Select, Modal, Tag, Spin } from 'antd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowTrendUp, faShareNodes, faPenToSquare } from '@fortawesome/free-solid-svg-icons';
@@ -36,16 +36,16 @@ export function TrendsPage() {
   const [draftModal, setDraftModal] = useState<{ open: boolean; trend: Trend | null; draft: Record<string, unknown> | null }>({ open: false, trend: null, draft: null });
   const [scoreModal, setScoreModal] = useState<{ open: boolean; trend: Trend | null; score: Record<string, unknown> | null }>({ open: false, trend: null, score: null });
 
-  const fetchTrends = async () => {
+  const fetchTrends = useCallback(async () => {
     try {
       const result = await getTrends({ niche: niches, platforms }).unwrap();
       setTrends((result.data?.trends as unknown as Trend[]) ?? []);
       setSummary((result.data?.summary as string) ?? '');
     } catch { /* */ }
-  };
+  }, [getTrends, niches, platforms]);
 
   // eslint-disable-next-line react-hooks/set-state-in-effect -- initial data fetch on mount
-  useEffect(() => { fetchTrends(); }, []);
+  useEffect(() => { fetchTrends(); }, [fetchTrends]);
 
   const handleCorrelate = async () => {
     if (trends.length === 0) return;

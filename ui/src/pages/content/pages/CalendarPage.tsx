@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { Button, Tag, message } from 'antd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronLeft, faChevronRight, faStickyNote, faPlus } from '@fortawesome/free-solid-svg-icons';
@@ -30,7 +30,7 @@ export function CalendarPage() {
 
   const { data } = useGetCalendarQuery({ month, year });
   const calendarData = data?.data;
-  const posts: ContentPost[] = calendarData?.posts ?? (Array.isArray(calendarData) ? calendarData : []);
+  const posts: ContentPost[] = useMemo(() => calendarData?.posts ?? (Array.isArray(calendarData) ? calendarData : []), [calendarData]);
   const notes: CalendarNote[] = calendarData?.notes ?? [];
   const [deleteNote] = useDeleteCalendarNoteMutation();
   const [reschedulePost] = useReschedulePostMutation();

@@ -11,6 +11,8 @@ export async function getChannelOverview(creatorProfileId: string, platform: Pla
   const staleThreshold = new Date(Date.now() - 60 * 60 * 1000); // 1 hour
   const recentPublishThreshold = new Date(Date.now() - 24 * 60 * 60 * 1000); // 24 hours
 
+  const recentStaleThreshold = new Date(Date.now() - 10 * 60 * 1000); // 10 min for recent posts
+
   // Check for published posts missing analytics or with stale data
   const stalePosts = await prisma.contentPost.findMany({
     where: {
@@ -21,10 +23,10 @@ export async function getChannelOverview(creatorProfileId: string, platform: Pla
       OR: [
         { analytics: null },
         { analytics: { fetchedAt: { lt: staleThreshold } } },
-        // Re-fetch if analytics are all zeros and post was published recently
+        // Re-fetch every 10 min for posts published in the last 24h
         {
           publishedAt: { gte: recentPublishThreshold },
-          analytics: { impressions: 0, likes: 0, comments: 0 },
+          analytics: { fetchedAt: { lt: recentStaleThreshold } },
         },
       ],
     },

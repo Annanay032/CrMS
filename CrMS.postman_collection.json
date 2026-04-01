@@ -1,0 +1,2489 @@
+{
+	"info": {
+		"_postman_id": "crms-api-collection",
+		"name": "CrMS API",
+		"description": "Complete API collection for CrMS — Creator Management System",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{access_token}}",
+				"type": "string"
+			}
+		]
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:3000/api"
+		},
+		{
+			"key": "access_token",
+			"value": ""
+		}
+	],
+	"item": [
+		{
+			"name": "Health",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"auth": { "type": "noauth" },
+						"method": "GET",
+						"url": "{{base_url}}/../health"
+					}
+				}
+			]
+		},
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Register",
+					"request": {
+						"auth": { "type": "noauth" },
+						"method": "POST",
+						"url": "{{base_url}}/auth/register",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\",\n  \"name\": \"John Doe\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"var json = pm.response.json();",
+									"if (json.accessToken) { pm.collectionVariables.set('access_token', json.accessToken); }",
+									"if (json.token) { pm.collectionVariables.set('access_token', json.token); }",
+									"if (json.data && json.data.accessToken) { pm.collectionVariables.set('access_token', json.data.accessToken); }"
+								]
+							}
+						}
+					],
+					"request": {
+						"auth": { "type": "noauth" },
+						"method": "POST",
+						"url": "{{base_url}}/auth/login",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Refresh Token",
+					"request": {
+						"auth": { "type": "noauth" },
+						"method": "POST",
+						"url": "{{base_url}}/auth/refresh",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"refreshToken\": \"\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Forgot Password",
+					"request": {
+						"auth": { "type": "noauth" },
+						"method": "POST",
+						"url": "{{base_url}}/auth/forgot-password",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"user@example.com\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/auth/logout"
+					}
+				},
+				{
+					"name": "Get Me",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/auth/me"
+					}
+				},
+				{
+					"name": "Get My Teams",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/auth/my-teams"
+					}
+				},
+				{
+					"name": "Set Password",
+					"request": {
+						"method": "PUT",
+						"url": "{{base_url}}/auth/set-password",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"password\": \"newPassword123\"\n}"
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "Update My Profile",
+					"request": {
+						"method": "PUT",
+						"url": "{{base_url}}/users/me",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Updated Name\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Setup Creator Profile",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/users/creator-profile",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"niche\": \"tech\",\n  \"bio\": \"Tech content creator\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Setup Brand Profile",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/users/brand-profile",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"companyName\": \"My Brand\",\n  \"industry\": \"tech\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Setup Agency Profile",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/users/agency-profile",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"agencyName\": \"My Agency\"\n}"
+						}
+					}
+				},
+				{
+					"name": "List Users (Admin)",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/users"
+					}
+				},
+				{
+					"name": "Update User Role (Admin)",
+					"request": {
+						"method": "PATCH",
+						"url": "{{base_url}}/users/:id/role",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"role\": \"CREATOR\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Toggle User Active (Admin)",
+					"request": {
+						"method": "PATCH",
+						"url": "{{base_url}}/users/:id/toggle-active"
+					}
+				}
+			]
+		},
+		{
+			"name": "Accounts",
+			"item": [
+				{
+					"name": "Get Connected Accounts",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/accounts"
+					}
+				},
+				{
+					"name": "Initiate OAuth",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/accounts/connect/:platform"
+					}
+				},
+				{
+					"name": "OAuth Callback",
+					"request": {
+						"auth": { "type": "noauth" },
+						"method": "GET",
+						"url": "{{base_url}}/accounts/callback/:platform"
+					}
+				},
+				{
+					"name": "Manual Connect",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/accounts/connect/:platform/manual",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"accessToken\": \"\",\n  \"username\": \"\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Disconnect Account",
+					"request": {
+						"method": "DELETE",
+						"url": "{{base_url}}/accounts/:provider"
+					}
+				},
+				{
+					"name": "Refresh Token",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/accounts/:provider/refresh"
+					}
+				},
+				{
+					"name": "Toggle Pause",
+					"request": {
+						"method": "PATCH",
+						"url": "{{base_url}}/accounts/:provider/pause"
+					}
+				}
+			]
+		},
+		{
+			"name": "Content",
+			"item": [
+				{
+					"name": "Create Post",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/content",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"caption\": \"My new post\",\n  \"platform\": \"instagram\",\n  \"scheduledAt\": \"2026-04-15T10:00:00Z\"\n}"
+						}
+					}
+				},
+				{
+					"name": "List Posts",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{base_url}}/content/list?page=1&limit=20",
+							"host": ["{{base_url}}"],
+							"path": ["content", "list"],
+							"query": [
+								{ "key": "page", "value": "1" },
+								{ "key": "limit", "value": "20" }
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Calendar",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{base_url}}/content/calendar?startDate=2026-04-01&endDate=2026-04-30",
+							"host": ["{{base_url}}"],
+							"path": ["content", "calendar"],
+							"query": [
+								{ "key": "startDate", "value": "2026-04-01" },
+								{ "key": "endDate", "value": "2026-04-30" }
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Posts by Status",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/content/status/:status"
+					}
+				},
+				{
+					"name": "Get Crossplatform Group",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/content/group/:groupId"
+					}
+				},
+				{
+					"name": "Get Post",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/content/:id"
+					}
+				},
+				{
+					"name": "Get Post Activity",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/content/:id/activity"
+					}
+				},
+				{
+					"name": "Update Post",
+					"request": {
+						"method": "PUT",
+						"url": "{{base_url}}/content/:id",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"caption\": \"Updated caption\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Delete Post",
+					"request": {
+						"method": "DELETE",
+						"url": "{{base_url}}/content/:id"
+					}
+				},
+				{
+					"name": "Autosave Post",
+					"request": {
+						"method": "PUT",
+						"url": "{{base_url}}/content/autosave",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"id\": \"\",\n  \"caption\": \"Draft content\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Search Content",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{base_url}}/content/search?q=keyword",
+							"host": ["{{base_url}}"],
+							"path": ["content", "search"],
+							"query": [
+								{ "key": "q", "value": "keyword" }
+							]
+						}
+					}
+				},
+				{
+					"name": "Shuffle Queue",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/content/queue/shuffle",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{}"
+						}
+					}
+				},
+				{
+					"name": "Inject Into Queue",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/content/queue/inject",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"postId\": \"\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Create Thread",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/content/threads",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"posts\": []\n}"
+						}
+					}
+				},
+				{
+					"name": "Get Thread",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/content/threads/:id"
+					}
+				},
+				{
+					"name": "Create Calendar Note",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/content/notes",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"date\": \"2026-04-15\",\n  \"note\": \"Content planning day\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Update Calendar Note",
+					"request": {
+						"method": "PUT",
+						"url": "{{base_url}}/content/notes/:id",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"note\": \"Updated note\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Delete Calendar Note",
+					"request": {
+						"method": "DELETE",
+						"url": "{{base_url}}/content/notes/:id"
+					}
+				},
+				{
+					"name": "Get Templates",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/content/templates"
+					}
+				},
+				{
+					"name": "Create Template",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/content/templates",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"My Template\",\n  \"content\": \"Template content here\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Delete Template",
+					"request": {
+						"method": "DELETE",
+						"url": "{{base_url}}/content/templates/:id"
+					}
+				},
+				{
+					"name": "Get Grid Preview",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/content/grid/:accountId"
+					}
+				},
+				{
+					"name": "Reorder Scheduled Posts",
+					"request": {
+						"method": "PATCH",
+						"url": "{{base_url}}/content/reorder",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"orderedIds\": []\n}"
+						}
+					}
+				},
+				{
+					"name": "Bulk Update Posts",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/content/bulk",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"ids\": [],\n  \"action\": \"delete\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Reschedule Post",
+					"request": {
+						"method": "PATCH",
+						"url": "{{base_url}}/content/:id/reschedule",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"scheduledAt\": \"2026-04-20T14:00:00Z\"\n}"
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Campaigns",
+			"item": [
+				{
+					"name": "Create Campaign",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/campaigns",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Summer Campaign\",\n  \"description\": \"Summer promo\",\n  \"budget\": 5000\n}"
+						}
+					}
+				},
+				{
+					"name": "List Campaigns",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/campaigns"
+					}
+				},
+				{
+					"name": "Get Creator Campaigns",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/campaigns/my"
+					}
+				},
+				{
+					"name": "Discover Creators",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/campaigns/discover"
+					}
+				},
+				{
+					"name": "Get Campaign",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/campaigns/:id"
+					}
+				},
+				{
+					"name": "Update Campaign",
+					"request": {
+						"method": "PUT",
+						"url": "{{base_url}}/campaigns/:id",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Updated Campaign\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Update Campaign Status",
+					"request": {
+						"method": "PATCH",
+						"url": "{{base_url}}/campaigns/:id/status",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"ACTIVE\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Update Campaign Stage",
+					"request": {
+						"method": "PATCH",
+						"url": "{{base_url}}/campaigns/:id/stage",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"stage\": \"REVIEW\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Respond to Match",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/campaigns/matches/:matchId/respond",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"response\": \"ACCEPT\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Get Deliverables",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/campaigns/:id/deliverables"
+					}
+				},
+				{
+					"name": "Create Deliverable",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/campaigns/:id/deliverables",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Instagram Reel\",\n  \"dueDate\": \"2026-04-20\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Update Deliverable",
+					"request": {
+						"method": "PUT",
+						"url": "{{base_url}}/campaigns/:id/deliverables/:deliverableId",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"COMPLETED\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Delete Deliverable",
+					"request": {
+						"method": "DELETE",
+						"url": "{{base_url}}/campaigns/:id/deliverables/:deliverableId"
+					}
+				},
+				{
+					"name": "Get Campaign Reports",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/campaigns/:id/reports"
+					}
+				}
+			]
+		},
+		{
+			"name": "Dashboard",
+			"item": [
+				{
+					"name": "Get Dashboard Stats",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/dashboard/stats"
+					}
+				},
+				{
+					"name": "Get Analytics Dashboard",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/dashboard/analytics"
+					}
+				},
+				{
+					"name": "Get Content Type Stats",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/dashboard/content-types"
+					}
+				},
+				{
+					"name": "Get Audience Insights",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/dashboard/audience"
+					}
+				},
+				{
+					"name": "Get Hashtag Analytics",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/dashboard/hashtags"
+					}
+				},
+				{
+					"name": "Get Top Hashtags",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/dashboard/hashtags/top"
+					}
+				},
+				{
+					"name": "Refresh Hashtag Analytics",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/dashboard/hashtags/refresh"
+					}
+				},
+				{
+					"name": "Get Organic vs Boosted",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/dashboard/organic-vs-boosted"
+					}
+				},
+				{
+					"name": "Get Post Analytics",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/dashboard/posts/:id/analytics"
+					}
+				},
+				{
+					"name": "Get Reports",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/dashboard/reports"
+					}
+				},
+				{
+					"name": "Create Report",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/dashboard/reports",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Monthly Report\",\n  \"type\": \"monthly\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Get Report by ID",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/dashboard/reports/:id"
+					}
+				},
+				{
+					"name": "Update Report",
+					"request": {
+						"method": "PUT",
+						"url": "{{base_url}}/dashboard/reports/:id",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Updated Report\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Delete Report",
+					"request": {
+						"method": "DELETE",
+						"url": "{{base_url}}/dashboard/reports/:id"
+					}
+				},
+				{
+					"name": "Generate Report",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/dashboard/reports/:id/generate"
+					}
+				}
+			]
+		},
+		{
+			"name": "Ideas",
+			"item": [
+				{
+					"name": "Quick Capture",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/ideas/quick",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"text\": \"Quick idea capture\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Get Ideas",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/ideas"
+					}
+				},
+				{
+					"name": "Get Idea by ID",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/ideas/:id"
+					}
+				},
+				{
+					"name": "Create Idea",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/ideas",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"New Idea\",\n  \"body\": \"Idea details\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Update Idea",
+					"request": {
+						"method": "PUT",
+						"url": "{{base_url}}/ideas/:id",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Updated Idea\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Delete Idea",
+					"request": {
+						"method": "DELETE",
+						"url": "{{base_url}}/ideas/:id"
+					}
+				},
+				{
+					"name": "Get Tags",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/ideas/tags/all"
+					}
+				},
+				{
+					"name": "Create Tag",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/ideas/tags",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"inspiration\",\n  \"color\": \"#ff6600\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Update Tag",
+					"request": {
+						"method": "PUT",
+						"url": "{{base_url}}/ideas/tags/:id",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"updated-tag\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Delete Tag",
+					"request": {
+						"method": "DELETE",
+						"url": "{{base_url}}/ideas/tags/:id"
+					}
+				},
+				{
+					"name": "Get Templates",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/ideas/templates/all"
+					}
+				},
+				{
+					"name": "Create Template",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/ideas/templates",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Blog Post Template\",\n  \"body\": \"## Title\\n\\nContent here\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Get Stages",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/ideas/stages/all"
+					}
+				},
+				{
+					"name": "Create Stage",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/ideas/stages",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Brainstorm\",\n  \"order\": 1\n}"
+						}
+					}
+				},
+				{
+					"name": "Reorder Stages",
+					"request": {
+						"method": "PUT",
+						"url": "{{base_url}}/ideas/stages/reorder",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"orderedIds\": []\n}"
+						}
+					}
+				},
+				{
+					"name": "Update Stage",
+					"request": {
+						"method": "PUT",
+						"url": "{{base_url}}/ideas/stages/:id",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Updated Stage\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Delete Stage",
+					"request": {
+						"method": "DELETE",
+						"url": "{{base_url}}/ideas/stages/:id"
+					}
+				}
+			]
+		},
+		{
+			"name": "Media Library",
+			"item": [
+				{
+					"name": "Get Folders",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/media/folders"
+					}
+				},
+				{
+					"name": "Create Folder",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/media/folders",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Campaign Assets\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Delete Folder",
+					"request": {
+						"method": "DELETE",
+						"url": "{{base_url}}/media/folders/:id"
+					}
+				},
+				{
+					"name": "Get Assets",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/media/assets"
+					}
+				},
+				{
+					"name": "Upload Asset",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/media/assets",
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{ "key": "file", "type": "file", "src": "" }
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Asset",
+					"request": {
+						"method": "PATCH",
+						"url": "{{base_url}}/media/assets/:id",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Renamed Asset\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Delete Asset",
+					"request": {
+						"method": "DELETE",
+						"url": "{{base_url}}/media/assets/:id"
+					}
+				}
+			]
+		},
+		{
+			"name": "Revenue",
+			"item": [
+				{
+					"name": "Get Revenue Summary",
+					"request": { "method": "GET", "url": "{{base_url}}/revenue/summary" }
+				},
+				{
+					"name": "Get Post ROI",
+					"request": { "method": "GET", "url": "{{base_url}}/revenue/post-roi" }
+				},
+				{
+					"name": "Get Revenue Trends",
+					"request": { "method": "GET", "url": "{{base_url}}/revenue/trends" }
+				},
+				{
+					"name": "Get Pipeline Summary",
+					"request": { "method": "GET", "url": "{{base_url}}/revenue/pipeline-summary" }
+				},
+				{
+					"name": "Get Invoice Stats",
+					"request": { "method": "GET", "url": "{{base_url}}/revenue/invoice-stats" }
+				},
+				{
+					"name": "List Revenue Streams",
+					"request": { "method": "GET", "url": "{{base_url}}/revenue/streams" }
+				},
+				{
+					"name": "Create Revenue Stream",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/revenue/streams",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Sponsorship\",\n  \"type\": \"SPONSORSHIP\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Delete Revenue Stream",
+					"request": { "method": "DELETE", "url": "{{base_url}}/revenue/streams/:id" }
+				},
+				{
+					"name": "List Brand Deals",
+					"request": { "method": "GET", "url": "{{base_url}}/revenue/deals" }
+				},
+				{
+					"name": "Create Brand Deal",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/revenue/deals",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"brandName\": \"Acme Corp\",\n  \"amount\": 2000\n}"
+						}
+					}
+				},
+				{
+					"name": "Update Brand Deal",
+					"request": {
+						"method": "PUT",
+						"url": "{{base_url}}/revenue/deals/:id",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"amount\": 2500\n}"
+						}
+					}
+				},
+				{
+					"name": "Delete Brand Deal",
+					"request": { "method": "DELETE", "url": "{{base_url}}/revenue/deals/:id" }
+				},
+				{
+					"name": "List Invoices",
+					"request": { "method": "GET", "url": "{{base_url}}/revenue/invoices" }
+				},
+				{
+					"name": "Create Invoice",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/revenue/invoices",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"dealId\": \"\",\n  \"amount\": 2000,\n  \"dueDate\": \"2026-04-30\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Update Invoice",
+					"request": {
+						"method": "PUT",
+						"url": "{{base_url}}/revenue/invoices/:id",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"PAID\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Delete Invoice",
+					"request": { "method": "DELETE", "url": "{{base_url}}/revenue/invoices/:id" }
+				},
+				{
+					"name": "Download Invoice PDF",
+					"request": { "method": "GET", "url": "{{base_url}}/revenue/invoices/:id/pdf" }
+				}
+			]
+		},
+		{
+			"name": "Contracts",
+			"item": [
+				{
+					"name": "List Contracts",
+					"request": { "method": "GET", "url": "{{base_url}}/contracts" }
+				},
+				{
+					"name": "Create Contract",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/contracts",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Brand Deal Contract\",\n  \"brandName\": \"Acme\",\n  \"startDate\": \"2026-04-01\",\n  \"endDate\": \"2026-06-30\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Get Calendar Events",
+					"request": { "method": "GET", "url": "{{base_url}}/contracts/calendar-events" }
+				},
+				{
+					"name": "Get Contract",
+					"request": { "method": "GET", "url": "{{base_url}}/contracts/:id" }
+				},
+				{
+					"name": "Update Contract",
+					"request": {
+						"method": "PUT",
+						"url": "{{base_url}}/contracts/:id",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Updated Contract\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Delete Contract",
+					"request": { "method": "DELETE", "url": "{{base_url}}/contracts/:id" }
+				}
+			]
+		},
+		{
+			"name": "CRM",
+			"item": [
+				{
+					"name": "List Contacts",
+					"request": { "method": "GET", "url": "{{base_url}}/crm/contacts" }
+				},
+				{
+					"name": "Create Contact",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/crm/contacts",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Jane Brand\",\n  \"email\": \"jane@brand.com\",\n  \"company\": \"Brand Co\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Get Contact",
+					"request": { "method": "GET", "url": "{{base_url}}/crm/contacts/:id" }
+				},
+				{
+					"name": "Update Contact",
+					"request": {
+						"method": "PUT",
+						"url": "{{base_url}}/crm/contacts/:id",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Updated Contact\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Delete Contact",
+					"request": { "method": "DELETE", "url": "{{base_url}}/crm/contacts/:id" }
+				},
+				{
+					"name": "Update Contact Tags",
+					"request": {
+						"method": "PATCH",
+						"url": "{{base_url}}/crm/contacts/:id/tags",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"tags\": [\"vip\", \"brand\"]\n}"
+						}
+					}
+				},
+				{
+					"name": "Get Pipeline",
+					"request": { "method": "GET", "url": "{{base_url}}/crm/pipeline" }
+				},
+				{
+					"name": "List Signals",
+					"request": { "method": "GET", "url": "{{base_url}}/crm/signals" }
+				},
+				{
+					"name": "Get Signal Summary",
+					"request": { "method": "GET", "url": "{{base_url}}/crm/signals/summary" }
+				},
+				{
+					"name": "Update Signal Status",
+					"request": {
+						"method": "PATCH",
+						"url": "{{base_url}}/crm/signals/:id/status",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"ACTIONED\"\n}"
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Community (Inbox)",
+			"item": [
+				{
+					"name": "Get Interactions",
+					"request": { "method": "GET", "url": "{{base_url}}/community" }
+				},
+				{
+					"name": "Get Stats",
+					"request": { "method": "GET", "url": "{{base_url}}/community/stats" }
+				},
+				{
+					"name": "Get Interaction by ID",
+					"request": { "method": "GET", "url": "{{base_url}}/community/:id" }
+				},
+				{
+					"name": "Mark Responded",
+					"request": { "method": "POST", "url": "{{base_url}}/community/:id/responded" }
+				},
+				{
+					"name": "Mark Read",
+					"request": { "method": "PATCH", "url": "{{base_url}}/community/:id/read" }
+				},
+				{
+					"name": "Mark Bulk Read",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/community/bulk-read",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"ids\": []\n}"
+						}
+					}
+				},
+				{
+					"name": "Update Case",
+					"request": {
+						"method": "PATCH",
+						"url": "{{base_url}}/community/:id/case",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"RESOLVED\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Assign Interaction",
+					"request": {
+						"method": "PATCH",
+						"url": "{{base_url}}/community/:id/assign",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"assigneeId\": \"\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Get Saved Replies",
+					"request": { "method": "GET", "url": "{{base_url}}/community/saved-replies/list" }
+				},
+				{
+					"name": "Create Saved Reply",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/community/saved-replies",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Thanks!\",\n  \"body\": \"Thank you for your comment!\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Update Saved Reply",
+					"request": {
+						"method": "PATCH",
+						"url": "{{base_url}}/community/saved-replies/:id",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"body\": \"Updated reply text\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Delete Saved Reply",
+					"request": { "method": "DELETE", "url": "{{base_url}}/community/saved-replies/:id" }
+				},
+				{
+					"name": "Use Saved Reply",
+					"request": { "method": "POST", "url": "{{base_url}}/community/saved-replies/:id/use" }
+				},
+				{
+					"name": "Get Voice Profile",
+					"request": { "method": "GET", "url": "{{base_url}}/community/voice-profile/me" }
+				},
+				{
+					"name": "Upsert Voice Profile",
+					"request": {
+						"method": "PUT",
+						"url": "{{base_url}}/community/voice-profile",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"tone\": \"friendly\",\n  \"style\": \"casual\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Get Threads",
+					"request": { "method": "GET", "url": "{{base_url}}/community/threads" }
+				},
+				{
+					"name": "Get Channels",
+					"request": { "method": "GET", "url": "{{base_url}}/community/channels" }
+				},
+				{
+					"name": "Upsert Channel",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/community/channels",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"type\": \"whatsapp\",\n  \"config\": {}\n}"
+						}
+					}
+				},
+				{
+					"name": "Delete Channel",
+					"request": { "method": "DELETE", "url": "{{base_url}}/community/channels/:type" }
+				},
+				{
+					"name": "Star Interaction",
+					"request": { "method": "POST", "url": "{{base_url}}/community/:id/star" }
+				},
+				{
+					"name": "Unstar Interaction",
+					"request": { "method": "DELETE", "url": "{{base_url}}/community/:id/star" }
+				},
+				{
+					"name": "Create Post from Reply",
+					"request": { "method": "POST", "url": "{{base_url}}/community/:id/to-post" }
+				},
+				{
+					"name": "Get Comment Score",
+					"request": { "method": "GET", "url": "{{base_url}}/community/score/current" }
+				}
+			]
+		},
+		{
+			"name": "Channels",
+			"item": [
+				{
+					"name": "Get Channel Overview",
+					"request": { "method": "GET", "url": "{{base_url}}/channels/:platform/overview" }
+				},
+				{
+					"name": "Get Channel Posts",
+					"request": { "method": "GET", "url": "{{base_url}}/channels/:platform/posts" }
+				},
+				{
+					"name": "Get Channel Analytics",
+					"request": { "method": "GET", "url": "{{base_url}}/channels/:platform/analytics" }
+				}
+			]
+		},
+		{
+			"name": "Teams",
+			"item": [
+				{
+					"name": "Create Team",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/teams",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Marketing Team\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Get My Teams",
+					"request": { "method": "GET", "url": "{{base_url}}/teams" }
+				},
+				{
+					"name": "Get Team",
+					"request": { "method": "GET", "url": "{{base_url}}/teams/:id" }
+				},
+				{
+					"name": "Update Team",
+					"request": {
+						"method": "PUT",
+						"url": "{{base_url}}/teams/:id",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Updated Team Name\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Delete Team",
+					"request": { "method": "DELETE", "url": "{{base_url}}/teams/:id" }
+				},
+				{
+					"name": "Add Member",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/teams/:id/members",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"userId\": \"\",\n  \"role\": \"MEMBER\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Update Member Role",
+					"request": {
+						"method": "PUT",
+						"url": "{{base_url}}/teams/:id/members/:memberId",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"role\": \"ADMIN\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Remove Member",
+					"request": { "method": "DELETE", "url": "{{base_url}}/teams/:id/members/:memberId" }
+				},
+				{
+					"name": "Create Workflow",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/teams/:id/workflows",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Approval Flow\",\n  \"steps\": []\n}"
+						}
+					}
+				},
+				{
+					"name": "Get Workflows",
+					"request": { "method": "GET", "url": "{{base_url}}/teams/:id/workflows" }
+				},
+				{
+					"name": "Update Workflow",
+					"request": {
+						"method": "PUT",
+						"url": "{{base_url}}/teams/:id/workflows/:workflowId",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Updated Workflow\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Delete Workflow",
+					"request": { "method": "DELETE", "url": "{{base_url}}/teams/:id/workflows/:workflowId" }
+				},
+				{
+					"name": "Get Team Calendar",
+					"request": { "method": "GET", "url": "{{base_url}}/teams/:id/calendar" }
+				},
+				{
+					"name": "Submit for Approval",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/teams/posts/:postId/submit",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"teamId\": \"\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Approve Post",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/teams/posts/:postId/approve",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"comment\": \"Looks good!\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Request Changes",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/teams/posts/:postId/request-changes",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"comment\": \"Please update the caption\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Reject Post",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/teams/posts/:postId/reject",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"reason\": \"Off-brand\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Add Post Comment",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/teams/posts/:postId/comments",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"body\": \"Great work!\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Get Post Comments",
+					"request": { "method": "GET", "url": "{{base_url}}/teams/posts/:postId/comments" }
+				}
+			]
+		},
+		{
+			"name": "Matching",
+			"item": [
+				{
+					"name": "Find Creators",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/matching/find-creators",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"campaignId\": \"\",\n  \"criteria\": {}\n}"
+						}
+					}
+				},
+				{
+					"name": "Get Match Results",
+					"request": { "method": "GET", "url": "{{base_url}}/matching/campaigns/:campaignId/matches" }
+				},
+				{
+					"name": "Discover Creators",
+					"request": { "method": "GET", "url": "{{base_url}}/matching/creators" }
+				}
+			]
+		},
+		{
+			"name": "Listening",
+			"item": [
+				{
+					"name": "Get Queries",
+					"request": { "method": "GET", "url": "{{base_url}}/listening" }
+				},
+				{
+					"name": "Create Query",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/listening",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"keyword\": \"my brand\",\n  \"platforms\": [\"twitter\", \"reddit\"]\n}"
+						}
+					}
+				},
+				{
+					"name": "Get Query by ID",
+					"request": { "method": "GET", "url": "{{base_url}}/listening/:id" }
+				},
+				{
+					"name": "Update Query",
+					"request": {
+						"method": "PUT",
+						"url": "{{base_url}}/listening/:id",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"keyword\": \"updated keyword\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Delete Query",
+					"request": { "method": "DELETE", "url": "{{base_url}}/listening/:id" }
+				},
+				{
+					"name": "Get Mentions",
+					"request": { "method": "GET", "url": "{{base_url}}/listening/:id/mentions" }
+				},
+				{
+					"name": "Get Sentiment Timeline",
+					"request": { "method": "GET", "url": "{{base_url}}/listening/:id/sentiment/timeline" }
+				},
+				{
+					"name": "Get Sentiment Summary",
+					"request": { "method": "GET", "url": "{{base_url}}/listening/:id/sentiment/summary" }
+				}
+			]
+		},
+		{
+			"name": "Competitive",
+			"item": [
+				{
+					"name": "Get Competitors",
+					"request": { "method": "GET", "url": "{{base_url}}/competitive" }
+				},
+				{
+					"name": "Create Competitor",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/competitive",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Competitor A\",\n  \"handles\": { \"instagram\": \"competitorA\" }\n}"
+						}
+					}
+				},
+				{
+					"name": "Get Benchmark",
+					"request": { "method": "GET", "url": "{{base_url}}/competitive/benchmark" }
+				},
+				{
+					"name": "Get Competitor by ID",
+					"request": { "method": "GET", "url": "{{base_url}}/competitive/:id" }
+				},
+				{
+					"name": "Update Competitor",
+					"request": {
+						"method": "PUT",
+						"url": "{{base_url}}/competitive/:id",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Updated Competitor\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Delete Competitor",
+					"request": { "method": "DELETE", "url": "{{base_url}}/competitive/:id" }
+				},
+				{
+					"name": "Get Snapshots",
+					"request": { "method": "GET", "url": "{{base_url}}/competitive/:id/snapshots" }
+				}
+			]
+		},
+		{
+			"name": "AI Agents",
+			"item": [
+				{
+					"name": "Run Agent",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/agents/run",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"agent\": \"content\",\n  \"input\": \"Generate a post about AI trends\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Chat",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/agents/chat",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"message\": \"What should I post today?\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Generate Content",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/agents/content/generate",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"topic\": \"AI trends\",\n  \"platform\": \"instagram\",\n  \"tone\": \"professional\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Optimize Schedule",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/agents/schedule/optimize",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"platform\": \"instagram\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Get Analytics Insights",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/agents/analytics/insights",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"period\": \"7d\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Get Engagement Suggestions",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/agents/engagement/suggestions",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{}"
+						}
+					}
+				},
+				{
+					"name": "Get Trends",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/agents/trends",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"niche\": \"tech\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Growth Daily",
+					"request": { "method": "POST", "url": "{{base_url}}/agents/growth/daily" }
+				},
+				{
+					"name": "Growth Hooks",
+					"request": { "method": "POST", "url": "{{base_url}}/agents/growth/hooks" }
+				},
+				{
+					"name": "Growth Predict",
+					"request": { "method": "POST", "url": "{{base_url}}/agents/growth/predict" }
+				},
+				{
+					"name": "Growth Weekly Plan",
+					"request": { "method": "POST", "url": "{{base_url}}/agents/growth/weekly-plan" }
+				},
+				{
+					"name": "List Agents",
+					"request": { "method": "GET", "url": "{{base_url}}/agents" }
+				},
+				{
+					"name": "Get Agent History",
+					"request": { "method": "GET", "url": "{{base_url}}/agents/history" }
+				},
+				{
+					"name": "Get Admin Agent History",
+					"request": { "method": "GET", "url": "{{base_url}}/agents/admin/history" }
+				}
+			]
+		},
+		{
+			"name": "Studio",
+			"item": [
+				{
+					"name": "Compose",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/studio/compose",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"prompt\": \"Write a caption about sustainable fashion\",\n  \"platform\": \"instagram\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Rewrite",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/studio/rewrite",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"text\": \"Original text here\",\n  \"tone\": \"casual\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Generate Image",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/studio/image/generate",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"prompt\": \"A minimalist flat lay photo of coffee and notebook\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Suggest Media",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/studio/media/suggest",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"caption\": \"Morning routine post\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Get Integrations",
+					"request": { "method": "GET", "url": "{{base_url}}/studio/integrations" }
+				},
+				{
+					"name": "Intelligence",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/studio/intelligence",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"text\": \"Analyze this caption\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Video Analysis",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/studio/video/analyze",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"videoUrl\": \"\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Create Clip",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/studio/video/clip",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"videoUrl\": \"\",\n  \"startTime\": 0,\n  \"endTime\": 30\n}"
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Startpages (Link-in-Bio)",
+			"item": [
+				{
+					"name": "Get Public Page",
+					"request": {
+						"auth": { "type": "noauth" },
+						"method": "GET",
+						"url": "{{base_url}}/startpages/p/:slug"
+					}
+				},
+				{
+					"name": "Track Click",
+					"request": {
+						"auth": { "type": "noauth" },
+						"method": "POST",
+						"url": "{{base_url}}/startpages/p/:pageId/links/:linkId/click"
+					}
+				},
+				{
+					"name": "Check Slug",
+					"request": {
+						"auth": { "type": "noauth" },
+						"method": "GET",
+						"url": {
+							"raw": "{{base_url}}/startpages/check-slug?slug=mypage",
+							"host": ["{{base_url}}"],
+							"path": ["startpages", "check-slug"],
+							"query": [{ "key": "slug", "value": "mypage" }]
+						}
+					}
+				},
+				{
+					"name": "Get My Pages",
+					"request": { "method": "GET", "url": "{{base_url}}/startpages" }
+				},
+				{
+					"name": "Create Page",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/startpages",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"My Links\",\n  \"slug\": \"mypage\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Get Page",
+					"request": { "method": "GET", "url": "{{base_url}}/startpages/:id" }
+				},
+				{
+					"name": "Update Page",
+					"request": {
+						"method": "PUT",
+						"url": "{{base_url}}/startpages/:id",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Updated Links\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Delete Page",
+					"request": { "method": "DELETE", "url": "{{base_url}}/startpages/:id" }
+				},
+				{
+					"name": "Add Link",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/startpages/:id/links",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"My YouTube\",\n  \"url\": \"https://youtube.com/@me\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Update Link",
+					"request": {
+						"method": "PUT",
+						"url": "{{base_url}}/startpages/:id/links/:linkId",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Updated Link\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Delete Link",
+					"request": { "method": "DELETE", "url": "{{base_url}}/startpages/:id/links/:linkId" }
+				},
+				{
+					"name": "Reorder Links",
+					"request": {
+						"method": "PUT",
+						"url": "{{base_url}}/startpages/:id/links/reorder",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"orderedIds\": []\n}"
+						}
+					}
+				},
+				{
+					"name": "Get Page Analytics",
+					"request": { "method": "GET", "url": "{{base_url}}/startpages/:id/analytics" }
+				}
+			]
+		},
+		{
+			"name": "Notifications",
+			"item": [
+				{
+					"name": "Get Notifications",
+					"request": { "method": "GET", "url": "{{base_url}}/notifications" }
+				},
+				{
+					"name": "Mark All Read",
+					"request": { "method": "PATCH", "url": "{{base_url}}/notifications/read-all" }
+				},
+				{
+					"name": "Mark Read",
+					"request": { "method": "PATCH", "url": "{{base_url}}/notifications/:id/read" }
+				},
+				{
+					"name": "Delete Notification",
+					"request": { "method": "DELETE", "url": "{{base_url}}/notifications/:id" }
+				},
+				{
+					"name": "Get VAPID Key",
+					"request": { "method": "GET", "url": "{{base_url}}/notifications/push/vapid-key" }
+				},
+				{
+					"name": "Register Push Subscription",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/notifications/push/subscribe",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"endpoint\": \"\",\n  \"keys\": { \"p256dh\": \"\", \"auth\": \"\" }\n}"
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Subscriptions",
+			"item": [
+				{
+					"name": "Get Pricing",
+					"request": {
+						"auth": { "type": "noauth" },
+						"method": "GET",
+						"url": "{{base_url}}/subscriptions/pricing"
+					}
+				},
+				{
+					"name": "Get Checkout Config",
+					"request": {
+						"auth": { "type": "noauth" },
+						"method": "GET",
+						"url": "{{base_url}}/subscriptions/config"
+					}
+				},
+				{
+					"name": "Get Subscription",
+					"request": { "method": "GET", "url": "{{base_url}}/subscriptions" }
+				},
+				{
+					"name": "Create Checkout",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/subscriptions/checkout",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"planId\": \"pro\",\n  \"interval\": \"monthly\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Change Plan",
+					"request": {
+						"method": "PATCH",
+						"url": "{{base_url}}/subscriptions/change",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"planId\": \"enterprise\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Cancel Subscription",
+					"request": { "method": "POST", "url": "{{base_url}}/subscriptions/cancel" }
+				},
+				{
+					"name": "Reactivate Subscription",
+					"request": { "method": "POST", "url": "{{base_url}}/subscriptions/reactivate" }
+				},
+				{
+					"name": "Get Payment History",
+					"request": { "method": "GET", "url": "{{base_url}}/subscriptions/payments" }
+				},
+				{
+					"name": "Create Portal Session",
+					"request": { "method": "POST", "url": "{{base_url}}/subscriptions/portal" }
+				},
+				{
+					"name": "Verify Razorpay Payment",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/subscriptions/verify-razorpay",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"razorpay_order_id\": \"\",\n  \"razorpay_payment_id\": \"\",\n  \"razorpay_signature\": \"\"\n}"
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Settings",
+			"item": [
+				{
+					"name": "Get Settings",
+					"request": { "method": "GET", "url": "{{base_url}}/settings" }
+				},
+				{
+					"name": "Update Settings",
+					"request": {
+						"method": "PATCH",
+						"url": "{{base_url}}/settings",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"timezone\": \"America/New_York\"\n}"
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Usage",
+			"item": [
+				{
+					"name": "Get Usage Summary",
+					"request": { "method": "GET", "url": "{{base_url}}/usage" }
+				},
+				{
+					"name": "Get Usage History",
+					"request": { "method": "GET", "url": "{{base_url}}/usage/history" }
+				}
+			]
+		},
+		{
+			"name": "RSS",
+			"item": [
+				{
+					"name": "Get Feeds",
+					"request": { "method": "GET", "url": "{{base_url}}/rss" }
+				},
+				{
+					"name": "Create Feed",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/rss",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"url\": \"https://example.com/feed.xml\",\n  \"name\": \"Tech News\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Delete Feed",
+					"request": { "method": "DELETE", "url": "{{base_url}}/rss/:id" }
+				},
+				{
+					"name": "Toggle Feed",
+					"request": {
+						"method": "PATCH",
+						"url": "{{base_url}}/rss/:id/toggle",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"active\": true\n}"
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Cloud Import",
+			"item": [
+				{
+					"name": "Import from Google Drive",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/cloud-import/google-drive",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"fileIds\": []\n}"
+						}
+					}
+				},
+				{
+					"name": "Import from Dropbox",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/cloud-import/dropbox",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"paths\": []\n}"
+						}
+					}
+				},
+				{
+					"name": "Import from Canva",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/cloud-import/canva",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"designIds\": []\n}"
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Webhooks",
+			"item": [
+				{
+					"name": "WhatsApp Verify",
+					"request": {
+						"auth": { "type": "noauth" },
+						"method": "GET",
+						"url": "{{base_url}}/webhooks/whatsapp"
+					}
+				},
+				{
+					"name": "WhatsApp Webhook",
+					"request": {
+						"auth": { "type": "noauth" },
+						"method": "POST",
+						"url": "{{base_url}}/webhooks/whatsapp",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{}"
+						}
+					}
+				},
+				{
+					"name": "Stripe Webhook",
+					"request": {
+						"auth": { "type": "noauth" },
+						"method": "POST",
+						"url": "{{base_url}}/webhooks/stripe",
+						"header": [{ "key": "Content-Type", "value": "application/octet-stream" }],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						}
+					}
+				},
+				{
+					"name": "Razorpay Webhook",
+					"request": {
+						"auth": { "type": "noauth" },
+						"method": "POST",
+						"url": "{{base_url}}/webhooks/razorpay",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{}"
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Admin",
+			"item": [
+				{
+					"name": "Get Admin Stats",
+					"request": { "method": "GET", "url": "{{base_url}}/admin/stats" }
+				},
+				{
+					"name": "Create Invite",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/admin/invites",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"newuser@example.com\",\n  \"role\": \"CREATOR\"\n}"
+						}
+					}
+				},
+				{
+					"name": "List Invites",
+					"request": { "method": "GET", "url": "{{base_url}}/admin/invites" }
+				},
+				{
+					"name": "Revoke Invite",
+					"request": { "method": "DELETE", "url": "{{base_url}}/admin/invites/:id" }
+				},
+				{
+					"name": "Validate Invite Token",
+					"request": {
+						"auth": { "type": "noauth" },
+						"method": "GET",
+						"url": "{{base_url}}/admin/invites/validate/:token"
+					}
+				},
+				{
+					"name": "Accept Invite",
+					"request": {
+						"auth": { "type": "noauth" },
+						"method": "POST",
+						"url": "{{base_url}}/admin/invites/accept/:token",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"New User\",\n  \"password\": \"password123\"\n}"
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Public API",
+			"item": [
+				{
+					"name": "Create API Key",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/public/keys",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"My Integration\",\n  \"scopes\": [\"read\", \"write\"]\n}"
+						}
+					}
+				},
+				{
+					"name": "List API Keys",
+					"request": { "method": "GET", "url": "{{base_url}}/public/keys" }
+				},
+				{
+					"name": "Revoke API Key",
+					"request": { "method": "DELETE", "url": "{{base_url}}/public/keys/:id" }
+				},
+				{
+					"name": "List Posts (API Key)",
+					"request": {
+						"auth": {
+							"type": "apikey",
+							"apikey": [
+								{ "key": "key", "value": "X-API-Key", "type": "string" },
+								{ "key": "value", "value": "{{api_key}}", "type": "string" },
+								{ "key": "in", "value": "header", "type": "string" }
+							]
+						},
+						"method": "GET",
+						"url": "{{base_url}}/public/posts"
+					}
+				},
+				{
+					"name": "Create Post (API Key)",
+					"request": {
+						"auth": {
+							"type": "apikey",
+							"apikey": [
+								{ "key": "key", "value": "X-API-Key", "type": "string" },
+								{ "key": "value", "value": "{{api_key}}", "type": "string" },
+								{ "key": "in", "value": "header", "type": "string" }
+							]
+						},
+						"method": "POST",
+						"url": "{{base_url}}/public/posts",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"caption\": \"Post via API\",\n  \"platform\": \"instagram\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Get Post (API Key)",
+					"request": {
+						"auth": {
+							"type": "apikey",
+							"apikey": [
+								{ "key": "key", "value": "X-API-Key", "type": "string" },
+								{ "key": "value", "value": "{{api_key}}", "type": "string" },
+								{ "key": "in", "value": "header", "type": "string" }
+							]
+						},
+						"method": "GET",
+						"url": "{{base_url}}/public/posts/:id"
+					}
+				},
+				{
+					"name": "Get Analytics (API Key)",
+					"request": {
+						"auth": {
+							"type": "apikey",
+							"apikey": [
+								{ "key": "key", "value": "X-API-Key", "type": "string" },
+								{ "key": "value", "value": "{{api_key}}", "type": "string" },
+								{ "key": "in", "value": "header", "type": "string" }
+							]
+						},
+						"method": "GET",
+						"url": "{{base_url}}/public/analytics"
+					}
+				}
+			]
+		}
+	]
+}

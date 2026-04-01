@@ -175,9 +175,10 @@ export async function getAdminAgentHistory(req: AuthRequest, res: Response) {
  * into the system prompt, replacing the old keyword-routing approach.
  */
 export async function chat(req: AuthRequest, res: Response) {
-  const { message, history } = req.body as {
+  const { message, history, attachments } = req.body as {
     message: string;
     history?: Array<{ role: 'user' | 'ai'; content: string }>;
+    attachments?: Array<{ url: string; name: string; type: string }>;
   };
   const userId = req.user!.userId;
 
@@ -203,7 +204,8 @@ Guidelines:
 - Use bullet points and headers for clarity
 - Reference actual metrics when available
 - Give actionable recommendations
-- For content generation, optimize for the user's niche and platforms`;
+- For content generation, optimize for the user's niche and platforms
+- When the user attaches images or videos, acknowledge them and incorporate them into your response (e.g. suggest captions for an image, feedback on a video thumbnail)`;
 
     // Build conversation messages
     const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
@@ -220,7 +222,14 @@ Guidelines:
       }
     }
 
-    messages.push({ role: 'user', content: message });
+    // Build the user message, including attachment references
+    let userContent = message;
+    if (attachments && attachments.length > 0) {
+      const attachmentDesc = attachments.map((a) => `[Attached ${a.type}: ${a.name} — ${a.url}]`).join('\n');
+      userContent = `${attachmentDesc}\n\n${message}`;
+    }
+
+    messages.push({ role: 'user', content: userContent });
 
     const response = await openai.chat.completions.create({
       model: env.OPENAI_MODEL,

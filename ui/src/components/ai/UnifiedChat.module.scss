@@ -41,6 +41,24 @@
     .input_area {
       padding: $space-3;
     }
+
+    .input_row {
+      gap: $space-1;
+    }
+
+    .staging {
+      padding: $space-2 0 0;
+    }
+
+    .attachment_img {
+      max-width: 120px;
+      max-height: 100px;
+    }
+
+    .attachment_video {
+      max-width: 160px;
+      max-height: 120px;
+    }
   }
 
   // ── Mode: Fullpage ──
@@ -234,10 +252,44 @@
 // ── Input area ──
 .input_area {
   display: flex;
-  align-items: center;
-  gap: $space-2;
+  flex-direction: column;
   border-top: 1px solid $color-border;
   flex-shrink: 0;
+}
+
+.input_row {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+}
+
+.file_input {
+  display: none;
+}
+
+.attach_btn {
+  width: 36px;
+  height: 36px;
+  border-radius: $radius-md;
+  background: none;
+  border: 1px solid $color-border;
+  color: $color-slate-500;
+  cursor: pointer;
+  @include flex-center;
+  font-size: 14px;
+  transition: all $transition-fast;
+  flex-shrink: 0;
+
+  &:hover:not(:disabled) {
+    color: $color-primary-600;
+    border-color: $color-primary-300;
+    background: $color-primary-50;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 }
 
 .input_field {
@@ -316,4 +368,110 @@
 @keyframes typingBounce {
   0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
   30%           { transform: translateY(-4px); opacity: 1; }
+}
+
+// ── Attachment staging area (pending uploads) ──
+.staging {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-2;
+  padding: $space-2 $space-3 0;
+}
+
+.staging__item {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  padding: $space-1 $space-2;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  background: $color-slate-50;
+  max-width: 180px;
+}
+
+.staging__thumb {
+  width: 32px;
+  height: 32px;
+  object-fit: cover;
+  border-radius: $radius-sm;
+  flex-shrink: 0;
+}
+
+.staging__icon_wrap {
+  width: 32px;
+  height: 32px;
+  border-radius: $radius-sm;
+  background: $color-slate-200;
+  @include flex-center;
+  font-size: 12px;
+  color: $color-slate-600;
+  flex-shrink: 0;
+}
+
+.staging__name {
+  font-size: $font-size-xs;
+  color: $color-slate-600;
+  @include truncate;
+  max-width: 100px;
+}
+
+.staging__remove {
+  background: none;
+  border: none;
+  padding: 2px;
+  color: $color-slate-400;
+  cursor: pointer;
+  font-size: 10px;
+  flex-shrink: 0;
+  border-radius: $radius-sm;
+  transition: all $transition-fast;
+
+  &:hover {
+    color: $color-danger-500;
+    background: $color-danger-50;
+  }
+}
+
+// ── Attachment previews inside message bubbles ──
+.msg__attachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-2;
+  margin-bottom: $space-2;
+}
+
+.attachment_preview {
+  border-radius: $radius-md;
+  overflow: hidden;
+}
+
+.attachment_img {
+  max-width: 200px;
+  max-height: 160px;
+  border-radius: $radius-md;
+  object-fit: cover;
+  display: block;
+}
+
+.attachment_video {
+  max-width: 240px;
+  max-height: 180px;
+  border-radius: $radius-md;
+  display: block;
+}
+
+.attachment_file {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  padding: $space-2 $space-3;
+  background: rgba($color-white, 0.15);
+  border-radius: $radius-md;
+  font-size: $font-size-xs;
+  color: inherit;
+
+  span {
+    @include truncate;
+    max-width: 140px;
+  }
 }

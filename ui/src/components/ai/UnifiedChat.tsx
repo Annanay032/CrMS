@@ -14,6 +14,12 @@ import {
   faCalendarDays,
   faComments,
   faLightbulb,
+  faPaperclip,
+  faXmark,
+  faImage,
+  faVideo,
+  faFile,
+  faSpinner,
 } from '@fortawesome/free-solid-svg-icons';
 import { useAppDispatch } from '@/hooks/store';
 import {
@@ -22,7 +28,8 @@ import {
   aiTaskFailed,
 } from '@/store/ai.slice';
 import { useChatWithAgentMutation } from '@/store/endpoints/notifications';
-import type { Message } from '@/pages/ai/types';
+import { uploadFileToServer } from '@/utils/upload';
+import type { Message, MessageAttachment } from '@/pages/ai/types';
 import s from './UnifiedChat.module.scss';
 
 export type ChatMode = 'floating' | 'fullpage' | 'embedded';
@@ -75,9 +82,12 @@ export function UnifiedChat({ mode, contextHint, quickActions }: UnifiedChatProp
   ]);
   const [input, setInput] = useState('');
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
+  const [attachments, setAttachments] = useState<MessageAttachment[]>([]);
+  const [uploading, setUploading] = useState(false);
   const [chatWithAgent, { isLoading }] = useChatWithAgentMutation();
   const endRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const actions = getQuickActions(mode, quickActions);
   const showQuickActions = messages.length <= 1;
@@ -91,10 +101,12 @@ export function UnifiedChat({ mode, contextHint, quickActions }: UnifiedChatProp
   }, []);
 
   const sendMessage = useCallback(async (text: string) => {
-    if (!text.trim() || isLoading) return;
+    if ((!text.trim() && attachments.length === 0) || isLoading) return;
     const userMessage = text.trim();
+    const currentAttachments = [...attachments];
     setInput('');
-    setMessages((prev) => [...prev, { role: 'user', content: userMessage }]);
+    setAttachments([]);
+    setMessages((prev) => [...prev, { role: 'user', content: userMessage, attachments: currentAttachments.length > 0 ? currentAttachments : undefined }]);
 
     const taskId = `chat-${Date.now()}`;
     dispatch(aiTaskStarted({ id: taskId, label: 'AI Chat', agentType: 'CHAT', startedAt: Date.now() }));
@@ -105,7 +117,11 @@ export function UnifiedChat({ mode, contextHint, quickActions }: UnifiedChatProp
         .filter((m) => m.content !== WELCOME)
         .map((m) => ({ role: m.role, content: m.content }));
 
-      const result = await chatWithAgent({ message: userMessage, history }).unwrap();
+      const result = await chatWithAgent({
+        message: userMessage || 'Please analyze the attached file(s).',
+        history,
+        attachments: currentAttachments.length > 0 ? currentAttachments : undefined,
+      }).unwrap();
       const chatData = result.data;
 
       let formatted: string;
@@ -132,7 +148,7 @@ export function UnifiedChat({ mode, contextHint, quickActions }: UnifiedChatProp
       ]);
       dispatch(aiTaskFailed({ id: taskId, label: 'AI Chat', agentType: 'CHAT' }));
     }
-  }, [isLoading, chatWithAgent, dispatch, messages]);
+  }, [isLoading, chatWithAgent, dispatch, messages, attachments]);
 
   const handleSend = () => sendMessage(input);
 
@@ -142,6 +158,30 @@ export function UnifiedChat({ mode, contextHint, quickActions }: UnifiedChatProp
       handleSend();
     }
   };
+
+  const handleFileSelect = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploading(true);
+    for (const file of Array.from(files)) {
+      const url = await uploadFileToServer(file);
+      if (url) {
+        let type: MessageAttachment['type'] = 'file';
+        if (file.type.startsWith('image/')) type = 'image';
+        else if (file.type.startsWith('video/')) type = 'video';
+        setAttachments((prev) => [...prev, { url, name: file.name, type }]);
+      }
+    }
+    setUploading(false);
+    // Reset file input so the same file can be selected again
+    e.target.value = '';
+    inputRef.current?.focus();
+  }, []);
+
+  const removeAttachment = useCallback((idx: number) => {
+    setAttachments((prev) => prev.filter((_, i) => i !== idx));
+  }, []);
 
   const handleCopy = useCallback((content: string, idx: number) => {
     navigator.clipboard.writeText(content);
@@ -167,7 +207,25 @@ export function UnifiedChat({ mode, contextHint, quickActions }: UnifiedChatProp
               <FontAwesomeIcon icon={msg.role === 'ai' ? faRobot : faUser} />
             </div>
             <div className={`${s.msg__bubble} ${msg.role === 'ai' ? s['msg__bubble--ai'] : s['msg__bubble--user']}`}>
-              <div className={s.msg__content}>{msg.content}</div>
+              {msg.attachments && msg.attachments.length > 0 && (
+                <div className={s.msg__attachments}>
+                  {msg.attachments.map((att, ai) => (
+                    <div key={ai} className={s.attachment_preview}>
+                      {att.type === 'image' ? (
+                        <img src={att.url} alt={att.name} className={s.attachment_img} />
+                      ) : att.type === 'video' ? (
+                        <video src={att.url} className={s.attachment_video} controls />
+                      ) : (
+                        <div className={s.attachment_file}>
+                          <FontAwesomeIcon icon={faFile} />
+                          <span>{att.name}</span>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+              {msg.content && <div className={s.msg__content}>{msg.content}</div>}
               {msg.role === 'ai' && i > 0 && (
                 <div className={s.msg__actions}>
                   <button className={s.msg__action} onClick={() => handleUseAsCaption(msg.content)} title="Use as Caption">
@@ -220,22 +278,64 @@ export function UnifiedChat({ mode, contextHint, quickActions }: UnifiedChatProp
 
       {/* Input area */}
       <div className={s.input_area}>
-        <textarea
-          ref={inputRef}
-          className={s.input_field}
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder={contextHint ?? 'Ask anything — analytics, content ideas, growth strategy...'}
-          rows={1}
-        />
-        <button
-          className={s.send_btn}
-          onClick={handleSend}
-          disabled={!input.trim() || isLoading}
-        >
-          <FontAwesomeIcon icon={faPaperPlane} />
-        </button>
+        {/* Attachment staging area */}
+        {attachments.length > 0 && (
+          <div className={s.staging}>
+            {attachments.map((att, i) => (
+              <div key={i} className={s.staging__item}>
+                {att.type === 'image' ? (
+                  <img src={att.url} alt={att.name} className={s.staging__thumb} />
+                ) : att.type === 'video' ? (
+                  <div className={s.staging__icon_wrap}>
+                    <FontAwesomeIcon icon={faVideo} />
+                  </div>
+                ) : (
+                  <div className={s.staging__icon_wrap}>
+                    <FontAwesomeIcon icon={faFile} />
+                  </div>
+                )}
+                <span className={s.staging__name}>{att.name}</span>
+                <button className={s.staging__remove} onClick={() => removeAttachment(i)}>
+                  <FontAwesomeIcon icon={faXmark} />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+        <div className={s.input_row}>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*,video/*,.pdf,.doc,.docx,.txt,.csv"
+            multiple
+            className={s.file_input}
+            onChange={handleFileSelect}
+          />
+          <button
+            className={s.attach_btn}
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+            title="Attach file"
+          >
+            <FontAwesomeIcon icon={uploading ? faSpinner : faPaperclip} spin={uploading} />
+          </button>
+          <textarea
+            ref={inputRef}
+            className={s.input_field}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder={contextHint ?? 'Ask anything — analytics, content ideas, growth strategy...'}
+            rows={1}
+          />
+          <button
+            className={s.send_btn}
+            onClick={handleSend}
+            disabled={(!input.trim() && attachments.length === 0) || isLoading}
+          >
+            <FontAwesomeIcon icon={faPaperPlane} />
+          </button>
+        </div>
       </div>
     </div>
   );
